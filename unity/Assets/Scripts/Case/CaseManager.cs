@@ -1,13 +1,18 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using WhoBrokeIt.Interaction;
 using WhoBrokeIt.Props;
 
 namespace WhoBrokeIt.Case
 {
-    /// <summary>P1: the fixed "Kimin Alet Çantası?" case. Tracks objectives, notebook, toasts and the finale screen.</summary>
-    public class CaseManager : MonoBehaviour
+    /// <summary>
+    /// The fixed "Kimin Alet Çantası?" case. The server owns all progress (NetworkVariables); every peer renders the same HUD,
+    /// notebook and finale from it. Toasts are broadcast by the server.
+    /// </summary>
+    public class CaseManager : NetworkBehaviour
     {
         public static CaseManager I { get; private set; }
 
@@ -16,49 +21,67 @@ namespace WhoBrokeIt.Case
         public CollectionZone collectionZone;
         public DeliveryZone deliveryZone;
 
-        public bool FuseRepaired { get; private set; }
-        public bool DebrisCleared { get; private set; }
-        public bool CabinetDelivered { get; private set; }
-        public bool Finished { get; private set; }
-        public int Sparks { get; private set; }
-        public int Resets { get; private set; }
+        public NetworkVariable<int> clueMask = new NetworkVariable<int>(0);
+        public NetworkVariable<int> debrisCount = new NetworkVariable<int>(0);
+        public NetworkVariable<int> sparks = new NetworkVariable<int>(0);
+        public NetworkVariable<int> resets = new NetworkVariable<int>(0);
+        public NetworkVariable<float> elapsed = new NetworkVariable<float>(0f);
+        public NetworkVariable<bool> DebrisCleared = new NetworkVariable<bool>(false);
+        public NetworkVariable<bool> FuseRepaired = new NetworkVariable<bool>(false);
+        public NetworkVariable<bool> CabinetDelivered = new NetworkVariable<bool>(false);
+        public NetworkVariable<bool> Finished = new NetworkVariable<bool>(false);
 
-        readonly List<(string title, string text)> clues = new List<(string, string)>();
         readonly Queue<(string msg, float sec)> toasts = new Queue<(string, float)>();
         string toastText;
         float toastUntil;
-        float elapsed;
-        bool notebookOpen;
+        bool notebookOpen, cursorFreed;
         GUIStyle label, big, small, box;
 
         void Awake() { I = this; }
 
-        void Start()
+        public override void OnNetworkSpawn()
         {
-            Toast("Fitil (telsiz): Greenfield'a hoş geldiniz. İki iyi haberim var: kasabada kimse yok...", 5f);
-            Toast("Fitil: ...ve kimse şikâyet etmiyor. Su kulesindeki forklifti sonra konuşuruz.", 5f);
-            Toast("Fitil: Atölyeyi açın. Önce etrafı inceleyin. [Tab] defter, [1][2][3] aletler.", 6f);
+            I = this;
+            LocalToast("Fitil (telsiz): Greenfield'a hoş geldiniz. İki iyi haberim var: kasabada kimse yok...", 5f);
+            LocalToast("Fitil: ...ve kimse şikâyet etmiyor. Su kulesindeki forklifti sonra konuşuruz.", 5f);
+            LocalToast("Fitil: Atölyeyi açın. Önce etrafı inceleyin. [Tab] defter, [1][2][3] aletler.", 6f);
         }
 
+        // ---------- toasts ----------
         public static void Toast(string msg, float sec = 3.5f)
         {
-            if (I != null) I.toasts.Enqueue((msg, sec));
+            if (I == null) return;
+            if (I.IsServer && I.IsSpawned) I.ToastRpc(msg, sec);
+            else I.LocalToast(msg, sec);
         }
 
-        public static void NoteSpark() { if (I != null) I.Sparks++; }
-        public static void NoteReset() { if (I != null) I.Resets++; }
+        [Rpc(SendTo.ClientsAndHost)]
+        void ToastRpc(string msg, float sec) => LocalToast(msg, sec);
 
-        public bool AddClue(string title, string text)
+        void LocalToast(string msg, float sec) => toasts.Enqueue((msg, sec));
+
+        // ---------- server-side state changes ----------
+        public static void NoteSpark() { if (I != null && I.IsServer) I.sparks.Value++; }
+        public static void NoteReset() { if (I != null && I.IsServer) I.resets.Value++; }
+
+        public bool HasClue(int index) => (clueMask.Value & (1 << index)) != 0;
+        public int ClueCount
         {
-            foreach (var c in clues) if (c.title == title) return false;
-            clues.Add((title, text));
-            Toast("İpucu bulundu: " + title + " (" + clues.Count + "/" + cluesTotal + ")");
+            get { var n = 0; for (var i = 0; i < 16; i++) if (HasClue(i)) n++; return n; }
+        }
+
+        public bool ServerAddClue(int index, string title)
+        {
+            if (!IsServer || HasClue(index)) return false;
+            clueMask.Value |= 1 << index;
+            Toast("İpucu bulundu: " + title + " (" + ClueCount + "/" + cluesTotal + ")");
             return true;
         }
 
-        public void OnFuseRepaired()
+        public void ServerFuseRepaired()
         {
-            FuseRepaired = true;
+            if (!IsServer) return;
+            FuseRepaired.Value = true;
             Toast("Atölyenin ışıkları yandı!");
         }
 
@@ -68,24 +91,13 @@ namespace WhoBrokeIt.Case
             if (kb != null)
             {
                 if (kb.tabKey.wasPressedThisFrame) notebookOpen = !notebookOpen;
-                if (Finished && kb.enterKey.wasPressedThisFrame) SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                if (Finished.Value && IsServer && kb.enterKey.wasPressedThisFrame)
+                    NetworkManager.SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
             }
 
-            if (!Finished) elapsed += Time.deltaTime;
-
-            if (!DebrisCleared && collectionZone != null && collectionZone.Count >= debrisNeeded)
+            if (Finished.Value && !cursorFreed)
             {
-                DebrisCleared = true;
-                Toast("Giriş temiz! Şimdi sigorta kutusu.");
-            }
-            if (!CabinetDelivered && deliveryZone != null && deliveryZone.Delivered)
-            {
-                CabinetDelivered = true;
-                Toast("Alet dolabı yerinde. Harika iş!");
-            }
-            if (!Finished && clues.Count >= cluesTotal && DebrisCleared && FuseRepaired && CabinetDelivered)
-            {
-                Finished = true;
+                cursorFreed = true;
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
@@ -97,8 +109,26 @@ namespace WhoBrokeIt.Case
                 toastText = t.msg;
                 toastUntil = Time.time + t.sec;
             }
+
+            if (!IsServer) return;
+
+            if (!Finished.Value) elapsed.Value += Time.deltaTime;
+            if (collectionZone != null) debrisCount.Value = collectionZone.Count;
+            if (!DebrisCleared.Value && debrisCount.Value >= debrisNeeded)
+            {
+                DebrisCleared.Value = true;
+                Toast("Giriş temiz! Şimdi sigorta kutusu.");
+            }
+            if (!CabinetDelivered.Value && deliveryZone != null && deliveryZone.Delivered)
+            {
+                CabinetDelivered.Value = true;
+                Toast("Alet dolabı yerinde. Harika iş!");
+            }
+            if (!Finished.Value && ClueCount >= cluesTotal && DebrisCleared.Value && FuseRepaired.Value && CabinetDelivered.Value)
+                Finished.Value = true;
         }
 
+        // ---------- HUD ----------
         void EnsureStyles()
         {
             if (label != null) return;
@@ -112,6 +142,7 @@ namespace WhoBrokeIt.Case
 
         void OnGUI()
         {
+            if (!IsSpawned) return;
             EnsureStyles();
             var s = Screen.height / 1080f;
             GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1f));
@@ -120,13 +151,12 @@ namespace WhoBrokeIt.Case
 
             GUI.Box(new Rect(20, 20, 560, 190), "", box);
             label.normal.textColor = Color.white;
-            var debris = collectionZone != null ? collectionZone.Count : 0;
             GUI.Label(new Rect(34, 28, 540, 180),
                 "GÖREV: Atölyeyi Aç\n" +
-                Tick(clues.Count >= cluesTotal) + "İpuçlarını bul (" + clues.Count + "/" + cluesTotal + ")\n" +
-                Tick(DebrisCleared) + "Enkazı toplama alanına süpür (" + Mathf.Min(debris, debrisNeeded) + "/" + debrisNeeded + ")\n" +
-                Tick(FuseRepaired) + "Sigorta kutusunu çekiçle onar\n" +
-                Tick(CabinetDelivered) + "Alet dolabını atölyeye taşı", label);
+                Tick(ClueCount >= cluesTotal) + "İpuçlarını bul (" + ClueCount + "/" + cluesTotal + ")\n" +
+                Tick(DebrisCleared.Value) + "Enkazı toplama alanına süpür (" + Mathf.Min(debrisCount.Value, debrisNeeded) + "/" + debrisNeeded + ")\n" +
+                Tick(FuseRepaired.Value) + "Sigorta kutusunu çekiçle onar\n" +
+                Tick(CabinetDelivered.Value) + "Alet dolabını atölyeye taşı", label);
 
             small.normal.textColor = new Color(1f, 1f, 1f, 0.8f);
             GUI.Label(new Rect(20, h - 60, w - 40, 50),
@@ -140,37 +170,44 @@ namespace WhoBrokeIt.Case
                 label.alignment = TextAnchor.UpperLeft;
             }
 
-            if (notebookOpen && !Finished)
+            if (notebookOpen && !Finished.Value)
             {
                 GUI.Box(new Rect(w - 620, 120, 600, 520), "", box);
                 var sb = new System.Text.StringBuilder("KASABA DEFTERİ\n\n");
-                if (clues.Count == 0) sb.Append("(henüz ipucu yok)\n");
-                foreach (var c in clues) sb.Append("• ").Append(c.title).Append(": ").Append(c.text).Append("\n\n");
+                var any = false;
+                foreach (var c in FindObjectsByType<Clue>(FindObjectsSortMode.InstanceID))
+                {
+                    if (!HasClue(c.index)) continue;
+                    any = true;
+                    sb.Append("• ").Append(c.title).Append(": ").Append(c.text).Append("\n\n");
+                }
+                if (!any) sb.Append("(henüz ipucu yok)\n");
                 GUI.Label(new Rect(w - 600, 130, 570, 500), sb.ToString(), label);
             }
 
-            if (Finished) DrawFinale(w, h);
+            if (Finished.Value) DrawFinale(w);
         }
 
-        void DrawFinale(float w, float h)
+        void DrawFinale(float w)
         {
             GUI.Box(new Rect(w / 2f - 560, 120, 1120, 760), "", box);
             big.normal.textColor = new Color(1f, 0.85f, 0.2f);
             GUI.Label(new Rect(w / 2f - 540, 140, 1080, 70), "KİM BOZDU?", big);
             label.normal.textColor = Color.white;
-            var mins = Mathf.FloorToInt(elapsed / 60f);
-            var secs = Mathf.FloorToInt(elapsed % 60f);
+            var mins = Mathf.FloorToInt(elapsed.Value / 60f);
+            var secs = Mathf.FloorToInt(elapsed.Value % 60f);
             var awards = "";
-            if (Sparks > 0) awards += "• Kıvılcım Meraklısı (" + Sparks + " patlama)\n";
-            if (Resets > 0) awards += "• Kurtarma Ustası (" + Resets + " sıfırlama)\n";
-            if (elapsed < 600f) awards += "• Hızlı İşçi\n";
+            if (sparks.Value > 0) awards += "• Kıvılcım Meraklısı (" + sparks.Value + " patlama)\n";
+            if (resets.Value > 0) awards += "• Kurtarma Ustası (" + resets.Value + " sıfırlama)\n";
+            if (elapsed.Value < 600f) awards += "• Hızlı İşçi\n";
             if (awards == "") awards = "• Sakin ve Düzenli (şüpheli...)\n";
             GUI.Label(new Rect(w / 2f - 520, 230, 1040, 640),
                 "Suçlu: SİNCAP MEHMET.\n\n" +
                 "Kabloyu kemirip sigortayı attırdı. Böreği ise Muhtar bırakmıştı (kimse sormadı).\n" +
                 "Alet çantası da Mehmet'in yuvasında bulundu, içinde yarım börek vardı.\n\n" +
                 "Süre: " + mins + " dk " + secs + " sn\n\nÖdüller:\n" + awards +
-                "\nSu kulesindeki forklift ise... bir sonraki vakaya kalıyor.\n\n[Enter] Yeniden oyna", label);
+                "\nSu kulesindeki forklift ise... bir sonraki vakaya kalıyor.\n\n" +
+                (IsServer ? "[Enter] Yeniden oyna" : "Oda sahibi yeniden başlatabilir."), label);
         }
     }
 }

@@ -4,28 +4,28 @@ using WhoBrokeIt.Player;
 
 namespace WhoBrokeIt.Interaction
 {
-    /// <summary>Finds the best Interactable near the player, shows a prompt, fires on [E]. While carrying, [E] drops.</summary>
+    /// <summary>Owner-side: finds the best Interactable near the player, shows a prompt, asks the server on [E]. While carrying, [E] drops.</summary>
     public class InteractionSystem : MonoBehaviour
     {
         public float range = 2.5f;
         Interactable current;
-        CarrySystem carry;
+        PlayerNet net;
         GUIStyle style;
 
-        void Awake() => carry = GetComponent<CarrySystem>();
+        void Awake() => net = GetComponent<PlayerNet>();
 
         void Update()
         {
             var kb = Keyboard.current;
             var pressed = kb != null && kb.eKey.wasPressedThisFrame;
-            if (carry != null && carry.IsCarrying)
+            if (net.carry != null && net.carry.IsCarrying)
             {
                 current = null;
-                if (pressed) carry.Drop();
+                if (pressed) net.DropRpc();
                 return;
             }
             current = FindBest();
-            if (current != null && pressed) current.Interact(gameObject);
+            if (current != null && pressed) current.RequestInteract();
         }
 
         Interactable FindBest()
@@ -48,7 +48,7 @@ namespace WhoBrokeIt.Interaction
         void OnGUI()
         {
             string text = null;
-            if (carry != null && carry.IsCarrying) text = "[E] Bırak";
+            if (net.carry != null && net.carry.IsCarrying) text = "[E] Bırak";
             else if (current != null) text = "[E] " + current.Prompt;
             if (text == null) return;
             if (style == null)

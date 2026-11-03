@@ -1,57 +1,65 @@
+using Unity.Netcode;
 using UnityEngine;
 using WhoBrokeIt.Case;
 
 namespace WhoBrokeIt.Player
 {
-    /// <summary>Holds one light rigidbody in front of the player. Drop is triggered by InteractionSystem ([E]).</summary>
-    [RequireComponent(typeof(CharacterController))]
-    public class CarrySystem : MonoBehaviour
+    /// <summary>
+    /// Holds one light rigidbody in front of the player. Server-authoritative: the server drives the held body toward the player's
+    /// hold point; every peer can read heldId to show the prompt.
+    /// </summary>
+    public class CarrySystem : NetworkBehaviour
     {
         public Transform holdPoint;
         public float maxMass = 6f;
+        public NetworkVariable<ulong> heldId = new NetworkVariable<ulong>(ulong.MaxValue);
 
         Rigidbody held;
-        Collider[] heldColliders;
-        CharacterController cc;
+        Collider[] heldColliders, bodyColliders;
         bool wasGravity;
         float oldDamping;
 
-        public bool IsCarrying => held != null;
+        public bool IsCarrying => heldId.Value != ulong.MaxValue;
 
-        void Awake() => cc = GetComponent<CharacterController>();
-
-        public bool TryPickup(Rigidbody rb)
+        public bool ServerPickup(Rigidbody rb, PlayerNet player)
         {
-            if (held != null || rb == null) return false;
+            if (!IsServer || held != null || rb == null) return false;
             if (rb.mass > maxMass)
             {
-                CaseManager.Toast("Çok ağır! Forklift ya da el arabası lazım.", 2.5f);
+                CaseManager.Toast("Çok ağır! Forklift ya da el arabası lazım.");
                 return false;
             }
+            var no = rb.GetComponent<NetworkObject>();
+            if (no == null) return false;
             held = rb;
             heldColliders = rb.GetComponentsInChildren<Collider>();
-            foreach (var c in heldColliders) Physics.IgnoreCollision(cc, c, true);
+            bodyColliders = player.BodyColliders();
+            foreach (var h in heldColliders) foreach (var b in bodyColliders) Physics.IgnoreCollision(h, b, true);
             wasGravity = rb.useGravity;
             oldDamping = rb.linearDamping;
             rb.useGravity = false;
             rb.linearDamping = 4f;
+            heldId.Value = no.NetworkObjectId;
             return true;
         }
 
-        public void Drop()
+        public void ServerDrop()
         {
-            if (held == null) return;
-            foreach (var c in heldColliders) if (c != null) Physics.IgnoreCollision(cc, c, false);
+            if (!IsServer || held == null) return;
+            foreach (var h in heldColliders) foreach (var b in bodyColliders) if (h != null && b != null) Physics.IgnoreCollision(h, b, false);
             held.useGravity = wasGravity;
             held.linearDamping = oldDamping;
             held = null;
+            heldId.Value = ulong.MaxValue;
         }
+
+        public override void OnNetworkDespawn() { if (IsServer) ServerDrop(); }
 
         void FixedUpdate()
         {
-            if (held == null) return;
+            if (!IsServer || held == null) return;
             var to = holdPoint.position - held.position;
-            if (to.magnitude > 3.5f) { Drop(); return; }
+            if (to.magnitude > 3.5f) { ServerDrop(); return; }
             held.linearVelocity = Vector3.ClampMagnitude(to * 14f, 12f);
             held.angularVelocity = Vector3.zero;
             held.MoveRotation(Quaternion.Slerp(held.rotation, Quaternion.Euler(0f, transform.eulerAngles.y, 0f), 0.2f));

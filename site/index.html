@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who Broke It? — Kim bozdu? Kooperatif fizik komedisi</title>
+<meta name="description" content="Who Broke It?, çökmüş bir kasabayı arkadaşlarınla birlikte inceleyip onardığın, fiziğin ve kazaların hikâyeyi yazdığı kooperatif bir komedi oyunu. Windows için erken geliştirme sürümünü indir.">
+<meta name="theme-color" content="#121d18">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Who Broke It? — Kim bozdu?">
+<meta property="og:description" content="Çökmüş bir kasaba, bir forklift, kemirilmiş bir kablo ve arkadaşların. Kooperatif fizik komedisi.">
+<meta property="og:url" content="https://whobrokeit.cicibyte.com/">
+<meta name="twitter:card" content="summary">
+<link rel="canonical" href="https://whobrokeit.cicibyte.com/">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip" href="#icerik">İçeriğe geç</a>
+
+<header class="site">
+  <div class="wrap bar">
+    <a class="logo" href="#top" aria-label="Who Broke It? ana sayfa"><span class="q" aria-hidden="true">?</span> Who Broke It?</a>
+    <button class="menu-btn" aria-label="Menüyü aç" aria-expanded="false" aria-controls="nav">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <nav class="main" id="nav" aria-label="Ana menü">
+      <a href="#oyun">Oyun</a>
+      <a href="#vaka">Vaka</a>
+      <a href="#ozellikler">Özellikler</a>
+      <a href="#arkadaslarla">Arkadaşlarla</a>
+      <a href="#kontroller">Kontroller</a>
+      <a href="#yol-haritasi">Yol haritası</a>
+      <a href="#sss">SSS</a>
+      <a class="btn primary small" href="#indir" data-dl-nav>İndir</a>
+    </nav>
+  </div>
+</header>
+
+<main id="icerik">
+<!-- ================= HERO ================= -->
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><i></i> Erken geliştirme sürümü</span>
+      <h1>Kim <em>bozdu?</em></h1>
+      <p class="lead">Çöküşten sonra, su kulesinin tepesinde bir forklift duran bir kasaba. Arkadaşlarınla önce <strong>ne olduğunu</strong> çözer, sonra düzeltmeye çalışırken <strong>daha büyüğünü bozarsın</strong>. Suçlu bir yerlerde... belki de sensin.</p>
+      <div class="cta">
+        <a class="btn primary" href="#indir" data-dl aria-disabled="true" id="hero-dl">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+          <span id="hero-dl-label">İndirme bağlantısı yükleniyor...</span>
+        </a>
+        <a class="btn ghost" href="#vaka">Nasıl oynanır?</a>
+      </div>
+      <p class="cta-note">Windows 10/11 · 64 bit · <span data-size>~90 MB</span> · kurulum gerektirmez</p>
+      <ul class="badges" aria-label="Oyun özellikleri">
+        <li>1–4 oyuncu</li><li>Kooperatif</li><li>Fizik komedisi</li><li>Gizem</li><li>Hafif ve hızlı</li>
+      </ul>
+    </div>
+
+    <div class="scene" role="img" aria-label="Çizim: gün batımında bir kasaba. Su kulesinin tepesinde bir forklift, solda atölye, çatıda börek tutan bir sincap, önde sandıklar ve iki işçi.">
+      <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1f3b52"/><stop offset=".55" stop-color="#d98f5a"/><stop offset="1" stop-color="#f6c76b"/>
+          </linearGradient>
+          <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe9a0" stop-opacity=".95"/><stop offset="1" stop-color="#ffb703" stop-opacity=".35"/>
+          </linearGradient>
+        </defs>
+        <rect width="960" height="560" fill="url(#sky)"/>
+        <circle cx="760" cy="330" r="74" fill="#ffd23f" opacity=".92"/>
+        <path d="M0 400 Q150 330 300 380 T600 370 T960 360 V560 H0Z" fill="#2f5d4a"/>
+        <path d="M0 440 Q200 390 420 430 T960 420 V560 H0Z" fill="#244a3a"/>
+        <rect y="470" width="960" height="90" fill="#1d3a2e"/>
+        <rect y="505" width="960" height="14" fill="#33443b"/>
+        <g stroke="#f4efe2" stroke-opacity=".5" stroke-width="3" stroke-dasharray="26 22"><path d="M0 512H960"/></g>
+
+        <!-- su kulesi + forklift -->
+        <g>
+          <g stroke="#3b4d52" stroke-width="7" stroke-linecap="round"><path d="M110 250L90 470M190 250L210 470M150 250V470M100 350L200 430M200 350L100 430"/></g>
+          <rect x="82" y="168" width="136" height="92" rx="16" fill="#5f7f86"/>
+          <rect x="82" y="168" width="136" height="92" rx="16" fill="none" stroke="#3b565c" stroke-width="4"/>
+          <path d="M72 168 L150 118 L228 168Z" fill="#7e5a45"/>
+          <rect x="60" y="160" width="180" height="12" rx="5" fill="#3b4d52"/>
+          <!-- tepedeki forklift -->
+          <g class="bob">
+            <rect x="105" y="124" width="62" height="26" rx="5" fill="#ffd23f"/>
+            <rect x="108" y="100" width="6" height="26" fill="#2b2b2b"/><rect x="146" y="100" width="6" height="26" fill="#2b2b2b"/>
+            <rect x="106" y="96" width="50" height="6" rx="2" fill="#2b2b2b"/>
+            <rect x="170" y="98" width="6" height="52" fill="#2b2b2b"/>
+            <rect x="176" y="140" width="38" height="5" fill="#8a8f93"/>
+            <circle cx="120" cy="152" r="8" fill="#242424"/><circle cx="156" cy="152" r="8" fill="#242424"/>
+          </g>
+          <text x="232" y="112" font-size="34" font-weight="900" fill="#ffd23f" class="bob">?</text>
+        </g>
+
+        <!-- atölye -->
+        <g>
+          <rect x="420" y="290" width="320" height="180" fill="#cdbf9d"/>
+          <path d="M404 292 L440 244 H720 L756 292Z" fill="#6b4b3a"/>
+          <rect x="446" y="256" width="150" height="26" rx="4" fill="#2b2b2b"/>
+          <text x="458" y="276" font-size="19" font-weight="900" fill="#ffd23f" letter-spacing="1.5">ATÖLYE</text>
+          <rect x="470" y="338" width="150" height="132" fill="#17181b"/>
+          <g class="flick">
+            <circle cx="500" cy="352" r="7" fill="#ffd23f"/><circle cx="545" cy="352" r="7" fill="#ffd23f"/><circle cx="590" cy="352" r="7" fill="#ffd23f"/>
+            <path d="M470 338 H620 L650 470 H440Z" fill="url(#glow)" opacity=".28"/>
+          </g>
+          <rect x="650" y="342" width="62" height="48" rx="3" fill="#a9d0d6" opacity=".9"/>
+          <path d="M681 342V390M650 366H712" stroke="#6b4b3a" stroke-width="3"/>
+          <!-- sigorta kutusu + kıvılcım -->
+          <rect x="716" y="380" width="18" height="30" rx="2" fill="#7a8890"/>
+          <circle cx="725" cy="388" r="3.5" fill="#e5484d" class="flick"/>
+          <g fill="#ffd23f">
+            <circle class="spark" cx="725" cy="396" r="2.6" style="--dx:-18px;--dy:-26px"/>
+            <circle class="spark" cx="725" cy="396" r="2.2" style="--dx:16px;--dy:-30px;animation-delay:.5s"/>
+            <circle class="spark" cx="725" cy="396" r="2.4" style="--dx:-6px;--dy:-38px;animation-delay:1s"/>
+          </g>
+          <!-- çatıdaki sincap + börek -->
+          <g class="bob" style="animation-delay:.6s">
+            <ellipse cx="690" cy="238" rx="13" ry="10" fill="#9a5f33"/>
+            <path d="M700 232 q22 -4 20 -26 q-18 6 -24 22z" fill="#b87333"/>
+            <circle cx="682" cy="230" r="7" fill="#9a5f33"/><circle cx="679" cy="228" r="1.6" fill="#111"/>
+            <ellipse cx="668" cy="234" rx="10" ry="6" fill="#e3b56b"/><path d="M660 234h16" stroke="#c88e3a" stroke-width="2"/>
+          </g>
+        </g>
+
+        <!-- DOKUNMA direği -->
+        <g>
+          <rect x="860" y="400" width="8" height="72" fill="#40505a"/>
+          <rect x="840" y="378" width="48" height="26" rx="5" fill="#e5484d"/>
+          <text x="845" y="396" font-size="11" font-weight="900" fill="#fff" letter-spacing=".5">DOKUNMA</text>
+        </g>
+
+        <!-- sandıklar + çöpler -->
+        <g>
+          <rect x="300" y="430" width="44" height="40" fill="#b9823f" stroke="#7a521f" stroke-width="3"/><path d="M300 430l44 40M344 430l-44 40" stroke="#7a521f" stroke-width="2.5"/>
+          <rect x="344" y="430" width="44" height="40" fill="#b9823f" stroke="#7a521f" stroke-width="3"/><path d="M344 430l44 40M388 430l-44 40" stroke="#7a521f" stroke-width="2.5"/>
+          <rect x="322" y="390" width="44" height="40" fill="#c58f48" stroke="#7a521f" stroke-width="3" transform="rotate(-8 344 410)"/>
+          <g fill="#8c5a4a"><rect x="250" y="456" width="14" height="12" transform="rotate(20 257 462)"/><circle cx="420" cy="474" r="8"/><rect x="236" y="470" width="12" height="10" transform="rotate(-15 242 475)"/></g>
+        </g>
+
+        <!-- iki işçi -->
+        <g>
+          <g class="bob">
+            <rect x="515" y="448" width="30" height="46" rx="14" fill="#ffd23f"/>
+            <circle cx="530" cy="438" r="15" fill="#f2c9a0"/><path d="M514 436 a16 14 0 0 1 32 0z" fill="#ffb703"/>
+            <circle cx="526" cy="440" r="2" fill="#222"/><circle cx="535" cy="440" r="2" fill="#222"/>
+            <rect x="545" y="468" width="46" height="6" rx="3" fill="#5a4636"/>
+          </g>
+          <g class="bob" style="animation-delay:.9s">
+            <rect x="618" y="452" width="30" height="42" rx="14" fill="#3aa6a0"/>
+            <circle cx="633" cy="442" r="15" fill="#e9b88e"/><path d="M617 440 a16 14 0 0 1 32 0z" fill="#e07b3c"/>
+            <circle cx="629" cy="444" r="2" fill="#222"/><circle cx="638" cy="444" r="2" fill="#222"/>
+          </g>
+          <rect x="560" y="478" width="68" height="14" rx="4" fill="#6a7a82"/><circle cx="572" cy="496" r="7" fill="#2b2b2b"/><circle cx="616" cy="496" r="7" fill="#2b2b2b"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- ================= OYUN ================= -->
+<section id="oyun">
+  <div class="wrap">
+    <p class="kicker">Oyun</p>
+    <h2>Önce anla. Sonra düzelt. Sonra daha beter yap.</h2>
+    <p class="sec-lead">Greenfield, büyük bir çöküşün ardından boşalmış küçük bir kasaba. Elektrikler kesik, borular patlak, yollar kırık. Ve her şeyin bir sebebi var. Bazen sıkıcı bir arıza, bazen bir sincap, bazen de o gün kasabada bulunan bir ekip.</p>
+    <div class="grid g3">
+      <article class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v3l2 2"/></svg></div>
+        <h3>Merak</h3>
+        <p>Burada ne olmuş? Çamurlu izler, kemirilmiş kablolar, sıcak bir börek... Her nesnenin bir hikâyesi var. Cevabı hemen vermiyoruz.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ico rust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>Kaos ve mizah</h3>
+        <p>Fizik tabanlı kazalar, devrilen yükler, yanlış sırada onarılan sigorta kutuları. Küçük hatalar zincirleme felakete dönüşür; her zaman kurtarılabilir.</p>
+      </article>
+      <article class="card reveal">
+        <div class="ico teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.2c3 0 6 1.8 6 5.8"/></svg></div>
+        <h3>Birlikte başarma</h3>
+        <p>Arkadaşlarınla aynı kasabadasınız. Kimi süpürür, kimi forklifti sürer, kimi sigorta kutusunun başında bekler. Kasabayı birlikte canlandırırsınız.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= VAKA ================= -->
+<section class="alt" id="vaka">
+  <div class="wrap">
+    <p class="kicker">İlk vaka</p>
+    <h2>“Kimin Alet Çantası?”</h2>
+    <p class="sec-lead">Erken sürümde tek bir vaka var ve yaklaşık 15–20 dakika sürer. Atölyenin ışıkları neden sönük? Alet çantası nerede? Ve su kulesindeki forklift... o başka bir vakanın işi.</p>
+    <ol class="steps">
+      <li class="reveal"><h3>İncele</h3><p>Üç ipucu bul: bir börek, küçük patili izler, kemirilmiş bir kablo. Hepsi kasaba defterine yazılır.</p></li>
+      <li class="reveal"><h3>Temizle</h3><p>Süpürgeyle atölyenin girişindeki enkazı toplama alanına it. Parçalar uçuşur, sandıklar devrilir.</p></li>
+      <li class="reveal"><h3>Onar</h3><p>Çekiçle sigorta kutusunu onar. Girişi temizlemeden denersen... kıvılcımlar seni bekler.</p></li>
+      <li class="reveal"><h3>Taşı</h3><p>Ağır alet dolabını forkliftle paletten kaldır, atölyeye götür. Yük düşebilir. Kurtarılabilir.</p></li>
+      <li class="reveal"><h3>İfşa</h3><p>Işıklar yanar, suçlu ilan edilir, komik ödüller dağıtılır. Kimse aşağılanmaz.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= ÖZELLİKLER ================= -->
+<section id="ozellikler">
+  <div class="wrap">
+    <p class="kicker">Özellikler</p>
+    <h2>Küçük, hafif ve yaramaz</h2>
+    <p class="sec-lead">Foto-gerçekçilik peşinde değiliz. Oyunun gücü fizik, etkileşim ve arkadaşlarınla yaşayacağın beklenmedik anlar.</p>
+    <div class="grid g3">
+      <article class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h13V8H9L6 12H3zM16 11h3l2 3v3h-5"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></div><h3>İmza aracı: forklift</h3><p>Sür, çatalı kaldır, paleti taşı. Biraz fazla hızlı, biraz fazla komik. Takılırsan bir tuşla sıfırla.</p></article>
+      <article class="card reveal"><div class="ico rust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7-3 3-7-7zM12 8L4 16l4 4 8-8"/></svg></div><h3>Üç alet</h3><p>Eller, süpürge ve çekiç. Her biri basit, birlikte kullanınca kaotik. Tüm eylemler sunucu tarafında doğrulanır.</p></article>
+      <article class="card reveal"><div class="ico teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><h3>Kasaba defteri</h3><p>Bulduğun ipuçları ortak defterde birikir. Tab’a bas, tüm ekibin bulduklarını gör.</p></article>
+      <article class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.5"/></svg></div><h3>Her şey kurtarılabilir</h3><p>Takılan nesne ya da araç için “sıfırla”. Kalıcı çıkmaz yok; oyun seni cezalandırmaz, güldürür.</p></article>
+      <article class="card reveal"><div class="ico rust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Sunucu-otoriter altyapı</h3><p>Oyun mantığı, sonradan özel sunuculara taşınabilecek şekilde baştan sunucu tarafında yazıldı.</p></article>
+      <article class="card reveal"><div class="ico teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg></div><h3>Kendini güncelleyen</h3><p>Yeni sürüm çıkınca oyun kendiliğinden indirir, doğrular ve yeniden başlar. Elle indir-kur yok.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ARKADAŞLARLA ================= -->
+<section class="alt" id="arkadaslarla">
+  <div class="wrap">
+    <p class="kicker">Çok oyunculu</p>
+    <h2>Arkadaşlarınla oyna</h2>
+    <p class="sec-lead">Bir kişi oda kurar (sunucu o kişinin bilgisayarıdır), diğerleri adresini yazıp katılır. Steam daveti ve oyuncu listesi sonraki sürümlerde gelecek.</p>
+    <div class="grid g2">
+      <ol class="install card reveal">
+        <li><span><strong>Oda kur.</strong> Ana menüde “Oda kur”u seç. Ekranda bilgisayarının adresi görünür.</span></li>
+        <li><span><strong>Adresi paylaş.</strong> Aynı ağdaysanız yerel adresi, uzaktaysanız bir VPN (ör. Tailscale) adresini arkadaşına ver.</span></li>
+        <li><span><strong>Katıl.</strong> Arkadaşların “Odaya katıl” kutusuna adresi yazıp “Katıl”a basar. Port: <kbd>7777</kbd> (UDP).</span></li>
+        <li><span><strong>Birlikte oynayın.</strong> Toplam 4 kişiye kadar. Vaka ilerlemesi herkeste ortaktır.</span></li>
+      </ol>
+      <div class="card reveal">
+        <h3 style="margin-top:0">Bilmen gerekenler</h3>
+        <p style="margin-bottom:12px">Doğrudan bağlantı kullanıyoruz; internetten oynamak için bir VPN ya da yönlendirme gerekir. Kolay yolu (Steam daveti) hazırlıyoruz.</p>
+        <p class="note"><strong>Dürüst not:</strong> Bu bir erken geliştirme sürümüdür. Hatalar olabilir, oyun hızla değişiyor. Her geri bildirim değerli.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KONTROLLER ================= -->
+<section id="kontroller">
+  <div class="wrap">
+    <p class="kicker">Kontroller</p>
+    <h2>Öğrenmesi iki dakika</h2>
+    <p class="sec-lead">Klavye ve fare. Kontrollerin hepsi ekranın altında da yazar.</p>
+    <table class="keys">
+      <thead><tr><th>Tuş</th><th>Ne yapar?</th></tr></thead>
+      <tbody>
+        <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Yürü · <kbd>Shift</kbd> koş · <kbd>Space</kbd> zıpla</td></tr>
+        <tr><td>Fare</td><td>Kamerayı döndür · tekerlek ile yakınlaştır · <kbd>Esc</kbd> fareyi serbest bırakır</td></tr>
+        <tr><td><kbd>E</kbd></td><td>İncele, al / bırak, forklifte bin / çık</td></tr>
+        <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Eller · süpürge · çekiç (kullanmak için sol tık)</td></tr>
+        <tr><td><kbd>Tab</kbd></td><td>Kasaba defteri</td></tr>
+        <tr><td><kbd>X</kbd> (basılı tut)</td><td>Takılan nesneyi ya da aracı sıfırla</td></tr>
+        <tr><td>Forklift</td><td><kbd>W</kbd><kbd>S</kbd> sür · <kbd>A</kbd><kbd>D</kbd> dön · <kbd>R</kbd> çatalı kaldır · <kbd>F</kbd> indir</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= İNDİR ================= -->
+<section class="alt" id="indir">
+  <div class="wrap">
+    <p class="kicker">İndir</p>
+    <h2>Windows için erken geliştirme sürümü</h2>
+    <p class="sec-lead">Ücretsiz test sürümü. Kurulum yok: zip’i aç, oyunu çalıştır.</p>
+    <div class="dl">
+      <div class="dl-card">
+        <div class="ver"><strong data-ver>v—</strong><span class="pill">Erken sürüm</span></div>
+        <p class="meta"><span data-date></span> <span data-size></span> · Windows 10/11, 64 bit</p>
+        <a class="btn primary" href="#indir" data-dl aria-disabled="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
+          Zip dosyasını indir
+        </a>
+        <p id="dl-status" role="status" class="meta" style="margin-top:14px"></p>
+        <p class="meta" data-notes style="margin:8px 0 0"></p>
+        <div class="hash" id="hash-box" hidden>
+          <span>SHA-256:</span> <code data-sha></code> <button class="mini-btn" id="copy-sha" type="button">Kopyala</button>
+        </div>
+      </div>
+      <div>
+        <ol class="install">
+          <li><span><strong>Zip’i klasöre çıkar.</strong> Masaüstü gibi yazılabilir bir yere. Zip içinden doğrudan çalıştırma.</span></li>
+          <li><span><strong><code>WhoBrokeIt.exe</code>’yi aç.</strong> İlk açılış birkaç saniye sürebilir.</span></li>
+          <li><span><strong>Sonrası otomatik.</strong> Yeni sürüm çıkınca oyun açılışta kendini günceller.</span></li>
+        </ol>
+        <p class="note" style="margin-top:20px"><strong>Windows uyarısı:</strong> Dosya henüz dijital olarak imzalı değil. SmartScreen “Bilinmeyen yayımcı” derse <em>Daha fazla bilgi → Yine de çalıştır</em> de. Güvenmek istersen, yukarıdaki SHA-256 değerini indirdiğin dosyayla karşılaştırabilirsin.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= YOL HARİTASI ================= -->
+<section id="yol-haritasi">
+  <div class="wrap">
+    <p class="kicker">Yol haritası</p>
+    <h2>Önce oyun var olsun, sonra büyüsün</h2>
+    <p class="sec-lead">Hedefimiz kusursuz bir evren değil; arkadaşlarla gerçekten eğlenilen, çıkabilen bir oyun. Plan değişebilir, tarihler söz değildir.</p>
+    <div class="road">
+      <div class="stage reveal"><span class="tag now">Şimdi</span><h3 style="margin:0">Çekirdek oyun</h3><ul><li>Atölye vakası, 1–4 oyuncu</li><li>Forklift, aletler, kasaba defteri</li><li>Otomatik güncelleme</li></ul></div>
+      <div class="stage reveal"><span class="tag next">Sıradaki</span><h3 style="margin:0">Eğlenceyi cilala</h3><ul><li>Ses, müzik ve animasyonlar</li><li>Karakter hissi ve fizik ayarı</li><li>Dış test grupları</li></ul></div>
+      <div class="stage reveal"><span class="tag next">Hedef</span><h3 style="margin:0">Steam Erken Erişim</h3><ul><li>Steam daveti ve lobi</li><li>Mağaza sayfası</li><li>Geri bildirimle büyüme</li></ul></div>
+      <div class="stage reveal"><span class="tag later">Sonra</span><h3 style="margin:0">Yeni vakalar</h3><ul><li>Yeni bölgeler ve vakalar</li><li>Kalıcı ortak dünya</li><li>Dedicated sunucular</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SSS ================= -->
+<section class="alt" id="sss">
+  <div class="wrap" style="max-width:860px">
+    <p class="kicker">Sıkça sorulanlar</p>
+    <h2>SSS</h2>
+    <details><summary>Oyun ücretsiz mi?</summary><p>Bu erken test sürümü ücretsizdir. Steam’de çıkacak sürümün fiyatı henüz belli değil; temel işbirliği ve oyun mekanikleri hiçbir zaman para karşılığı kilitlenmeyecek.</p></details>
+    <details><summary>Kaç kişi oynayabilir?</summary><p>Şimdilik 1–4 kişi. Tek başına da oynanır, bir kişi oda kurar, diğerleri katılır.</p></details>
+    <details><summary>İnternetten arkadaşlarımla nasıl oynarım?</summary><p>Şu an doğrudan bağlantı kullanılıyor: oda kuran kişinin adresi ve UDP 7777 portu gerekir. Kolay yol olarak Tailscale gibi bir VPN öneriyoruz. Steam ile tek tıkla davet yolda.</p></details>
+    <details><summary>Oyun kendini nasıl güncelliyor?</summary><p>Açılışta bu sitedeki <code>latest.json</code> dosyasına bakar. Yeni sürüm varsa indirir, SHA-256 ile doğrular ve yeniden başlar. Bir oyun oturumundaysan bitene kadar bekler. <code>-noupdate</code> parametresiyle kapatabilirsin.</p></details>
+    <details><summary>Hangi veriler toplanıyor?</summary><p>Hesap ve kişisel veri toplamıyoruz. Oyun yalnızca güncelleme kontrolü için bu siteye bağlanır. Çok oyunculu bağlantıda yalnızca oda sahibinin adresine bağlanırsın.</p></details>
+    <details><summary>Windows “bilinmeyen yayımcı” diyor, güvenli mi?</summary><p>Dosya henüz dijital olarak imzalanmadı; bu erken sürümlerde normal. İndirme bölümündeki SHA-256 değerini kontrol edebilirsin. Steam sürümünde bu uyarı olmayacak.</p></details>
+    <details><summary>Mac veya Linux sürümü olacak mı?</summary><p>Şimdilik yalnızca Windows. Diğer platformlar için söz vermiyoruz.</p></details>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <a class="logo" href="#top"><span class="q" aria-hidden="true">?</span> Who Broke It?</a>
+      <p style="margin:12px 0 0;max-width:34em">Kooperatif fizik komedisi. Bir <a href="https://cicibyte.com">CiciByte</a> projesi. Erken geliştirme: içerik ve tarihler değişebilir.</p>
+    </div>
+    <div>
+      <a href="#oyun">Oyun</a> · <a href="#vaka">Vaka</a> · <a href="#kontroller">Kontroller</a> · <a href="#indir">İndir</a> · <a href="#sss">SSS</a>
+      <p style="margin:12px 0 0">© 2026 CiciByte. Tüm hakları saklıdır.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/app.js" defer></script>
+</body>
+</html>

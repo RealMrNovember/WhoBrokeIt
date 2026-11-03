@@ -2,11 +2,15 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
+using Unity.Netcode;
+using Unity.Netcode.Components;
+using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using WhoBrokeIt.Case;
 using WhoBrokeIt.Interaction;
+using WhoBrokeIt.Net;
 using WhoBrokeIt.Player;
 using WhoBrokeIt.Props;
 using WhoBrokeIt.Vehicles;
@@ -31,6 +35,30 @@ public static class ProjectSetup
         };
         var report = BuildPipeline.BuildPlayer(opts);
         Debug.Log("[WBI] Build result: " + report.summary.result + ", size " + (report.summary.totalSize / (1024 * 1024)) + " MB");
+        if (report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
+    }
+
+    /// <summary>Linux player used only for the headless multiplayer smoke test (scene must already exist).</summary>
+    public static void BuildLinuxSmoke()
+    {
+        // URP crashes the null graphics device used by -nographics; the smoke test never renders, so build it without a pipeline.
+        GraphicsSettings.defaultRenderPipeline = null;
+        for (var i = 0; i < QualitySettings.names.Length; i++)
+        {
+            QualitySettings.SetQualityLevel(i);
+            QualitySettings.renderPipeline = null;
+        }
+        SetupPlayerSettings();
+        var opts = new BuildPlayerOptions
+        {
+            scenes = new[] { ScenePath },
+            locationPathName = "Builds/Linux/wbi.x86_64",
+            target = BuildTarget.StandaloneLinux64,
+            options = BuildOptions.None
+        };
+        var report = BuildPipeline.BuildPlayer(opts);
+        Debug.Log("[WBI] Linux build: " + report.summary.result);
+        SetupRenderPipeline();   // restore URP for the real (Windows) builds
         if (report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
     }
 
@@ -63,6 +91,8 @@ public static class ProjectSetup
         PlayerSettings.defaultScreenHeight = 720;
         PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
         PlayerSettings.runInBackground = true;
+        var versionFile = Path.Combine(Application.dataPath, "..", "VERSION");
+        PlayerSettings.bundleVersion = File.Exists(versionFile) ? File.ReadAllText(versionFile).Trim() : "0.0.1";
     }
 
     // ---------- helpers ----------
@@ -89,12 +119,23 @@ public static class ProjectSetup
         return go;
     }
 
+    /// <summary>Server-authoritative synced object (NetworkObject + NetworkTransform [+ NetworkRigidbody]).</summary>
+    static void Net(GameObject go, bool withRigidbody)
+    {
+        go.AddComponent<NetworkObject>();
+        var nt = go.AddComponent<NetworkTransform>();
+        nt.SyncScaleX = nt.SyncScaleY = nt.SyncScaleZ = false;
+        nt.Interpolate = true;
+        if (withRigidbody) go.AddComponent<NetworkRigidbody>();
+    }
+
     static Rigidbody Body(GameObject go, float mass)
     {
         var rb = go.AddComponent<Rigidbody>();
         rb.mass = mass;
         rb.linearDamping = 0.3f;
         rb.angularDamping = 0.6f;
+        Net(go, true);
         return rb;
     }
 
@@ -105,9 +146,11 @@ public static class ProjectSetup
         go.AddComponent<Resettable>();
     }
 
-    static Clue MakeClue(GameObject go, string title, string text)
+    static Clue MakeClue(GameObject go, int index, string title, string text)
     {
+        go.AddComponent<NetworkObject>();
         var c = go.AddComponent<Clue>();
+        c.index = index;
         c.title = title;
         c.text = text;
         return c;
@@ -235,6 +278,7 @@ public static class ProjectSetup
         Prim(PrimitiveType.Cube, "ProngR", new Vector3(0.25f, 0.045f, 2.0f), new Vector3(0.18f, 0.08f, 1.3f), metal, forksGo.transform);
         var forkRb = forksGo.AddComponent<Rigidbody>();
         forkRb.isKinematic = true;
+        Net(forksGo, false);
         var fk = hull.AddComponent<Forklift>();
         fk.forks = forkRb;
         fk.prompt = "Forklifte bin";
@@ -262,6 +306,7 @@ public static class ProjectSetup
 
         var box = Prim(PrimitiveType.Cube, "FuseBox", new Vector3(0, 1.3f, 13.65f), new Vector3(1f, 1.4f, 0.4f), metal);
         var ind = Prim(PrimitiveType.Sphere, "FuseIndicator", new Vector3(0.25f, 1.8f, 13.4f), Vector3.one * 0.22f, metal, null, false);
+        box.AddComponent<NetworkObject>();
         var fuse = box.AddComponent<FuseBox>();
         fuse.lights = lamps;
         fuse.indicator = ind.GetComponent<Renderer>();
@@ -269,16 +314,16 @@ public static class ProjectSetup
         // clues
         var boreg1 = Prim(PrimitiveType.Capsule, "Boreg", new Vector3(1.2f, 0.25f, 13.0f), new Vector3(0.28f, 0.2f, 0.28f), boreg);
         boreg1.transform.rotation = Quaternion.Euler(0, 0, 90);
-        MakeClue(boreg1, "Sıcak börek", "Sigorta kutusunun dibinde yarım yenmiş, hâlâ sıcak bir börek duruyor. Kimse bu kadar tedbirsiz olamaz.");
+        MakeClue(boreg1, 0, "Sıcak börek", "Sigorta kutusunun dibinde yarım yenmiş, hâlâ sıcak bir börek duruyor. Kimse bu kadar tedbirsiz olamaz.");
         for (var i = 0; i < 5; i++)
             Prim(PrimitiveType.Cube, "Footprint_" + i, new Vector3(-1.4f + i * 0.2f, 0.06f, 8.2f + i * 1.0f), new Vector3(0.18f, 0.02f, 0.32f), mud, null, false);
         var print = Prim(PrimitiveType.Cube, "FootprintClue", new Vector3(-0.6f, 0.1f, 10.4f), new Vector3(0.9f, 0.1f, 1.2f), mud, null, true);
         print.GetComponent<Renderer>().enabled = false;
-        MakeClue(print, "Küçük patili izler", "Çamurlu, küçük, çok hızlı bırakılmış izler. Bir çocuk ya da bir şey... tüylü bir şey.");
+        MakeClue(print, 1, "Küçük patili izler", "Çamurlu, küçük, çok hızlı bırakılmış izler. Bir çocuk ya da bir şey... tüylü bir şey.");
         var cable = Prim(PrimitiveType.Cylinder, "ChewedCable", new Vector3(-3.4f, 1.1f, 13.6f), new Vector3(0.08f, 0.5f, 0.08f), dark);
-        MakeClue(cable, "Kemirilmiş kablo", "Kablo temiz kesilmemiş: minik dişlerin izi var. Sigortanın atmasının sebebi bu.");
+        MakeClue(cable, 2, "Kemirilmiş kablo", "Kablo temiz kesilmemiş: minik dişlerin izi var. Sigortanın atmasının sebebi bu.");
 
-        // player
+        // player prefab (spawned by the NetworkManager for each client)
         var player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
         player.name = "Player";
         Object.DestroyImmediate(player.GetComponent<CapsuleCollider>());
@@ -286,7 +331,11 @@ public static class ProjectSetup
         player.transform.position = new Vector3(0, 1.1f, -14);
         var cc = player.AddComponent<CharacterController>();
         cc.height = 2f; cc.radius = 0.5f; cc.center = Vector3.zero;
-        var pc = player.AddComponent<PlayerController>();
+        player.AddComponent<NetworkObject>();
+        var ont = player.AddComponent<OwnerNetworkTransform>();
+        ont.SyncScaleX = ont.SyncScaleY = ont.SyncScaleZ = false;
+        ont.Interpolate = true;
+        player.AddComponent<PlayerController>();
         player.AddComponent<InteractionSystem>();
 
         var hold = new GameObject("HoldPoint");
@@ -301,27 +350,76 @@ public static class ProjectSetup
         Prim(PrimitiveType.Cube, "HammerHead", new Vector3(0, 0, 0.45f), new Vector3(3f, 2f, 0.4f), metal, hammer.transform, false);
         broom.SetActive(false);
         hammer.SetActive(false);
-        var tools = player.AddComponent<ToolController>();
-        tools.broomVisual = broom;
-        tools.hammerVisual = hammer;
+        var net = player.AddComponent<PlayerNet>();
+        net.carry = carry;
+        net.broomVisual = broom;
+        net.hammerVisual = hammer;
+        net.bodyRenderers = new[] { player.GetComponent<Renderer>() };
+        var proxy = new GameObject("PlayerProxy");
+        proxy.transform.SetParent(player.transform, false);
+        var pcol = proxy.AddComponent<CapsuleCollider>();
+        pcol.height = 2f;
+        pcol.radius = 0.5f;
+        var prb = proxy.AddComponent<Rigidbody>();
+        prb.isKinematic = true;
+        net.proxyRb = prb;
+        player.AddComponent<ToolController>();
 
-        // camera
+        Directory.CreateDirectory("Assets/Prefabs");
+        var playerPrefab = PrefabUtility.SaveAsPrefabAsset(player, "Assets/Prefabs/Player.prefab");
+        Object.DestroyImmediate(player);
+
+        // camera (enabled for the local player once it spawns)
         var camGo = new GameObject("Main Camera") { tag = "MainCamera" };
         var cam = camGo.AddComponent<Camera>();
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = new Color(0.55f, 0.75f, 0.95f);
         cam.farClipPlane = 200f;
         camGo.AddComponent<AudioListener>();
-        var tpc = camGo.AddComponent<ThirdPersonCamera>();
-        tpc.target = player.transform;
-        pc.cameraTransform = camGo.transform;
+        camGo.transform.position = new Vector3(0, 6, -22);
+        camGo.transform.rotation = Quaternion.Euler(15, 0, 0);
+        camGo.AddComponent<ThirdPersonCamera>().enabled = false;
 
-        // case manager
+        // case manager (shared case state)
         var gm = new GameObject("CaseManager");
+        gm.AddComponent<NetworkObject>();
         var cm = gm.AddComponent<CaseManager>();
         cm.collectionZone = collection;
         cm.deliveryZone = delivery;
 
+        // network manager + host/join menu
+        var nmGo = new GameObject("NetworkManager");
+        var nm = nmGo.AddComponent<NetworkManager>();
+        var ut = nmGo.AddComponent<UnityTransport>();
+        var prefabList = ScriptableObject.CreateInstance<NetworkPrefabsList>();
+        prefabList.Add(new NetworkPrefab { Prefab = playerPrefab });
+        AssetDatabase.CreateAsset(prefabList, "Assets/Prefabs/NetworkPrefabs.asset");
+        nm.NetworkConfig = new NetworkConfig
+        {
+            NetworkTransport = ut,
+            PlayerPrefab = playerPrefab,
+            EnableSceneManagement = true,
+            ConnectionApproval = false,
+            TickRate = 30
+        };
+        nm.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(prefabList);
+        nmGo.AddComponent<NetworkMenu>();
+        nmGo.AddComponent<SmokeRunner>();
+        nmGo.AddComponent<UpdateChecker>();
+
+        // The scene must exist on disk before NetworkObject can derive GlobalObjectIdHash: save, generate hashes, save again.
+        EditorSceneManager.SaveScene(scene, ScenePath);
+        var validate = typeof(NetworkObject).GetMethod("OnValidate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var fixedCount = 0;
+        foreach (var no in Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.None))
+        {
+            if (validate != null) validate.Invoke(no, null);
+            EditorUtility.SetDirty(no);
+            var prop = new SerializedObject(no).FindProperty("GlobalObjectIdHash");
+            if (prop != null && prop.uintValue != 0) fixedCount++;
+        }
+        Debug.Log("[WBI] NetworkObject hash uretilen: " + fixedCount);
+        EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene, ScenePath);
         AssetDatabase.SaveAssets();
     }

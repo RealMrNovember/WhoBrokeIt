@@ -1,14 +1,16 @@
 using System.Collections.Generic;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 namespace WhoBrokeIt.Props
 {
-    /// <summary>Remembers a start pose so stuck props/vehicles can be reset (hold X).</summary>
+    /// <summary>Remembers a start pose so stuck props/vehicles can be reset (hold X). Server only.</summary>
     public class Resettable : MonoBehaviour
     {
         Vector3 pos;
         Quaternion rot;
         Rigidbody rb;
+        NetworkTransform nt;
         public System.Action onReset;
 
         static readonly List<Resettable> all = new List<Resettable>();
@@ -18,6 +20,7 @@ namespace WhoBrokeIt.Props
             pos = transform.position;
             rot = transform.rotation;
             rb = GetComponent<Rigidbody>();
+            nt = GetComponent<NetworkTransform>();
             all.Add(this);
         }
 
@@ -33,6 +36,7 @@ namespace WhoBrokeIt.Props
                 rb.rotation = rot;
             }
             transform.SetPositionAndRotation(pos, rot);
+            if (nt != null && nt.CanCommitToTransform) nt.Teleport(pos, rot, transform.localScale);
             if (onReset != null) onReset();
         }
 

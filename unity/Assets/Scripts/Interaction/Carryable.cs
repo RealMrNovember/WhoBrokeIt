@@ -3,16 +3,17 @@ using WhoBrokeIt.Player;
 
 namespace WhoBrokeIt.Interaction
 {
-    /// <summary>Light physics prop the player can pick up with [E].</summary>
+    /// <summary>Light physics prop a player can pick up with [E]. Runs on the server.</summary>
     [RequireComponent(typeof(Rigidbody))]
     public class Carryable : Interactable
     {
         void Reset() { prompt = "Al"; }
 
-        public override void Interact(GameObject user)
+        protected override void ServerInteract(ulong clientId)
         {
-            var carry = user.GetComponent<CarrySystem>();
-            if (carry != null) carry.TryPickup(GetComponent<Rigidbody>());
+            var player = PlayerNet.ForClient(clientId);
+            if (player == null || player.carry == null) return;
+            player.carry.ServerPickup(GetComponent<Rigidbody>(), player);
         }
     }
 }
