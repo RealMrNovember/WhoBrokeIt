@@ -1,20 +1,31 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using WhoBrokeIt.Player;
 
 namespace WhoBrokeIt.Interaction
 {
-    /// <summary>Finds the best Interactable near the player, shows a prompt, fires on [E].</summary>
+    /// <summary>Finds the best Interactable near the player, shows a prompt, fires on [E]. While carrying, [E] drops.</summary>
     public class InteractionSystem : MonoBehaviour
     {
         public float range = 2.5f;
         Interactable current;
+        CarrySystem carry;
         GUIStyle style;
+
+        void Awake() => carry = GetComponent<CarrySystem>();
 
         void Update()
         {
-            current = FindBest();
             var kb = Keyboard.current;
-            if (current != null && kb != null && kb.eKey.wasPressedThisFrame) current.Interact(gameObject);
+            var pressed = kb != null && kb.eKey.wasPressedThisFrame;
+            if (carry != null && carry.IsCarrying)
+            {
+                current = null;
+                if (pressed) carry.Drop();
+                return;
+            }
+            current = FindBest();
+            if (current != null && pressed) current.Interact(gameObject);
         }
 
         Interactable FindBest()
@@ -24,7 +35,7 @@ namespace WhoBrokeIt.Interaction
             foreach (var c in Physics.OverlapSphere(transform.position, range, ~0, QueryTriggerInteraction.Collide))
             {
                 var it = c.GetComponentInParent<Interactable>();
-                if (it == null) continue;
+                if (it == null || !it.enabled) continue;
                 var to = it.transform.position - transform.position;
                 to.y = 0f;
                 var facing = Vector3.Dot(transform.forward, to.normalized);
@@ -36,11 +47,14 @@ namespace WhoBrokeIt.Interaction
 
         void OnGUI()
         {
-            if (current == null) return;
+            string text = null;
+            if (carry != null && carry.IsCarrying) text = "[E] Bırak";
+            else if (current != null) text = "[E] " + current.Prompt;
+            if (text == null) return;
             if (style == null)
                 style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 26, fontStyle = FontStyle.Bold };
             style.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUI.Label(new Rect(0, Screen.height * 0.72f, Screen.width, 50), "[E] " + current.Prompt, style);
+            GUI.Label(new Rect(0, Screen.height * 0.72f, Screen.width, 50), text, style);
         }
     }
 }
