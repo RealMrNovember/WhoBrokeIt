@@ -1,8 +1,18 @@
-# Yol haritası (MVP)
-- [x] Altyapı: Kale boşaltıldı, Doku2 Unity imajı hazır, site yayında, SPF düzeldi
-- [ ] Unity lisansı (.ulf) → Doku2'de aktivasyon  ← engel
-- [ ] M0 Unity projesi, karakter+kamera, test alanı, 1 etkileşim, Windows build
-- [ ] M1 Tek oyunculu Workshop döngüsü
-- [ ] M2 2–4 kişilik host/join co-op
-- [ ] M3 Forklift + komik fizik, ses, cila
-- [ ] M4 İndirme sayfası + YouTuber paketi
+# Yol haritası (MVP v0.2) — ayrıntı MVP.md'de
+Hedef: tek bölge, tek vaka, 1–4 oyuncu, Steam Erken Erişim.
+
+## Altyapı (bitti)
+- [x] Kale boşaltıldı, Doku2 Unity imajı hazır, site yayında, SPF düzeldi, GitHub repo
+
+## Kritik yol (bloklayıcılar)
+- [ ] Unity lisansı (.ulf) → Doku2'de aktivasyon
+- [ ] Steamworks hesabı + uygulama kaydı (bekleme süreleri uzun, hemen başlat)
+- [ ] Steam adı / fiyat / Erken Erişim kararı
+
+## Aşamalar
+- [ ] P0 Temel: Unity projesi + Doku2 CI build + karakter/kamera + 1 etkileşim → çalışan .exe
+- [ ] P1 Tek kişilik çekirdek: Atölye döngüsü baştan sona
+- [ ] P2 Çok oyunculu: NGO + Steam lobi/davet, 2–4 kişi döngü
+- [ ] P3 Eğlence + içerik: wobble, forklift fiziği, kaza zincirleri, ses, sanat
+- [ ] P4 Dış test (5–10 kişi): MVP.md §4 ölçütleri
+- [ ] P5 Steam: mağaza sayfası (P1'den paralel), trailer, build, yayın

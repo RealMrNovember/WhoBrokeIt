@@ -6,3 +6,6 @@
 - 2026-11-03 Dağıtım: önce doğrudan zip + indirme sayfası (Steam sonra).
 - 2026-11-04 Kale oyuna ayrıldı; eski servisler durduruldu (silinmedi), siteler Kale2'de.
 - 2026-11-04 Yönetim sitesi Kale'de (Docker nginx, CF Origin CA).
+
+- 2026-11-04 MVP v0.2: tek bolge (Atolye Avlusu), tek sabit vaka, 1-4 oyuncu, NGO+Steam transport (host=sunucu), Steam Erken Erisim hedefi. Dinamik suclu sistemi ve kaza->vaka aktarimi MVP DISI.
+- 2026-11-04 Oynanabilirlik kapisi: dis test (MVP.md §4) gecilmeden Steam yayini yok.
