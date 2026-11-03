@@ -12,6 +12,7 @@ Hızlı, hafif bir MVP ile başlıyoruz; büyük vizyon için bkz. [GDD](WhoBrok
 | `DECISIONS.md` | Mimari/altyapı kararları |
 | `CHANGELOG.md` | Yapılan değişiklikler |
 | `docs/INFRA.md` | Sunucular ve çalışma düzeni (sır içermez) |
+| `docs/STORY.md` | Kurgu ve anlatım taslağı |
 
 ## Kurallar
 - Ağır işler (Unity build, render, Docker build) laptopta ÇALIŞMAZ → Doku2 / Doku. Bkz. `docs/INFRA.md`.
