@@ -10,7 +10,7 @@ Hedef: tek bölge, tek vaka, 1–4 oyuncu, Steam Erken Erişim.
 - [ ] Steam adı / fiyat / Erken Erişim kararı
 
 ## Aşamalar
-- [ ] P0 Temel: Unity projesi + Doku2 CI build + karakter/kamera + 1 etkileşim → çalışan .exe
+- [x] P0 Temel: Unity projesi + Doku CI build + karakter/kamera + 1 etkilesim → Windows .exe (87 MB) uretildi; oynanis testi bekliyor
 - [ ] P1 Tek kişilik çekirdek: Atölye döngüsü baştan sona
 - [ ] P2 Çok oyunculu: NGO + Steam lobi/davet, 2–4 kişi döngü
 - [ ] P3 Eğlence + içerik: wobble, forklift fiziği, kaza zincirleri, ses, sanat

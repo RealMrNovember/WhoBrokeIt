@@ -13,3 +13,9 @@ license/
 .vs/
 .env
 *.token
+unity/Builds/
+unity/Library/
+unity/Logs/
+unity/Temp/
+unity/UserSettings/
+unity/obj/

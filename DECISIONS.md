@@ -9,3 +9,4 @@
 
 - 2026-11-04 MVP v0.2: tek bolge (Atolye Avlusu), tek sabit vaka, 1-4 oyuncu, NGO+Steam transport (host=sunucu), Steam Erken Erisim hedefi. Dinamik suclu sistemi ve kaza->vaka aktarimi MVP DISI.
 - 2026-11-04 Oynanabilirlik kapisi: dis test (MVP.md §4) gecilmeden Steam yayini yok.
+- 2026-11-04 Unity: 6000.0.32f1 (Unity 6.0 LTS) kullanildi (Doku'daki mevcut hesap lisansi bu surumle calisiyor); build Doku uzerinde unityci/editor:ubuntu-6000.0.32f1-windows-mono-3.2.2, HADAL ile ayni makine kimligi. Lisans kopyalanmaz/silinmez.
