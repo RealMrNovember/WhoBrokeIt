@@ -56,6 +56,7 @@ namespace WhoBrokeIt.Vehicles
         bool predicting;
         float sendTimer, inT, inS, inJ, serverSpeedEst;
         Transform V => visual != null ? visual : transform;
+        AudioSource loopSound;
 
         public override string Prompt => driverId.Value == ulong.MaxValue ? label + " kullan" : label + " dolu";
         public float Heading => heading;
@@ -72,6 +73,7 @@ namespace WhoBrokeIt.Vehicles
         {
             var slick = new PhysicsMaterial("RideSlick") { dynamicFriction = 0.05f, staticFriction = 0.05f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
             foreach (var c in GetComponentsInChildren<Collider>()) c.sharedMaterial = slick;
+            loopSound = Audio.GameAudio.AttachLoop(gameObject, kind == RideKind.Skateboard ? Audio.LoopKind.SkateRoll : Audio.LoopKind.BikeTick);
             lastVisualPos = transform.position;
             if (IsServer)
             {
@@ -212,6 +214,7 @@ namespace WhoBrokeIt.Vehicles
                 fwdSpeed = pred.speed;
             }
             spin += fwdSpeed * dt;
+            Audio.GameAudio.UpdateLoop(loopSound, driverId.Value != ulong.MaxValue, fwdSpeed, maxSpeed, kind == RideKind.Skateboard ? 0.22f : 0.14f, 1f);
             var steerDeg = predicting ? pred.steer : steerAngle.Value;
 
             if (spinPivots != null)
@@ -233,8 +236,7 @@ namespace WhoBrokeIt.Vehicles
 
             if (driverId.Value != ulong.MaxValue)
             {
-                var riderObj = NetworkManager.Singleton != null ? NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(driverId.Value) : null;
-                var rider = riderObj != null ? riderObj.GetComponent<PlayerNet>() : null;
+                var rider = PlayerNet.ByOwner(driverId.Value);
                 if (rider != null)
                 {
                     rider.pedalAngle = crankAngle;       // legs follow the pedals
@@ -256,8 +258,7 @@ namespace WhoBrokeIt.Vehicles
         {
             if (previous != ulong.MaxValue && previous != NetworkManager.Singleton.LocalClientId)
             {
-                var po = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(previous);
-                if (po != null) RiderVisuals.Release(po.GetComponent<PlayerNet>());
+                RiderVisuals.Release(PlayerNet.ByOwner(previous));
             }
             var me = NetworkManager.Singleton.LocalClientId;
             if (current == me && !localRiding) EnterLocal();

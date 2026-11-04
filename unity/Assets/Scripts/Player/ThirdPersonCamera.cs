@@ -48,6 +48,21 @@ namespace WhoBrokeIt.Player
 
         void Awake() { Instance = this; }
 
+        // screen shake: trauma decays by itself, the offset grows with trauma squared (small hits are barely felt, big ones shake)
+        static float trauma;
+        public static void AddTrauma(float amount) { trauma = Mathf.Min(1f, trauma + amount); }
+
+        void ApplyShake(float dt)
+        {
+            if (trauma <= 0f) return;
+            var s = trauma * trauma;
+            var t = Time.time * 28f;
+            var n = new Vector3(Mathf.PerlinNoise(t, 0.3f) - 0.5f, Mathf.PerlinNoise(0.7f, t) - 0.5f, Mathf.PerlinNoise(t, 5.1f) - 0.5f);
+            transform.position += transform.rotation * new Vector3(n.x, n.y, 0f) * (0.45f * s);
+            transform.rotation *= Quaternion.Euler(n.y * 6f * s, n.x * 6f * s, n.z * 8f * s);
+            trauma = Mathf.MoveTowards(trauma, 0f, 1.5f * dt);
+        }
+
         void Start()
         {
             if (target != null) yaw = target.eulerAngles.y;
@@ -110,6 +125,7 @@ namespace WhoBrokeIt.Player
             {
                 var flat = Quaternion.Euler(0f, yaw, 0f);
                 transform.SetPositionAndRotation(target.position + headOffset + flat * new Vector3(0f, 0f, 0.14f), rot);
+                ApplyShake(Time.deltaTime);
                 return;
             }
 
@@ -121,6 +137,7 @@ namespace WhoBrokeIt.Player
                 && hit.collider.attachedRigidbody == null)
                 dist = Mathf.Max(0.6f, hit.distance);
             transform.SetPositionAndRotation(pivot + dir * dist, rot);
+            ApplyShake(Time.deltaTime);
         }
     }
 }

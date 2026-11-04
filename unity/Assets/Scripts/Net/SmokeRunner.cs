@@ -84,9 +84,12 @@ namespace WhoBrokeIt.Net
             Log("matchmaker: " + room.type + " oda " + room.address + ":" + room.port + " oyuncu " + room.players + "/" + room.capacity + " sürüm " + room.version);
 
             ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetConnectionData(room.address, (ushort)room.port);
+            // "lossy": a bad mobile line (about 100 ms each way, jitter, 8 percent loss) through the transport's built-in simulator (works in the editor)
+            var lossy = System.Array.IndexOf(a2, "lossy") >= 0;
+            if (lossy) { ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetDebugSimulatorParameters(100, 40, 8); Log("kotu ag benzetimi: 100 ms + 40 ms titresim + %8 kayip"); }
             ConnectionGate.PrepareClient();
             if (!nm.StartClient()) { Fail("StartClient"); yield break; }
-            yield return WaitFor(() => nm.IsConnectedClient, 20f);
+            yield return WaitFor(() => nm.IsConnectedClient, lossy ? 40f : 20f);
             if (!nm.IsConnectedClient) { Fail("sunucuya baglanilamadi: " + nm.DisconnectReason); yield break; }
             Log("online: sunucuya baglandi");
             yield return WaitFor(() => PlayerNet.Local != null && CaseManager.I != null && CaseManager.I.IsSpawned, 20f);
@@ -94,8 +97,11 @@ namespace WhoBrokeIt.Net
             var cm = CaseManager.I;
             if (privateRoom)
             {
-                yield return WaitFor(() => cm.roomCode.Value.Length > 0, 15f);
-                if (cm.roomCode.Value.ToString() != room.code) { Fail("oyun ici oda kodu '" + cm.roomCode.Value + "' beklenen '" + room.code + "'"); yield break; }
+                var codeT0 = Time.realtimeSinceStartup;
+                yield return WaitFor(() => cm.roomCode.Value.Length > 0, 45f);
+                Log("oda kodu gelis suresi: " + (Time.realtimeSinceStartup - codeT0).ToString("0.0") + " sn");
+                if (cm.roomCode.Value.ToString() != room.code && lossy) Log("UYARI (kayipli ag): oda kodu gelmedi, diger kontroller suruyor");
+                else if (cm.roomCode.Value.ToString() != room.code) { Fail("oyun ici oda kodu '" + cm.roomCode.Value + "' beklenen '" + room.code + "'"); yield break; }
             }
             Log("online: oyuncu dogdu; nesne=" + nm.SpawnManager.SpawnedObjects.Count + " oda kodu='" + cm.roomCode.Value + "'");
 

@@ -49,6 +49,13 @@ namespace WhoBrokeIt.Case
         public override void OnNetworkSpawn()
         {
             I = this;
+            sparks.OnValueChanged += (a, b) =>
+            {
+                if (b <= a) return;
+                var fuse = FindFirstObjectByType<Interaction.FuseBox>();
+                Audio.GameAudio.Play(Audio.Sfx.Spark, fuse != null ? fuse.transform.position : Vector3.zero, 1f);
+                Player.ThirdPersonCamera.AddTrauma(0.3f);
+            };
             LocalToast("Fitil (telsiz): Greenfield'a hoş geldiniz. İki iyi haberim var: kasabada kimse yok...", 5f);
             LocalToast("Fitil: ...ve kimse şikâyet etmiyor. Su kulesindeki forklifti sonra konuşuruz.", 5f);
             LocalToast("Fitil: Atölyeyi açın. Önce etrafı inceleyin. [Tab] defter, [1][2][3] aletler.", 6f);

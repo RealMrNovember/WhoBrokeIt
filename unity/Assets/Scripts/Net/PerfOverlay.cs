@@ -60,6 +60,7 @@ namespace WhoBrokeIt.Net
             if (DedicatedServer.IsDedicated) { enabled = false; return; }
             show = PlayerPrefs.GetInt("wbi_perf", 1) == 1;
             GraphicsQuality.Apply(GraphicsQuality.Level < 0 ? GraphicsQuality.Detect() : GraphicsQuality.Level, GraphicsQuality.Level < 0);
+            Audio.GameAudio.Apply();
         }
 
         void Update()

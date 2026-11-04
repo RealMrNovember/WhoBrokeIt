@@ -43,8 +43,9 @@ namespace WhoBrokeIt.Player
                     var cam = ThirdPersonCamera.Instance != null ? ThirdPersonCamera.Instance.transform.forward : transform.forward;
                     net.ThrowRpc(cam);
                     net.NoteAction(0);
+                    ThirdPersonCamera.AddTrauma(0.18f);
                 }
-                if (mouse.rightButton.wasPressedThisFrame) { net.MeleeRpc(); net.NoteAction(1); }
+                if (mouse.rightButton.wasPressedThisFrame) { net.MeleeRpc(); net.NoteAction(1); ThirdPersonCamera.AddTrauma(0.12f); }
             }
 
             if (kb.xKey.isPressed)

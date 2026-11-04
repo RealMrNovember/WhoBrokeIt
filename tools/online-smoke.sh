@@ -3,7 +3,7 @@ set -u
 cd ~/whobrokeit
 RES=logs/online-smoke.txt; : > $RES
 docker run --rm -v "$HOME/whobrokeit/project:/p" alpine chown -R "$(id -u):$(id -g)" /p
-./unity.sh unity-editor -batchmode -nographics -projectPath /project/WhoBrokeIt -executeMethod SmokeEditorHook.Run -logFile - -smoke online https://whobrokeit.cicibyte.com/api private > logs/online-smoke-full.log 2>&1
+./unity.sh unity-editor -batchmode -nographics -projectPath /project/WhoBrokeIt -executeMethod SmokeEditorHook.Run -logFile - -smoke online https://whobrokeit.cicibyte.com/api private ${1:-} > logs/online-smoke-full.log 2>&1
 echo "editor exit=$?" | tee -a $RES
 grep -a "\[SMOKE\]" logs/online-smoke-full.log | tee -a $RES
 echo "--- hata" | tee -a $RES

@@ -149,6 +149,8 @@ namespace WhoBrokeIt.Net
         void Update()
         {
             var nm = NetworkManager.Singleton;
+            var menuKb = UnityEngine.InputSystem.Keyboard.current;
+            if (menuKb != null && menuKb.escapeKey.wasPressedThisFrame && page != Page.Main && !(nm != null && nm.IsListening && nm.IsClient && !nm.IsConnectedClient)) { page = Page.Main; status = ""; }
             if (nm != null && connectingSince > 0f && nm.IsConnectedClient) connectingSince = -1f;
             if (nm != null && connectingSince > 0f && Time.time - connectingSince > 15f)
             {
@@ -276,6 +278,7 @@ namespace WhoBrokeIt.Net
                 GUI.Label(new Rect(x, 684, 640, 30), "Oyun içinde V tuşu kamerayı değiştirir.", small);
 
                 if (Button(new Rect(x, 730, 640, 56), "Gelişmiş: IP ile bağlan / LAN odası")) { page = Page.Advanced; status = ""; }
+                if (Button(new Rect(x, 858, 640, 56), "Oyundan çık")) Application.Quit();
             }
             else if (page == Page.Characters)
             {

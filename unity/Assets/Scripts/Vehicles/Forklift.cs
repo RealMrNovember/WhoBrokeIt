@@ -59,6 +59,7 @@ namespace WhoBrokeIt.Vehicles
         bool predicting;
         float predFork, shownFork, sendTimer, inT, inS, inF, serverSpeedEst;
         Transform V => visual != null ? visual : transform;
+        AudioSource loopSound;
 
         public override string Prompt => driverId.Value == ulong.MaxValue ? "Forklifte bin" : "Forklift dolu";
 
@@ -80,6 +81,7 @@ namespace WhoBrokeIt.Vehicles
             var slick = new PhysicsMaterial("ForkliftSlick") { dynamicFriction = 0f, staticFriction = 0f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
             foreach (var hc in GetComponentsInChildren<Collider>()) hc.sharedMaterial = slick;
 
+            loopSound = Audio.GameAudio.AttachLoop(gameObject, Audio.LoopKind.ForkliftEngine);
             lastVisualPos = transform.position;
             if (IsServer)
             {
@@ -234,6 +236,7 @@ namespace WhoBrokeIt.Vehicles
                 steerDeg = pred.steer;
             }
             spin += fwdSpeed * dt;                                 // metres rolled; converted per wheel radius below
+            Audio.GameAudio.UpdateLoop(loopSound, driverId.Value != ulong.MaxValue, fwdSpeed, maxSpeed, 0.2f, 0.9f);
             if (spinPivots != null)
                 for (var i = 0; i < spinPivots.Length; i++)
                 {
@@ -252,8 +255,7 @@ namespace WhoBrokeIt.Vehicles
 
             if (driverId.Value != ulong.MaxValue && NetworkManager.Singleton != null)
             {
-                var riderObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(driverId.Value);
-                var rider = riderObj != null ? riderObj.GetComponent<PlayerNet>() : null;
+                var rider = PlayerNet.ByOwner(driverId.Value);
                 if (rider != null && driverId.Value != NetworkManager.Singleton.LocalClientId)
                 {
                     if (rider.seated.Value) RiderVisuals.Follow(rider, SeatRoot(rider) - Vector3.up, V.eulerAngles.y);
@@ -275,8 +277,7 @@ namespace WhoBrokeIt.Vehicles
         {
             if (previous != ulong.MaxValue && previous != NetworkManager.Singleton.LocalClientId)
             {
-                var po = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(previous);
-                if (po != null) RiderVisuals.Release(po.GetComponent<PlayerNet>());
+                RiderVisuals.Release(PlayerNet.ByOwner(previous));
             }
             var me = NetworkManager.Singleton.LocalClientId;
             if (current == me && !localDriving) EnterLocal();

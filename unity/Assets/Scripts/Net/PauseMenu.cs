@@ -102,39 +102,41 @@ namespace WhoBrokeIt.Net
             var cam = ThirdPersonCamera.Instance;
             if (cam != null)
             {
-                var d = Slider(x, 398, "Mesafe", cam.Distance, cam.MinDistance, cam.MaxDistance, "0.0");
+                var d = Slider(x, 392, "Mesafe", cam.Distance, cam.MinDistance, cam.MaxDistance, "0.0");
                 if (Mathf.Abs(d - cam.Distance) > 0.001f) { cam.Distance = d; ThirdPersonCamera.DistancePref = d; }
             }
-            ThirdPersonCamera.HeightAdjust = Slider(x, 438, "Yükseklik", ThirdPersonCamera.HeightAdjust, -0.8f, 1.2f, "0.0");
-            ThirdPersonCamera.ShoulderAdjust = Slider(x, 478, "Omuz kaydırma", ThirdPersonCamera.ShoulderAdjust, -1.2f, 1.2f, "0.0");
-            ThirdPersonCamera.Fov = Slider(x, 518, "Görüş alanı", ThirdPersonCamera.Fov, 50f, 100f, "0");
-            ThirdPersonCamera.Sensitivity = Slider(x, 558, "Fare hızı", ThirdPersonCamera.Sensitivity, 0.03f, 0.4f, "0.00");
-            GUI.Label(new Rect(x, 600, 640, 30), "Oyunda: fare tekerleği yakınlaştırır, [ ] eğer, V 1./3. şahıs.", small);
-            if (Button(new Rect(x, 636, 310, 54), "Varsayılan kamera"))
+            ThirdPersonCamera.HeightAdjust = Slider(x, 426, "Yükseklik", ThirdPersonCamera.HeightAdjust, -0.8f, 1.2f, "0.0");
+            ThirdPersonCamera.ShoulderAdjust = Slider(x, 460, "Omuz kaydırma", ThirdPersonCamera.ShoulderAdjust, -1.2f, 1.2f, "0.0");
+            ThirdPersonCamera.Fov = Slider(x, 494, "Görüş alanı", ThirdPersonCamera.Fov, 50f, 100f, "0");
+            ThirdPersonCamera.Sensitivity = Slider(x, 528, "Fare hızı", ThirdPersonCamera.Sensitivity, 0.03f, 0.4f, "0.00");
+            WhoBrokeIt.Audio.GameAudio.Master = Slider(x, 566, "Ses (genel)", WhoBrokeIt.Audio.GameAudio.Master, 0f, 1f, "0.00");
+            WhoBrokeIt.Audio.GameAudio.Effects = Slider(x, 600, "Ses efektleri", WhoBrokeIt.Audio.GameAudio.Effects, 0f, 1f, "0.00");
+            GUI.Label(new Rect(x, 636, 640, 30), "Oyunda: fare tekerleği yakınlaştırır, [ ] eğer, V 1./3. şahıs.", small);
+            if (Button(new Rect(x, 668, 310, 50), "Varsayılan kamera"))
             {
                 ThirdPersonCamera.HeightAdjust = 0f; ThirdPersonCamera.ShoulderAdjust = 0f; ThirdPersonCamera.Fov = 70f; ThirdPersonCamera.Sensitivity = 0.12f;
                 if (cam != null) { cam.Distance = 5.5f; ThirdPersonCamera.DistancePref = 5.5f; }
             }
-            if (Button(new Rect(x + 330, 636, 310, 54), Screen.fullScreen ? "Pencereli yap  (F11)" : "Tam ekran yap  (F11)")) ToggleFullscreen();
+            if (Button(new Rect(x + 330, 668, 310, 50), Screen.fullScreen ? "Pencereli yap  (F11)" : "Tam ekran yap  (F11)")) ToggleFullscreen();
 
             var p = PlayerNet.Local;
             if (p != null)
             {
                 var qlv = GraphicsQuality.Level < 0 ? GraphicsQuality.Detect() : GraphicsQuality.Level;
-                if (Button(new Rect(x, 702, 640, 50), "Grafik kalitesi: " + GraphicsQuality.Names[qlv] + "  (değiştir)")) GraphicsQuality.Cycle();
-                GUI.Label(new Rect(x, 764, 640, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
-                if (Button(new Rect(x, 802, 310, 50), "◀ Önceki")) ChangeCharacter(p, -1);
-                if (Button(new Rect(x + 330, 802, 310, 50), "Sonraki ▶")) ChangeCharacter(p, 1);
+                if (Button(new Rect(x, 728, 640, 48), "Grafik kalitesi: " + GraphicsQuality.Names[qlv] + "  (değiştir)")) GraphicsQuality.Cycle();
+                GUI.Label(new Rect(x, 786, 640, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
+                if (Button(new Rect(x, 822, 310, 48), "◀ Önceki")) ChangeCharacter(p, -1);
+                if (Button(new Rect(x + 330, 822, 310, 48), "Sonraki ▶")) ChangeCharacter(p, 1);
             }
 
-            if (Button(new Rect(x, 886, 310, 56), "Ana menüye dön"))
+            if (Button(new Rect(x, 890, 310, 54), "Ana menüye dön"))
             {
                 SetOpen(false);
                 NetworkManager.Singleton.Shutdown();
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
-            if (Button(new Rect(x + 330, 886, 310, 56), "Oyundan çık")) Application.Quit();
+            if (Button(new Rect(x + 330, 890, 310, 54), "Oyundan çık")) Application.Quit();
         }
 
         static void ChangeCharacter(PlayerNet p, int dir)

@@ -28,6 +28,7 @@ namespace WhoBrokeIt.Player
         /// <summary>Called on the owning client when something hits this player: knock back and lose control for a moment.</summary>
         public void ApplyBonk(Vector3 impulse, float stunSeconds)
         {
+            ThirdPersonCamera.AddTrauma(0.75f);
             knock = new Vector3(impulse.x, 0f, impulse.z);
             verticalVelocity = Mathf.Max(verticalVelocity, impulse.y);
             stunUntil = Mathf.Max(stunUntil, Time.time + stunSeconds);

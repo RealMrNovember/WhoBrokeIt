@@ -37,6 +37,8 @@ namespace WhoBrokeIt.Player
         // smoothed pose values (degrees / metres)
         float lLx, lRx, aLx, aRx, aLz, aRz, bob, lean, twist, roll, sink;
         float speedForAcc, accSm, vySm, yawRateSm, lastYaw, pushPhase;
+        bool wasStunned, wasMounted;
+        float lastStepSin;
 
         Transform Body => hips != null ? hips : transform;
 
@@ -67,7 +69,7 @@ namespace WhoBrokeIt.Player
                 var u = debugPush > 0f ? 0.3f : Mathf.Repeat(pushPhase, 1f);
                 tTwist = 28f; tLean = 9f; tSink = -0.07f; tBob = 0f;
                 tLL = -12f; tLR = 10f;                                                  // front foot forward, back foot behind
-                tAZL = 42f; tAZR = -42f; tAL = -22f; tAR = -14f;                         // arms out for balance
+                tAZL = 30f; tAZR = -30f; tAL = -22f; tAR = -14f;                         // arms out for balance
                 if (u < 0.6f && (wantPush || debugPush > 0f))               // push: back foot swings down to the ground and kicks
                 {
                     var k = u / 0.6f;
@@ -105,6 +107,7 @@ namespace WhoBrokeIt.Player
                 lastTick = net.actionTick.Value;
                 actionStart = Time.time;
                 actionKind = lastTick & 1;
+                Audio.GameAudio.Play(actionKind == 0 ? Audio.Sfx.Whoosh : Audio.Sfx.Swing, follow.position + Vector3.up, 0.9f, Random.Range(0.92f, 1.08f));
             }
 
             var stunned = net != null && net.stunned.Value;
@@ -112,12 +115,23 @@ namespace WhoBrokeIt.Player
             var seated = net != null && net.seated.Value;
             var climbing = net != null && net.climbing.Value;
             var tool = net != null ? net.toolId.Value : 0;
+            // sounds from the same state the animation reads (so other players are heard too)
+            if (stunned && !wasStunned) Audio.GameAudio.Play(Audio.Sfx.Bonk, follow.position + Vector3.up, 1f, Random.Range(0.95f, 1.05f));
+            wasStunned = stunned;
+            var mountedNow = seated || (net != null && net.ride.Value != 0);
+            if (mountedNow && !wasMounted) Audio.GameAudio.Play(Audio.Sfx.Mount, follow.position, 0.8f);
+            wasMounted = mountedNow;
             air = !Physics.Raycast(feet.position + Vector3.up * 0.15f, Vector3.down, 0.45f, ~0, QueryTriggerInteraction.Ignore);
 
             var moving = Mathf.Clamp01(speed / 2.5f);
             var run = Mathf.Clamp01((speed - 4.5f) / 3f);
             phase += (speed * 1.25f + (climbing ? 5.5f : 0f)) * dt;
             var swing = Mathf.Sin(phase) * swingDegrees * moving;
+            // footsteps: every time the leg swing passes the middle while walking on the ground
+            var stepSin = Mathf.Sin(phase);
+            if (moving > 0.4f && !air && !mountedNow && !climbing && (stepSin > 0f) != (lastStepSin > 0f))
+                Audio.GameAudio.Play(Audio.Sfx.Step, feet.position, 0.55f + 0.25f * run, Random.Range(0.9f, 1.1f));
+            lastStepSin = stepSin;
             var armSwing = Mathf.Sin(phase) * armSwingDegrees * moving;
 
             // ---- targets ----
@@ -153,7 +167,7 @@ namespace WhoBrokeIt.Player
             if (air)
             {
                 tLL = -38f; tLR = 22f;
-                tAL = -25f; tAR = -25f; tAZL = 55f; tAZR = -55f;
+                tAL = -25f; tAR = -25f; tAZL = 24f; tAZR = -24f;
                 tBob = 0.02f; tLean = 4f;
             }
 
@@ -200,7 +214,7 @@ namespace WhoBrokeIt.Player
             {
                 case 1: tLL = Mathf.Sin(DebugPhase) * swingDegrees; tLR = -tLL; tAL = -Mathf.Sin(DebugPhase) * armSwingDegrees; tAR = -tAL; tLean = 5f; tBob = -Mathf.Abs(Mathf.Sin(DebugPhase)) * 0.035f; break;
                 case 2: tLL = -88f; tLR = -88f; tAL = -62f; tAR = -62f; tLean = -4f; break;
-                case 3: tLL = -38f; tLR = 22f; tAL = -25f; tAR = -25f; tAZL = 55f; tAZR = -55f; break;
+                case 3: tLL = -38f; tLR = 22f; tAL = -25f; tAR = -25f; tAZL = 24f; tAZR = -24f; break;
                 case 4: tAL = -115f; tAR = -115f; tLL = -55f; tLR = -20f; tLean = 8f; break;
                 case 5: tAL = -125f; tAR = -125f; tLean = -6f; break;
                 case 6: tAL = -80f; tAR = -80f; break;

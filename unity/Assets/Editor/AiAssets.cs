@@ -136,9 +136,9 @@ public static class AiAssets
 
                 var wLeg = 1f - Smooth(spec.hipY - 0.07f, spec.hipY + 0.07f, p.y);
                 var sideR = Smooth(-0.035f, 0.035f, p.x);
-                var wArm = Smooth(spec.armX - 0.06f, spec.armX + 0.06f, Mathf.Abs(p.x))
+                var wArm = Smooth(spec.armX - 0.03f, spec.armX + 0.10f, Mathf.Abs(p.x))
                          * Smooth(spec.armBottom - 0.05f, spec.armBottom + 0.05f, p.y)
-                         * (1f - Smooth(spec.armTop - 0.05f, spec.armTop + 0.05f, p.y)) * (1f - wLeg);
+                         * (1f - Smooth(spec.shoulderY - 0.03f, spec.shoulderY + 0.10f, p.y)) * (1f - wLeg);   // the shoulder cap stays with the torso
                 var legIdx = p.x >= 0f ? 2 : 1;
                 var armIdx = p.x >= 0f ? 4 : 3;
                 var legW = wLeg * (p.x >= 0f ? sideR : 1f - sideR);
@@ -179,6 +179,31 @@ public static class AiAssets
     }
 
 
+    /// <summary>Per-asset quality report for the build log (triangles, height, materials, biggest texture) with warnings over the budgets.</summary>
+    static void QaReport(GameObject model, string key)
+    {
+        var tris = 0; var verts = 0; var mats = new System.Collections.Generic.HashSet<Material>(); var maxTex = 0;
+        foreach (var smr in model.GetComponentsInChildren<SkinnedMeshRenderer>())
+        {
+            if (smr.sharedMesh != null) { tris += smr.sharedMesh.triangles.Length / 3; verts += smr.sharedMesh.vertexCount; }
+            foreach (var m in smr.sharedMaterials) if (m != null) mats.Add(m);
+        }
+        foreach (var mf in model.GetComponentsInChildren<MeshFilter>())
+            if (mf.sharedMesh != null) { tris += mf.sharedMesh.triangles.Length / 3; verts += mf.sharedMesh.vertexCount; }
+        foreach (var m in mats)
+            if (m.mainTexture != null) maxTex = Mathf.Max(maxTex, Mathf.Max(m.mainTexture.width, m.mainTexture.height));
+        var b = new Bounds(Vector3.zero, Vector3.zero); var first = true;
+        foreach (var smr in model.GetComponentsInChildren<SkinnedMeshRenderer>())
+            if (smr.sharedMesh != null) { if (first) { b = smr.sharedMesh.bounds; first = false; } else b.Encapsulate(smr.sharedMesh.bounds); }
+        if (first) b = WorldBounds(model);
+        var warn = "";
+        if (tris > 120000) warn += " UYARI: ucgen butcesi asildi (>120k)";
+        if (maxTex > 2048) warn += " UYARI: doku buyuk (>2048)";
+        if (Mathf.Abs(b.size.y - 1.8f) > 0.15f) warn += " UYARI: boy 1.8 m degil";
+        if (Mathf.Abs(b.min.y) > 0.05f) warn += " UYARI: ayaklar y=0 da degil";
+        Debug.Log("[WBI] qa " + key + ": ucgen=" + tris + " tepe=" + verts + " boy=" + b.size.y.ToString("0.00") + " m malzeme=" + mats.Count + " enbuyuk_doku=" + maxTex + warn);
+    }
+
     /// <summary>Character models: Resources/Characters/&lt;key&gt;.prefab (the runtime catalog prefers these over the generated primitives).</summary>
     public static int BuildCharacterPrefabs()
     {
@@ -195,6 +220,7 @@ public static class AiAssets
             }
             model.name = "Character_" + entry.key;
             Debug.Log("[WBI] iskelet " + entry.key + ": " + (Rig(model, entry.key) ? "tamam" : "yok (statik)"));
+            QaReport(model, entry.key);
             PrefabUtility.SaveAsPrefabAsset(model, path);
             Object.DestroyImmediate(model);
             made++;

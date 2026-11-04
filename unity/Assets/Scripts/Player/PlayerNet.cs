@@ -45,6 +45,21 @@ namespace WhoBrokeIt.Player
 
         public bool IsHidden => hidden.Value;
 
+        static readonly System.Collections.Generic.Dictionary<ulong, PlayerNet> byOwner = new System.Collections.Generic.Dictionary<ulong, PlayerNet>();
+        static float lastOwnerScan = -10f;
+
+        /// <summary>The player object of a client, on any machine (SpawnManager.GetPlayerNetworkObject only works for other clients on the server and throws elsewhere).</summary>
+        public static PlayerNet ByOwner(ulong clientId)
+        {
+            if (Local != null && Local.OwnerClientId == clientId) return Local;
+            if (byOwner.TryGetValue(clientId, out var p) && p != null) return p;
+            if (Time.unscaledTime - lastOwnerScan < 0.3f) return null;
+            lastOwnerScan = Time.unscaledTime;
+            byOwner.Clear();
+            foreach (var o in FindObjectsByType<PlayerNet>(FindObjectsSortMode.None)) byOwner[o.OwnerClientId] = o;
+            return byOwner.TryGetValue(clientId, out p) ? p : null;
+        }
+
         /// <summary>Owner: announce a one-shot action to everyone (kind 0 = throw, 1 = hit).</summary>
         public void NoteAction(int kind) { if (IsOwner) actionTick.Value = ((actionTick.Value >> 1) + 1) << 1 | kind; }
 
