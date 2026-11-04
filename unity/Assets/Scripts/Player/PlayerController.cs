@@ -17,8 +17,30 @@ namespace WhoBrokeIt.Player
 
         CharacterController controller;
         float verticalVelocity;
+        Vector3 knock;
+        float stunUntil;
+        GUIStyle dazedStyle;
+
+        public bool Stunned => Time.time < stunUntil;
 
         void Awake() => controller = GetComponent<CharacterController>();
+
+        /// <summary>Called on the owning client when something hits this player: knock back and lose control for a moment.</summary>
+        public void ApplyBonk(Vector3 impulse, float stunSeconds)
+        {
+            knock = new Vector3(impulse.x, 0f, impulse.z);
+            verticalVelocity = Mathf.Max(verticalVelocity, impulse.y);
+            stunUntil = Mathf.Max(stunUntil, Time.time + stunSeconds);
+        }
+
+        void OnGUI()
+        {
+            if (!Stunned) return;
+            if (dazedStyle == null)
+                dazedStyle = new GUIStyle(GUI.skin.label) { fontSize = 44, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
+            dazedStyle.normal.textColor = new Color(1f, 0.5f, 0.45f);
+            GUI.Label(new Rect(0, Screen.height * 0.35f, Screen.width, 70), "BONK! Sersemledin...", dazedStyle);
+        }
 
         void Update()
         {
@@ -26,10 +48,13 @@ namespace WhoBrokeIt.Player
             if (kb == null) return;
 
             var input = Vector2.zero;
-            if (kb.wKey.isPressed) input.y += 1f;
-            if (kb.sKey.isPressed) input.y -= 1f;
-            if (kb.dKey.isPressed) input.x += 1f;
-            if (kb.aKey.isPressed) input.x -= 1f;
+            if (!Stunned)
+            {
+                if (kb.wKey.isPressed) input.y += 1f;
+                if (kb.sKey.isPressed) input.y -= 1f;
+                if (kb.dKey.isPressed) input.x += 1f;
+                if (kb.aKey.isPressed) input.x -= 1f;
+            }
 
             var forward = cameraTransform != null
                 ? Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized
@@ -39,12 +64,13 @@ namespace WhoBrokeIt.Player
             if (move.sqrMagnitude > 1f) move.Normalize();
 
             if (controller.isGrounded && verticalVelocity < 0f) verticalVelocity = -2f;
-            if (controller.isGrounded && kb.spaceKey.wasPressedThisFrame)
+            if (controller.isGrounded && !Stunned && kb.spaceKey.wasPressedThisFrame)
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             verticalVelocity += gravity * Time.deltaTime;
 
             var speed = kb.leftShiftKey.isPressed ? runSpeed : walkSpeed;
-            controller.Move((move * speed + Vector3.up * verticalVelocity) * Time.deltaTime);
+            controller.Move((move * speed + knock + Vector3.up * verticalVelocity) * Time.deltaTime);
+            knock = Vector3.MoveTowards(knock, Vector3.zero, 16f * Time.deltaTime);
 
             if (move.sqrMagnitude > 0.01f)
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), turnSharpness * Time.deltaTime);

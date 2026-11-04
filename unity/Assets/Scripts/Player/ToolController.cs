@@ -29,7 +29,22 @@ namespace WhoBrokeIt.Player
             if (net.broomVisual != null) net.broomVisual.transform.localRotation = Quaternion.Euler(20f + swing, 0f, 0f);
             if (net.hammerVisual != null) net.hammerVisual.transform.localRotation = Quaternion.Euler(-40f + swing * 1.5f, 0f, 0f);
 
-            if (using_ && tool != 0) net.UseToolRpc(tool, Time.deltaTime);
+            var locked = Cursor.lockState == CursorLockMode.Locked;
+            var carrying = net.carry != null && net.carry.IsCarrying;
+            var stunned = GetComponent<PlayerController>().Stunned;
+
+            if (using_ && tool != 0 && !carrying && !stunned) net.UseToolRpc(tool, Time.deltaTime);
+
+            // left click while carrying: throw it where the camera looks; right click: swing at whoever stands in front
+            if (locked && !stunned && mouse != null)
+            {
+                if (carrying && mouse.leftButton.wasPressedThisFrame)
+                {
+                    var cam = ThirdPersonCamera.Instance != null ? ThirdPersonCamera.Instance.transform.forward : transform.forward;
+                    net.ThrowRpc(cam);
+                }
+                if (mouse.rightButton.wasPressedThisFrame) net.MeleeRpc();
+            }
 
             if (kb.xKey.isPressed)
             {

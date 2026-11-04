@@ -62,9 +62,8 @@
 
   function failed() {
     var status = $('#dl-status');
-    if (status) status.textContent = 'Sürüm bilgisi şu an alınamadı. Birkaç dakika sonra yeniden deneyin.';
-    var main = $('#hero-dl-label');
-    if (main) main.textContent = 'İndirme bağlantısı yükleniyor...';
+    // sürüm bilgisi alınamasa da düğme sabit adres (/download) ile en son kurulum dosyasını verir
+    if (status) status.textContent = 'Sürüm numarası şu an gösterilemiyor; indirme düğmesi yine de en son kurulum dosyasını verir.';
   }
 
   if (window.fetch) {

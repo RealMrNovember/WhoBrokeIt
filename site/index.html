@@ -13,7 +13,7 @@
 <meta property="og:url" content="https://whobrokeit.cicibyte.com/">
 <meta name="twitter:card" content="summary">
 <link rel="canonical" href="https://whobrokeit.cicibyte.com/">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css?v=4">
 </head>
 <body>
 <a class="skip" href="#icerik">İçeriğe geç</a>
@@ -46,9 +46,9 @@
       <h1>Kim <em>bozdu?</em></h1>
       <p class="lead">Çöküşten sonra, su kulesinin tepesinde bir forklift duran bir kasaba. Arkadaşlarınla önce <strong>ne olduğunu</strong> çözer, sonra düzeltmeye çalışırken <strong>daha büyüğünü bozarsın</strong>. Suçlu bir yerlerde... belki de sensin.</p>
       <div class="cta">
-        <a class="btn primary" href="#indir" data-dl aria-disabled="true" id="hero-dl">
+        <a class="btn primary" href="/download" data-dl id="hero-dl" download>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
-          <span id="hero-dl-label">İndirme bağlantısı yükleniyor...</span>
+          <span id="hero-dl-label">Windows için indir</span>
         </a>
         <a class="btn ghost" href="#vaka">Nasıl oynanır?</a>
       </div>
@@ -210,7 +210,7 @@
     <p class="sec-lead">Foto-gerçekçilik peşinde değiliz. Oyunun gücü fizik, etkileşim ve arkadaşlarınla yaşayacağın beklenmedik anlar.</p>
     <div class="grid g3">
       <article class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h13V8H9L6 12H3zM16 11h3l2 3v3h-5"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></div><h3>İmza aracı: forklift</h3><p>Sür, çatalı kaldır, paleti taşı. Biraz fazla hızlı, biraz fazla komik. Takılırsan bir tuşla sıfırla.</p></article>
-      <article class="card reveal"><div class="ico rust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7-3 3-7-7zM12 8L4 16l4 4 8-8"/></svg></div><h3>Üç alet</h3><p>Eller, süpürge ve çekiç. Her biri basit, birlikte kullanınca kaotik. Tüm eylemler sunucu tarafında doğrulanır.</p></article>
+      <article class="card reveal"><div class="ico rust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l7 7-3 3-7-7zM12 8L4 16l4 4 8-8"/></svg></div><h3>Üç alet, fırlat ve vur</h3><p>Eller, süpürge ve çekiç. Taşıdığın nesneyi arkadaşına fırlatabilir, sağ tıkla ona bonk yapabilirsin. Hasar yok, sadece geri iter ve kısa süre sersemletir. Tüm eylemler sunucu tarafında doğrulanır.</p></article>
       <article class="card reveal"><div class="ico teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div><h3>Kasaba defteri</h3><p>Bulduğun ipuçları ortak defterde birikir. Tab’a bas, tüm ekibin bulduklarını gör.</p></article>
       <article class="card reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3.5"/></svg></div><h3>Her şey kurtarılabilir</h3><p>Takılan nesne ya da araç için “sıfırla”. Kalıcı çıkmaz yok; oyun seni cezalandırmaz, güldürür.</p></article>
       <article class="card reveal"><div class="ico rust"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Sunucu-otoriter altyapı</h3><p>Oyun mantığı, sonradan özel sunuculara taşınabilecek şekilde baştan sunucu tarafında yazıldı.</p></article>
@@ -258,6 +258,8 @@
         <tr><td>Fare</td><td>Kamerayı döndür · tekerlek ile yakınlaştır · <kbd>Esc</kbd> fareyi serbest bırakır</td></tr>
         <tr><td><kbd>E</kbd></td><td>İncele, al / bırak, forklifte bin / çık</td></tr>
         <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Eller · süpürge · çekiç (kullanmak için sol tık)</td></tr>
+        <tr><td>Sol tık (bir şey taşırken)</td><td><strong>Fırlat.</strong> Tuttuğun nesneyi baktığın yöne atarsın; bir arkadaşına denk gelirse onu savurur.</td></tr>
+        <tr><td>Sağ tık</td><td><strong>Vur.</strong> Önündeki oyuncuya bonk: geri iter, kısa süre sersemletir. Hasar yok, can yok; sadece komik.</td></tr>
         <tr><td><kbd>Tab</kbd></td><td>Kasaba defteri</td></tr>
         <tr><td><kbd>X</kbd> (basılı tut)</td><td>Takılan nesneyi ya da aracı sıfırla</td></tr>
         <tr><td>Forklift</td><td><kbd>W</kbd><kbd>S</kbd> sür · <kbd>A</kbd><kbd>D</kbd> dön · <kbd>R</kbd> çatalı kaldır · <kbd>F</kbd> indir</td></tr>
@@ -276,7 +278,7 @@
       <div class="dl-card">
         <div class="ver"><strong data-ver>v—</strong><span class="pill">Erken sürüm</span></div>
         <p class="meta"><span data-date></span> <span data-size></span> · Windows 10/11, 64 bit</p>
-        <a class="btn primary" href="#indir" data-dl aria-disabled="true">
+        <a class="btn primary" href="/download" data-dl download>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
           Kurulum dosyasını indir
         </a>
@@ -342,6 +344,6 @@
   </div>
 </footer>
 
-<script src="/assets/app.js" defer></script>
+<script src="/assets/app.js?v=4" defer></script>
 </body>
 </html>

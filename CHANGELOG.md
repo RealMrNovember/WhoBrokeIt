@@ -20,3 +20,7 @@
 - Cevrimici: oda kodu + hizli oyun (Kale dedicated sunucular + eslestirme servisi), surum uyumu ve kapasite onayi, oda kodu ekrani.
 - Windows kurulum sihirbazi (Program Files\CiciByte\WhoBrokeIt), kurulum korumasi.
 - Site: oda kodu anlatimi, canli sunucu durumu, kurulum indirme.
+
+## 0.3.2 (2026-11-04)
+- Firlatma (sol tik, tasirken) ve vurma (sag tik): geri itme + kisa sersemleme, hasar yok. Dostane bonk odulu.
+- latest.json artik python ile uretiliyor (not icindeki ters egik cizgi dosyayi bozuyordu: site ve otomatik guncelleme sürüm bilgisini okuyamiyordu). Sabit /download adresi, varlik dosyalarina surum eki.

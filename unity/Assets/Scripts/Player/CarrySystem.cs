@@ -53,6 +53,22 @@ namespace WhoBrokeIt.Player
             heldId.Value = ulong.MaxValue;
         }
 
+        /// <summary>Server: release the held body with a throw toward 'aim'. The prop becomes a Projectile that can bonk a player.</summary>
+        public void ServerThrow(Vector3 aim, PlayerNet thrower)
+        {
+            if (!IsServer || held == null) return;
+            var rb = held;
+            ServerDrop();
+            aim.Normalize();
+            aim.y = Mathf.Max(aim.y, 0.12f);
+            aim.Normalize();
+            rb.linearVelocity = aim * 15f;
+            rb.angularVelocity = Random.insideUnitSphere * 6f;
+            var projectile = rb.GetComponent<Props.Projectile>();
+            if (projectile == null) projectile = rb.gameObject.AddComponent<Props.Projectile>();
+            projectile.Init(thrower);
+        }
+
         public override void OnNetworkDespawn() { if (IsServer) ServerDrop(); }
 
         void FixedUpdate()

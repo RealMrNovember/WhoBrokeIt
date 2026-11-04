@@ -180,6 +180,27 @@ namespace WhoBrokeIt.Net
             if (player.carry.IsCarrying) { Fail("drop failed"); yield break; }
             Log("carry/drop ok");
 
+            // 2b) throw a crate: it must leave the player's hands and fly
+            crate.GetComponent<Rigidbody>().position = player.transform.position + player.transform.forward * 1.5f;
+            yield return new WaitForSeconds(0.3f);
+            crate.RequestInteract();
+            yield return new WaitForSeconds(0.6f);
+            if (!player.carry.IsCarrying) { Fail("firlatma icin sandik alinamadi"); yield break; }
+            var thrownFrom = crate.transform.position;
+            player.ThrowRpc(player.transform.forward);
+            yield return new WaitForSeconds(0.8f);
+            var flew = (crate.transform.position - thrownFrom).magnitude;
+            if (player.carry.IsCarrying || flew < 3f) { Fail("firlatma calismadi, mesafe " + flew); yield break; }
+            Log("firlatma ok (mesafe " + flew.ToString("0.0") + " m)");
+
+            // 2c) bonk: knockback + stun reaches the owning player and is replicated as the red flash flag
+            player.ServerBonk(Vector3.back * 6f + Vector3.up * 2f, 0.8f);
+            yield return new WaitForSeconds(0.4f);
+            var ctrl = player.GetComponent<PlayerController>();
+            if (!ctrl.Stunned || cm.bonks.Value < 1) { Fail("bonk etkisi yok: stunned=" + ctrl.Stunned + " bonks=" + cm.bonks.Value); yield break; }
+            Log("bonk ok (sersemleme + sayac)");
+            yield return new WaitForSeconds(1.2f);
+
             // 3) heavy cabinet must refuse pickup (no Carryable) and fuse before cleaning must spark
             var fuse = FindFirstObjectByType<FuseBox>();
             fuse.ServerRepair(2f);

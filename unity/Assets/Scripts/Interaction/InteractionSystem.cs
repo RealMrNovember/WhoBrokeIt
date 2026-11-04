@@ -48,7 +48,7 @@ namespace WhoBrokeIt.Interaction
         void OnGUI()
         {
             string text = null;
-            if (net.carry != null && net.carry.IsCarrying) text = "[E] Bırak";
+            if (net.carry != null && net.carry.IsCarrying) text = "[E] Bırak  ·  [Sol tık] Fırlat";
             else if (current != null) text = "[E] " + current.Prompt;
             if (text == null) return;
             if (style == null)

@@ -26,6 +26,7 @@ namespace WhoBrokeIt.Case
         public NetworkVariable<int> debrisCount = new NetworkVariable<int>(0);
         public NetworkVariable<int> sparks = new NetworkVariable<int>(0);
         public NetworkVariable<int> resets = new NetworkVariable<int>(0);
+        public NetworkVariable<int> bonks = new NetworkVariable<int>(0);
         public NetworkVariable<float> elapsed = new NetworkVariable<float>(0f);
         public NetworkVariable<bool> DebrisCleared = new NetworkVariable<bool>(false);
         public NetworkVariable<bool> FuseRepaired = new NetworkVariable<bool>(false);
@@ -69,6 +70,7 @@ namespace WhoBrokeIt.Case
         // ---------- server-side state changes ----------
         public static void NoteSpark() { if (I != null && I.IsServer) I.sparks.Value++; }
         public static void NoteReset() { if (I != null && I.IsServer) I.resets.Value++; }
+        public static void NoteBonk() { if (I != null && I.IsServer) I.bonks.Value++; }
 
         public bool HasClue(int index) => (clueMask.Value & (1 << index)) != 0;
         public int ClueCount
@@ -181,7 +183,7 @@ namespace WhoBrokeIt.Case
 
             small.normal.textColor = new Color(1f, 1f, 1f, 0.8f);
             GUI.Label(new Rect(20, h - 60, w - 40, 50),
-                "WASD yürü · Shift koş · Space zıpla · E kullan/al/bırak · 1 eller 2 süpürge 3 çekiç · Sol tık kullan · Tab defter · X sıfırla (basılı tut)", small);
+                "WASD yürü · Shift koş · Space zıpla · E kullan/al/bırak · 1 eller 2 süpürge 3 çekiç · Sol tık kullan (taşırken: fırlat) · Sağ tık vur · Tab defter · X sıfırla (basılı tut)", small);
 
             if (roomCode.Value.Length > 0)
             {
@@ -233,6 +235,7 @@ namespace WhoBrokeIt.Case
             var awards = "";
             if (sparks.Value > 0) awards += "• Kıvılcım Meraklısı (" + sparks.Value + " patlama)\n";
             if (resets.Value > 0) awards += "• Kurtarma Ustası (" + resets.Value + " sıfırlama)\n";
+            if (bonks.Value > 0) awards += "• Dostane Bonk Şampiyonu (" + bonks.Value + " bonk)\n";
             if (elapsed.Value < 600f) awards += "• Hızlı İşçi\n";
             if (awards == "") awards = "• Sakin ve Düzenli (şüpheli...)\n";
             GUI.Label(new Rect(w / 2f - 520, 230, 1040, 640),

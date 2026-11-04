@@ -385,6 +385,7 @@ public static class ProjectSetup
         var prb = proxy.AddComponent<Rigidbody>();
         prb.isKinematic = true;
         net.proxyRb = prb;
+        proxy.AddComponent<ProxyOwner>().owner = net;
         player.AddComponent<ToolController>();
 
         Directory.CreateDirectory("Assets/Prefabs");

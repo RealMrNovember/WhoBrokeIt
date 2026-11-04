@@ -17,6 +17,8 @@ namespace WhoBrokeIt.Player
         public NetworkVariable<byte> toolId = new NetworkVariable<byte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         public NetworkVariable<bool> hidden = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+        public NetworkVariable<bool> stunned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
         public GameObject broomVisual, hammerVisual;
         public Renderer[] bodyRenderers;
         public Rigidbody proxyRb;
@@ -24,6 +26,20 @@ namespace WhoBrokeIt.Player
         public Vector3 spawnBase = new Vector3(0f, 1.1f, -14f);
 
         CharacterController cc;
+        PlayerController pc;
+        Color baseColor = Color.white;
+        float immuneUntil, nextMelee;     // server side
+
+        public bool IsHidden => hidden.Value;
+
+        /// <summary>Finds the player a collider belongs to: the player itself (own controller) or its detached server proxy.</summary>
+        public static PlayerNet FromCollider(Collider c)
+        {
+            var p = c.GetComponentInParent<PlayerNet>();
+            if (p != null) return p;
+            var proxy = c.GetComponent<Props.ProxyOwner>();
+            return proxy != null ? proxy.owner : null;
+        }
 
         public static PlayerNet ForClient(ulong clientId)
         {
@@ -41,7 +57,12 @@ namespace WhoBrokeIt.Player
             return list.ToArray();
         }
 
-        void Awake() => cc = GetComponent<CharacterController>();
+        void Awake()
+        {
+            cc = GetComponent<CharacterController>();
+            pc = GetComponent<PlayerController>();
+            if (bodyRenderers != null && bodyRenderers.Length > 0 && bodyRenderers[0] != null) baseColor = bodyRenderers[0].sharedMaterial.color;
+        }
 
         public override void OnNetworkSpawn()
         {
@@ -89,6 +110,14 @@ namespace WhoBrokeIt.Player
             if (hammerVisual != null) hammerVisual.SetActive(toolId.Value == 2 && !hidden.Value);
             foreach (var r in bodyRenderers) if (r != null) r.enabled = !hidden.Value;
             if (proxyRb != null && IsServer && !IsOwner) proxyRb.gameObject.SetActive(!hidden.Value);
+
+            // dazed players flash red for everyone
+            if (bodyRenderers != null && bodyRenderers.Length > 0 && bodyRenderers[0] != null)
+            {
+                var t = stunned.Value ? 0.5f + 0.5f * Mathf.Sin(Time.time * 22f) : 0f;
+                bodyRenderers[0].material.color = Color.Lerp(baseColor, new Color(1f, 0.25f, 0.2f), t);
+            }
+            if (IsOwner && pc != null && stunned.Value != pc.Stunned) stunned.Value = pc.Stunned;
         }
 
         void FixedUpdate()
@@ -144,5 +173,47 @@ namespace WhoBrokeIt.Player
 
         [Rpc(SendTo.Server)]
         public void DropRpc() => carry.ServerDrop();
+
+        // ---------- throwing and hitting (comedy knockback, no damage) ----------
+
+        /// <summary>Owner asks to throw what it is carrying; the camera direction is sent along.</summary>
+        [Rpc(SendTo.Server)]
+        public void ThrowRpc(Vector3 aim)
+        {
+            if (aim.sqrMagnitude < 0.01f) aim = transform.forward;
+            carry.ServerThrow(aim, this);
+        }
+
+        /// <summary>Owner swings at whoever stands in front (right mouse). Short cooldown so nobody gets stun-locked.</summary>
+        [Rpc(SendTo.Server)]
+        public void MeleeRpc()
+        {
+            if (Time.time < nextMelee || hidden.Value) return;
+            nextMelee = Time.time + 0.7f;
+            foreach (var other in FindObjectsByType<PlayerNet>(FindObjectsSortMode.None))
+            {
+                if (other == this || other.hidden.Value) continue;
+                var to = other.transform.position - transform.position;
+                to.y = 0f;
+                if (to.magnitude > 2.2f || Vector3.Dot(transform.forward, to.normalized) < 0.35f) continue;
+                other.ServerBonk(to.normalized * 8f + Vector3.up * 2.5f, 0.7f);
+            }
+        }
+
+        /// <summary>Server: knock this player back and stun them. Returns false while they are still immune from the last hit.</summary>
+        public bool ServerBonk(Vector3 impulse, float stunSeconds)
+        {
+            if (!IsServer || Time.time < immuneUntil) return false;
+            immuneUntil = Time.time + stunSeconds + 0.8f;
+            BonkRpc(impulse, stunSeconds);
+            Case.CaseManager.NoteBonk();
+            return true;
+        }
+
+        [Rpc(SendTo.Owner)]
+        void BonkRpc(Vector3 impulse, float stunSeconds)
+        {
+            if (pc != null) pc.ApplyBonk(impulse, stunSeconds);
+        }
     }
 }
