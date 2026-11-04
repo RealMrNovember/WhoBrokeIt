@@ -48,7 +48,7 @@ namespace WhoBrokeIt.Player
             if (kb == null) return;
 
             var input = Vector2.zero;
-            if (!Stunned)
+            if (!Stunned && !Net.PauseMenu.Open)
             {
                 if (kb.wKey.isPressed) input.y += 1f;
                 if (kb.sKey.isPressed) input.y -= 1f;
@@ -64,7 +64,7 @@ namespace WhoBrokeIt.Player
             if (move.sqrMagnitude > 1f) move.Normalize();
 
             if (controller.isGrounded && verticalVelocity < 0f) verticalVelocity = -2f;
-            if (controller.isGrounded && !Stunned && kb.spaceKey.wasPressedThisFrame)
+            if (controller.isGrounded && !Stunned && !Net.PauseMenu.Open && kb.spaceKey.wasPressedThisFrame)
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             verticalVelocity += gravity * Time.deltaTime;
 

@@ -17,7 +17,7 @@ namespace WhoBrokeIt.Interaction
         void Update()
         {
             var kb = Keyboard.current;
-            var pressed = kb != null && kb.eKey.wasPressedThisFrame;
+            var pressed = kb != null && kb.eKey.wasPressedThisFrame && !Net.PauseMenu.Open;
             if (net.carry != null && net.carry.IsCarrying)
             {
                 current = null;

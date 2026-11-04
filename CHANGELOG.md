@@ -48,3 +48,7 @@
 - Uzaktaki sürücü artık araca bağlı çizilir (arkadan havada giden arkadaş sorunu).
 - F3: FPS ve ping göstergesi; grafik kalitesi Düşük/Orta/Yüksek (ilk açılışta donanıma göre seçilir, FPS uzun süre düşükse otomatik düşer; Esc menüsünden değişir).
 - Sunucu: 60 kare, başlatma yarışı düzeltildi (game1–3 "video aygıtı yok" ile çöküp yeniden başlıyordu).
+
+## 0.4.4 (2026-11-04)
+- Esc menüsü açıkken oyun girdisi kapatıldı (karakter yürümez, E etkileşmez, fare tıkı fırlatmaz).
+- docs: OYUN_BECERILERI.md (gameskill.dev taraması özeti), STEAM_HAZIRLIK.md (Steam öncesi liste).

@@ -17,7 +17,7 @@ namespace WhoBrokeIt.Player
         {
             var kb = Keyboard.current;
             var mouse = Mouse.current;
-            if (kb == null) return;
+            if (kb == null || Net.PauseMenu.Open) return;
 
             if (kb.digit1Key.wasPressedThisFrame) net.toolId.Value = 0;
             if (kb.digit2Key.wasPressedThisFrame) net.toolId.Value = 1;
