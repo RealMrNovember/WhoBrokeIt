@@ -1,0 +1,40 @@
+# Who Broke It? çevrimiçi altyapı (Kale): eşleştirme servisi + 6 oyun sunucusu.
+# Çalıştırma: docker compose -f compose.online.yml up -d     (görüntü: wbi-server:latest, bkz. deploy.sh)
+name: wbi-online
+
+x-game: &game
+  image: wbi-server:latest
+  restart: always
+  stop_grace_period: 5s
+  mem_limit: 700m
+  cpus: 0.7
+  networks: [whobrokeit]
+  depends_on: [matchmaker]
+
+services:
+  matchmaker:
+    image: python:3.12-alpine
+    container_name: wbi-matchmaker
+    restart: always
+    environment:
+      PUBLIC_ADDRESS: "31.40.199.47"
+      SLOTS: "6"
+      BASE_PORT: "7771"
+      CAPACITY: "4"
+      RESET_AFTER: "120"
+    volumes:
+      - ./matchmaker/mm.py:/app/mm.py:ro
+    command: ["python", "-u", "/app/mm.py"]
+    mem_limit: 128m
+    networks: [whobrokeit]
+
+  game1: { <<: *game, container_name: wbi-game1, command: ["-server", "-port", "7771", "-slot", "s1", "-api", "http://wbi-matchmaker:8100"], ports: ["7771:7771/udp"] }
+  game2: { <<: *game, container_name: wbi-game2, command: ["-server", "-port", "7772", "-slot", "s2", "-api", "http://wbi-matchmaker:8100"], ports: ["7772:7772/udp"] }
+  game3: { <<: *game, container_name: wbi-game3, command: ["-server", "-port", "7773", "-slot", "s3", "-api", "http://wbi-matchmaker:8100"], ports: ["7773:7773/udp"] }
+  game4: { <<: *game, container_name: wbi-game4, command: ["-server", "-port", "7774", "-slot", "s4", "-api", "http://wbi-matchmaker:8100"], ports: ["7774:7774/udp"] }
+  game5: { <<: *game, container_name: wbi-game5, command: ["-server", "-port", "7775", "-slot", "s5", "-api", "http://wbi-matchmaker:8100"], ports: ["7775:7775/udp"] }
+  game6: { <<: *game, container_name: wbi-game6, command: ["-server", "-port", "7776", "-slot", "s6", "-api", "http://wbi-matchmaker:8100"], ports: ["7776:7776/udp"] }
+
+networks:
+  whobrokeit:
+    external: true

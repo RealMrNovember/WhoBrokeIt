@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -30,6 +31,11 @@ namespace WhoBrokeIt.Case
         public NetworkVariable<bool> FuseRepaired = new NetworkVariable<bool>(false);
         public NetworkVariable<bool> CabinetDelivered = new NetworkVariable<bool>(false);
         public NetworkVariable<bool> Finished = new NetworkVariable<bool>(false);
+        public NetworkVariable<FixedString32Bytes> roomCode = new NetworkVariable<FixedString32Bytes>(default);
+        public NetworkVariable<float> restartIn = new NetworkVariable<float>(-1f);
+
+        float lastCount;
+        int playerCount = 1;
 
         readonly Queue<(string msg, float sec)> toasts = new Queue<(string, float)>();
         string toastText;
@@ -102,6 +108,12 @@ namespace WhoBrokeIt.Case
                 Cursor.visible = true;
             }
 
+            if (Time.time - lastCount > 0.5f)
+            {
+                lastCount = Time.time;
+                playerCount = Mathf.Max(1, FindObjectsByType<Player.PlayerNet>(FindObjectsSortMode.None).Length);
+            }
+
             if (toastText != null && Time.time > toastUntil) toastText = null;
             if (toastText == null && toasts.Count > 0)
             {
@@ -126,6 +138,15 @@ namespace WhoBrokeIt.Case
             }
             if (!Finished.Value && ClueCount >= cluesTotal && DebrisCleared.Value && FuseRepaired.Value && CabinetDelivered.Value)
                 Finished.Value = true;
+
+            // dedicated servers have nobody to press Enter: start the next case automatically
+            if (Finished.Value && !IsClient)
+            {
+                if (restartIn.Value < 0f) restartIn.Value = 45f;
+                restartIn.Value -= Time.deltaTime;
+                if (restartIn.Value <= 0f)
+                    NetworkManager.SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+            }
         }
 
         // ---------- HUD ----------
@@ -161,6 +182,19 @@ namespace WhoBrokeIt.Case
             small.normal.textColor = new Color(1f, 1f, 1f, 0.8f);
             GUI.Label(new Rect(20, h - 60, w - 40, 50),
                 "WASD yürü · Shift koş · Space zıpla · E kullan/al/bırak · 1 eller 2 süpürge 3 çekiç · Sol tık kullan · Tab defter · X sıfırla (basılı tut)", small);
+
+            if (roomCode.Value.Length > 0)
+            {
+                GUI.Box(new Rect(w - 360, 20, 340, 112), "", box);
+                small.normal.textColor = new Color(1f, 1f, 1f, 0.75f);
+                GUI.Label(new Rect(w - 350, 24, 320, 24), "ODA KODU · " + playerCount + "/4 oyuncu", small);
+                big.normal.textColor = new Color(1f, 0.85f, 0.2f);
+                var oldSize = big.fontSize;
+                big.fontSize = 38;
+                GUI.Label(new Rect(w - 350, 44, 320, 48), roomCode.Value.ToString(), big);
+                big.fontSize = oldSize;
+                if (GUI.Button(new Rect(w - 280, 94, 180, 30), "Kodu kopyala")) GUIUtility.systemCopyBuffer = roomCode.Value.ToString();
+            }
 
             if (toastText != null)
             {
@@ -207,7 +241,8 @@ namespace WhoBrokeIt.Case
                 "Alet çantası da Mehmet'in yuvasında bulundu, içinde yarım börek vardı.\n\n" +
                 "Süre: " + mins + " dk " + secs + " sn\n\nÖdüller:\n" + awards +
                 "\nSu kulesindeki forklift ise... bir sonraki vakaya kalıyor.\n\n" +
-                (IsServer ? "[Enter] Yeniden oyna" : "Oda sahibi yeniden başlatabilir."), label);
+                (restartIn.Value > 0f ? "Yeni vaka " + Mathf.CeilToInt(restartIn.Value) + " sn içinde başlıyor..." :
+                 IsServer ? "[Enter] Yeniden oyna" : "Oda sahibi yeniden başlatabilir."), label);
         }
     }
 }

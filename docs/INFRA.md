@@ -18,3 +18,14 @@ Ağır transferler sunucudan sunucuya yapılır; kullanıcı laptopu mobil kotal
 - Oyun açılışta `latest.json`'ı okur, yeni sürümü indirir, SHA-256 doğrular, oturumda değilse kendini günceller (`UpdateChecker`, Windows). Kapatma: `-noupdate`; Steam sürümünde `STEAM_BUILD` ile devre dışı.
 - Test araçları (Doku): `smoke.sh` (Linux build + iki süreç), `editor-smoke.sh` (Editor PlayMode, host tarafı tam vaka akışı).
 - Site kaynağı: `site/` (statik). Dağıtım: `tar czf - -C site . | ssh -p 6466 root@<kale> 'cd /srv/whobrokeit/site/html && tar xzf -'`.
+
+## Çevrimiçi oyun (2026-11-04)
+- İki yol: **oda kodu** (özel oda, 4 kişi) ve **hızlı oyun** (herkese açık oda). İkisi de Kale'deki özel (dedicated) sunucularda çalışır; oyuncu bilgisayarı sunucu olmaz, port açmak gerekmez.
+- Kale: `/srv/whobrokeit/online` (`compose.online.yml`): `wbi-matchmaker` (Python, `/api/*`, nginx üzerinden `https://whobrokeit.cicibyte.com/api/`) + 6 oyun sunucusu `wbi-game1..6` (UDP 7771–7776, yalnızca Docker yayını). Boş kalan oda 120 sn sonra sıfırlanır (süreç kapanır, Docker yenisini başlatır).
+- Sunucu = normal Linux oyun build'i + Xvfb (sanal ekran) + yazılım OpenGL; grafiksiz (`-nographics`) mod bu build'de çöküyor, Dedicated Server modülü de editör imajında yok. Sunucuda kameralar kapalı.
+- Dağıtım: `release.sh` (Doku) sunucu paketini `dist/server/wbi-server.tar.gz` yapar; Kale'de `/srv/whobrokeit/online/deploy.sh` Doku'dan çekip imajı derler ve servisleri yeniden başlatır. Sürüm uyuşmazlığı bağlantıda reddedilir.
+- Cloudflare önbelleği: hata yanıtları (404) 4 saate kadar önbelleğe alınabiliyor; token'da önbellek temizleme izni yok → yeni dosya adı kullan ya da yanıtların `Cache-Control: no-cache` ile gelmesini sağla (nginx'te `/builds/` için eklendi).
+
+## Kurulum sihirbazı
+- `installer/wbi.nsi` (NSIS, Doku'da `wbi-nsis` imajıyla derlenir): varsayılan `C:\Program Files\CiciByte\WhoBrokeIt`, yönetici izni ister, Başlat menüsü + isteğe bağlı masaüstü kısayolu, "Program Ekle/Kaldır" kaydı, kaldırıcı. Oyun klasörüne kullanıcılar için yazma izni verilir (otomatik güncelleme UAC sormasın diye).
+- `InstallGuard`: Windows'ta `Uninstall.exe` yanında yoksa oyun "önce kur" ekranı gösterir (`-allowportable` ile atlanır).

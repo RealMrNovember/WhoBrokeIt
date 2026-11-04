@@ -1,0 +1,13 @@
+# Who Broke It? özel oyun sunucusu: Unity Linux oyun build'i, sanal ekran (Xvfb) + yazılım OpenGL altında çalışır.
+# (Grafiksiz mod bu build'de çöküyor; sunucuda kameralar kapalı olduğundan çizim maliyeti yok.)
+FROM ubuntu:22.04
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates xvfb libgl1-mesa-dri libglx-mesa0 libglu1-mesa libgbm1 \
+    libxcursor1 libxrandr2 libxinerama1 libxi6 libxss1 libgssapi-krb5-2 libatomic1 libasound2 \
+ && rm -rf /var/lib/apt/lists/*
+WORKDIR /srv/game
+COPY game/ /srv/game/
+COPY run.sh /srv/run.sh
+RUN chmod +x /srv/game/wbi-server.x86_64 /srv/run.sh
+ENV DISPLAY=:99 XDG_RUNTIME_DIR=/tmp
+ENTRYPOINT ["/srv/run.sh"]

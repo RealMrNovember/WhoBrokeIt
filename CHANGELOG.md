@@ -15,3 +15,8 @@
 
 ## 0.2.0 (2026-11-04)
 - P2: Netcode for GameObjects, host/katil menusu, sunucu-otoriter vaka/forklift/aletler, otomatik guncelleme, yeni site.
+
+## 0.3.1 (2026-11-04)
+- Cevrimici: oda kodu + hizli oyun (Kale dedicated sunucular + eslestirme servisi), surum uyumu ve kapasite onayi, oda kodu ekrani.
+- Windows kurulum sihirbazi (Program Files\CiciByte\WhoBrokeIt), kurulum korumasi.
+- Site: oda kodu anlatimi, canli sunucu durumu, kurulum indirme.

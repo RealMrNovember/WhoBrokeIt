@@ -27,7 +27,9 @@ namespace WhoBrokeIt.Net
             if (i < 0 || i + 1 >= a.Length) return;
             var ip = i + 2 < a.Length ? a[i + 2] : "127.0.0.1";
             soloHost = a[i + 1] == "host1";
-            StartCoroutine(a[i + 1].StartsWith("host") ? Host() : Client(ip));
+            var mode = a[i + 1];
+            if (mode == "online") StartCoroutine(Online(ip));
+            else StartCoroutine(mode.StartsWith("host") ? Host() : Client(ip));
         }
 
         static bool soloHost;
@@ -53,8 +55,71 @@ namespace WhoBrokeIt.Net
             while (!cond() && t < timeout) { t += Time.deltaTime; yield return null; }
         }
 
+        /// <summary>Quick play through the real matchmaking API, then act as a client against the dedicated server.</summary>
+        IEnumerator Online(string apiBase)
+        {
+            yield return null;
+            var nm = NetworkManager.Singleton;
+            if (apiBase.StartsWith("http")) OnlineApi.Base = apiBase;
+            OnlineApi.Room room = null;
+            yield return OnlineApi.QuickPlay(r => room = r);
+            if (room == null || !string.IsNullOrEmpty(room.error) || string.IsNullOrEmpty(room.address)) { Fail("quickplay: " + (room != null ? room.error : "null")); yield break; }
+            Log("matchmaker: " + room.type + " oda " + room.address + ":" + room.port + " oyuncu " + room.players + "/" + room.capacity + " sürüm " + room.version);
+
+            ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetConnectionData(room.address, (ushort)room.port);
+            ConnectionGate.PrepareClient();
+            if (!nm.StartClient()) { Fail("StartClient"); yield break; }
+            yield return WaitFor(() => nm.IsConnectedClient, 20f);
+            if (!nm.IsConnectedClient) { Fail("sunucuya baglanilamadi: " + nm.DisconnectReason); yield break; }
+            Log("online: sunucuya baglandi");
+            yield return WaitFor(() => PlayerNet.Local != null && CaseManager.I != null && CaseManager.I.IsSpawned, 20f);
+            if (PlayerNet.Local == null || CaseManager.I == null) { Fail("oyuncu/vaka olusmadi"); yield break; }
+            var cm = CaseManager.I;
+            Log("online: oyuncu dogdu; nesne=" + nm.SpawnManager.SpawnedObjects.Count + " oda kodu='" + cm.roomCode.Value + "'");
+
+            // clues over RPC -> server state -> replicated back
+            foreach (var c in FindObjectsByType<Clue>(FindObjectsSortMode.None)) c.RequestInteract();
+            yield return new WaitForSeconds(1.5f);
+            if (cm.ClueCount != 3) { Fail("ipucu yansimadi: " + cm.ClueCount); yield break; }
+            Log("online: ipuclari sunucudan geri yansidi (3/3)");
+
+            // walk the (owner-authoritative) player next to a crate and pick it up
+            var player = PlayerNet.Local;
+            var crate = FindObjectsByType<Carryable>(FindObjectsSortMode.None).First(x => x.name == "Crate_0");
+            var cc = player.GetComponent<CharacterController>();
+            cc.enabled = false;
+            player.transform.position = crate.transform.position + new Vector3(0f, 0.2f, -1.6f);
+            player.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            cc.enabled = true;
+            yield return new WaitForSeconds(1f);
+            crate.RequestInteract();
+            yield return new WaitForSeconds(1f);
+            if (!player.carry.IsCarrying) { Fail("sandik alinamadi"); yield break; }
+            player.DropRpc();
+            yield return new WaitForSeconds(0.6f);
+            if (player.carry.IsCarrying) { Fail("sandik birakilamadi"); yield break; }
+            Log("online: al/birak ok");
+
+            // hammer the fuse box before the entrance is clear -> spark blast replicated
+            var fuse = FindFirstObjectByType<FuseBox>();
+            cc.enabled = false;
+            player.transform.position = fuse.transform.position + new Vector3(0f, -0.2f, -1.6f);
+            player.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            cc.enabled = true;
+            yield return new WaitForSeconds(1f);
+            for (var k = 0; k < 140 && cm.sparks.Value == 0; k++) { player.UseToolRpc(2, 0.05f); yield return new WaitForSeconds(0.05f); }
+            yield return new WaitForSeconds(0.8f);
+            if (cm.sparks.Value != 1) { Fail("kivilcim yansimadi: " + cm.sparks.Value); yield break; }
+            Log("online: cekic -> kivilcim kazasi sunucuda gerceklesti ve yansidi");
+
+            yield return new WaitForSeconds(2f);
+            Log("ONLINE PASS");
+            Finish(0);
+        }
+
         IEnumerator Host()
         {
+            yield return null;
             var nm = NetworkManager.Singleton;
             ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetConnectionData("127.0.0.1", Port, "0.0.0.0");
             if (!nm.StartHost()) { Fail("StartHost"); yield break; }
@@ -143,8 +208,10 @@ namespace WhoBrokeIt.Net
 
         IEnumerator Client(string ip)
         {
+            yield return null;
             var nm = NetworkManager.Singleton;
             ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetConnectionData(ip, Port);
+            ConnectionGate.PrepareClient();
             if (!nm.StartClient()) { Fail("StartClient"); yield break; }
             yield return WaitFor(() => nm.IsConnectedClient, 30f);
             if (!nm.IsConnectedClient) { Fail("could not connect to " + ip); yield break; }

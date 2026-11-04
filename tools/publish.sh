@@ -1,5 +1,8 @@
 #!/bin/bash
-# Who Broke It? - Doku: son Windows build'ini sürümleyip yayınlar (zip + latest.json).
+# Who Broke It? - Doku: son Windows build'ini yayınlar.
+#   dist/WhoBrokeIt-<sürüm>.zip            oyun içi otomatik güncelleme paketi
+#   dist/WhoBrokeIt-Setup-<sürüm>.exe      oyuncuların indirdiği kurulum sihirbazı (varsayılan: C:\Program Files\CiciByte\WhoBrokeIt)
+#   dist/latest.json                       sürüm bildirimi
 # Kullanım (Doku'da): ~/whobrokeit/publish.sh "Sürüm notu"
 set -eu
 cd ~/whobrokeit/project
@@ -9,6 +12,8 @@ mkdir -p dist
 rm -rf dist/stage && mkdir -p dist/stage/WhoBrokeIt
 cp -r WhoBrokeIt/Builds/Windows/. dist/stage/WhoBrokeIt/
 rm -rf dist/stage/WhoBrokeIt/*DoNotShip*
+
+# 1) güncelleme zip'i
 ZIP="WhoBrokeIt-$VER.zip"
 rm -f "dist/$ZIP"
 ( cd dist/stage && python3 -c "
@@ -17,11 +22,22 @@ z=zipfile.ZipFile('../$ZIP','w',zipfile.ZIP_DEFLATED,compresslevel=9)
 for r,d,f in os.walk('WhoBrokeIt'):
     for n in f: z.write(os.path.join(r,n))
 z.close()" )
+
+# 2) kurulum sihirbazı (NSIS, Linux üzerinde derlenir)
+SETUP="WhoBrokeIt-Setup-$VER.exe"
+docker image inspect wbi-nsis >/dev/null 2>&1 || docker build -q -t wbi-nsis -f ~/whobrokeit/installer/Dockerfile ~/whobrokeit/installer
+rm -f "dist/$SETUP"
+docker run --rm -v "$HOME/whobrokeit/installer:/inst:ro" -v "$HOME/whobrokeit/project/dist:/work" -w /work wbi-nsis \
+  -NOCD -V2 -DVERSION="$VER" -DSTAGE=/work/stage /inst/wbi.nsi
+[ -f "dist/$SETUP" ] || { echo "KURULUM DOSYASI URETILEMEDI"; exit 1; }
 rm -rf dist/stage
+
 SHA=$(sha256sum "dist/$ZIP" | cut -d' ' -f1)
 SIZE=$(stat -c %s "dist/$ZIP")
+ISHA=$(sha256sum "dist/$SETUP" | cut -d' ' -f1)
+ISIZE=$(stat -c %s "dist/$SETUP")
 cat > dist/latest.json.tmp <<JSON
-{"version":"$VER","url":"/builds/$ZIP","sha256":"$SHA","size":$SIZE,"date":"$(date -u +%F)","notes":"$NOTES"}
+{"version":"$VER","url":"/builds/$ZIP","sha256":"$SHA","size":$SIZE,"installer":"/builds/$SETUP","installerSha256":"$ISHA","installerSize":$ISIZE,"date":"$(date -u +%F)","notes":"$NOTES"}
 JSON
 mv -f dist/latest.json.tmp dist/latest.json
-echo "yayinlandi: $ZIP ($SIZE bayt) sha256=${SHA:0:16}"
+echo "yayinlandi: $SETUP ($ISIZE bayt, sha256=${ISHA:0:16}) + $ZIP ($SIZE bayt)"

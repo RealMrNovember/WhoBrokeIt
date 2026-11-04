@@ -38,6 +38,7 @@ namespace WhoBrokeIt.Net
             return;
 #else
             if (Application.platform != RuntimePlatform.WindowsPlayer) return;
+            if (InstallGuard.Blocked) return;
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-noupdate") >= 0) return;
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-smoke") >= 0) return;
             StartCoroutine(Run());

@@ -35,13 +35,17 @@
   function setText(sel, text) { $$(sel).forEach(function (el) { el.textContent = text; }); }
 
   function fill(m) {
-    var url = m.url && m.url.charAt(0) === '/' ? m.url : '/builds/' + m.url;
+    // oyuncular kurulum sihirbazını indirir; zip yalnızca oyun içi otomatik güncelleme içindir
+    var file = m.installer || m.url;
+    var url = file && file.charAt(0) === '/' ? file : '/builds/' + file;
+    var size = m.installer ? m.installerSize : m.size;
+    var sha = m.installer ? m.installerSha256 : m.sha256;
     setText('[data-ver]', 'v' + m.version);
-    setText('[data-size]', m.size ? mb(m.size) : '');
+    setText('[data-size]', size ? mb(size) : '');
     setText('[data-notes]', m.notes || '');
     if (m.date) setText('[data-date]', new Date(m.date + 'T00:00:00Z').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }));
-    if (m.sha256) {
-      setText('[data-sha]', m.sha256);
+    if (sha) {
+      setText('[data-sha]', sha);
       var box = $('#hash-box');
       if (box) box.hidden = false;
     }
@@ -70,6 +74,24 @@
       .catch(failed);
   } else {
     failed();
+  }
+
+  // çevrimiçi sunucu durumu (herkese açık özet)
+  var onl = $('#online-status');
+  if (onl && window.fetch) {
+    fetch('/api/status', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (s) {
+        onl.hidden = false;
+        if (!s.servers) {
+          onl.innerHTML = '<strong>Çevrimiçi sunucular şu an kapalı.</strong> Kısa süre içinde tekrar dene; yine de tek kişilik oynayabilirsin.';
+        } else if (s.online > 0) {
+          onl.innerHTML = '<strong>Şu an ' + s.online + ' kişi çevrimiçi</strong> · ' + s.rooms + ' dolu oda, ' + s.free + ' boş sunucu.';
+        } else {
+          onl.innerHTML = '<strong>Çevrimiçi sunucular hazır.</strong> Şu an oyunda kimse yok; ilk giren sen ol.';
+        }
+      })
+      .catch(function () {});
   }
 
   // özet kopyalama

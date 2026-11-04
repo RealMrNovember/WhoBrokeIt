@@ -38,6 +38,25 @@ public static class ProjectSetup
         if (report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
     }
 
+    /// <summary>Linux dedicated-server build (headless, no rendering). The scene must already exist (BuildWindows creates it).</summary>
+    public static void BuildLinuxServer()
+    {
+        // The Unity editor image has no Dedicated Server module and the player crashes on the null graphics device (-nographics),
+        // so the server is the normal Linux player run under a virtual display (Xvfb); cameras are disabled at runtime.
+        SetupRenderPipeline();
+        SetupPlayerSettings();
+        var opts = new BuildPlayerOptions
+        {
+            scenes = new[] { ScenePath },
+            locationPathName = "Builds/Server/wbi-server.x86_64",
+            target = BuildTarget.StandaloneLinux64,
+            options = BuildOptions.None
+        };
+        var report = BuildPipeline.BuildPlayer(opts);
+        Debug.Log("[WBI] Server build: " + report.summary.result + ", " + (report.summary.totalSize / (1024 * 1024)) + " MB");
+        if (report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
+    }
+
     /// <summary>Linux player used only for the headless multiplayer smoke test (scene must already exist).</summary>
     public static void BuildLinuxSmoke()
     {
@@ -399,13 +418,16 @@ public static class ProjectSetup
             NetworkTransport = ut,
             PlayerPrefab = playerPrefab,
             EnableSceneManagement = true,
-            ConnectionApproval = false,
+            ConnectionApproval = true,
             TickRate = 30
         };
         nm.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(prefabList);
         nmGo.AddComponent<NetworkMenu>();
         nmGo.AddComponent<SmokeRunner>();
         nmGo.AddComponent<UpdateChecker>();
+        nmGo.AddComponent<InstallGuard>();
+        nmGo.AddComponent<ConnectionGate>();
+        nmGo.AddComponent<DedicatedServer>();
 
         // The scene must exist on disk before NetworkObject can derive GlobalObjectIdHash: save, generate hashes, save again.
         EditorSceneManager.SaveScene(scene, ScenePath);

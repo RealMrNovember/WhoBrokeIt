@@ -52,7 +52,7 @@
         </a>
         <a class="btn ghost" href="#vaka">Nasıl oynanır?</a>
       </div>
-      <p class="cta-note">Windows 10/11 · 64 bit · <span data-size>~90 MB</span> · kurulum gerektirmez</p>
+      <p class="cta-note">Windows 10/11 · 64 bit · <span data-size>~90 MB</span> · kurulum sihirbazıyla</p>
       <ul class="badges" aria-label="Oyun özellikleri">
         <li>1–4 oyuncu</li><li>Kooperatif</li><li>Fizik komedisi</li><li>Gizem</li><li>Hafif ve hızlı</li>
       </ul>
@@ -224,18 +224,22 @@
   <div class="wrap">
     <p class="kicker">Çok oyunculu</p>
     <h2>Arkadaşlarınla oyna</h2>
-    <p class="sec-lead">Bir kişi oda kurar (sunucu o kişinin bilgisayarıdır), diğerleri adresini yazıp katılır. Steam daveti ve oyuncu listesi sonraki sürümlerde gelecek.</p>
+    <p class="sec-lead">İki yol var, ikisinde de ağ ayarı, IP ya da port açmak gerekmez: <strong>oda kodu</strong> ile arkadaşlarınla özel bir odaya girersin, <strong>hızlı oyun</strong> ile herkese açık bir odaya otomatik katılırsın.</p>
+    <p id="online-status" class="note" role="status" hidden></p>
     <div class="grid g2">
-      <ol class="install card reveal">
-        <li><span><strong>Oda kur.</strong> Ana menüde “Oda kur”u seç. Ekranda bilgisayarının adresi görünür.</span></li>
-        <li><span><strong>Adresi paylaş.</strong> Aynı ağdaysanız yerel adresi, uzaktaysanız bir VPN (ör. Tailscale) adresini arkadaşına ver.</span></li>
-        <li><span><strong>Katıl.</strong> Arkadaşların “Odaya katıl” kutusuna adresi yazıp “Katıl”a basar. Port: <kbd>7777</kbd> (UDP).</span></li>
-        <li><span><strong>Birlikte oynayın.</strong> Toplam 4 kişiye kadar. Vaka ilerlemesi herkeste ortaktır.</span></li>
-      </ol>
       <div class="card reveal">
-        <h3 style="margin-top:0">Bilmen gerekenler</h3>
-        <p style="margin-bottom:12px">Doğrudan bağlantı kullanıyoruz; internetten oynamak için bir VPN ya da yönlendirme gerekir. Kolay yolu (Steam daveti) hazırlıyoruz.</p>
-        <p class="note"><strong>Dürüst not:</strong> Bu bir erken geliştirme sürümüdür. Hatalar olabilir, oyun hızla değişiyor. Her geri bildirim değerli.</p>
+        <h3 style="margin-top:0">Arkadaşlarla: oda kodu</h3>
+        <ol class="install" style="margin-top:16px">
+          <li><span><strong>Oda kur.</strong> Menüden “Arkadaşlarla oyna → Özel oda kur”u seç. Oyun seni odaya sokar, sağ üstte <strong>oda kodun</strong> görünür (örn. <kbd>KDLM-48</kbd>).</span></li>
+          <li><span><strong>Kodu söyle.</strong> Kodu arkadaşlarına ilet; “Kodu kopyala” düğmesi var.</span></li>
+          <li><span><strong>Onlar katılır.</strong> Arkadaşların “Arkadaşlarla oyna” ekranında kodu yazıp “Koda katıl”a basar. Aynı odaya düşersiniz, 4 kişiye kadar.</span></li>
+        </ol>
+      </div>
+      <div class="card reveal">
+        <h3 style="margin-top:0">Herkese açık: hızlı oyun</h3>
+        <p style="margin-bottom:14px">“Hızlı oyun (online)” seni yer olan açık bir odaya otomatik yerleştirir. Orada başkaları varsa onlarla birlikte oynarsın; yoksa yeni bir oda açılır ve diğer oyuncular sana katılır.</p>
+        <p class="note"><strong>Dürüst not:</strong> Bu bir erken geliştirme sürümüdür; sunucu sayısı sınırlıdır ve hatalar olabilir. Tüm sunucular doluysa menü sana bunu söyler. Her geri bildirim değerli.</p>
+        <p style="margin:14px 0 0;color:var(--muted);font-size:15px">Oyun, güncel sürümle çalışan odalara girer; eski sürüm otomatik güncellenir.</p>
       </div>
     </div>
   </div>
@@ -267,14 +271,14 @@
   <div class="wrap">
     <p class="kicker">İndir</p>
     <h2>Windows için erken geliştirme sürümü</h2>
-    <p class="sec-lead">Ücretsiz test sürümü. Kurulum yok: zip’i aç, oyunu çalıştır.</p>
+    <p class="sec-lead">Ücretsiz test sürümü. Kurulum sihirbazını çalıştır; oyun varsayılan olarak <code>C:\Program Files\CiciByte\WhoBrokeIt</code> klasörüne kurulur ve sonrasında kendini günceller.</p>
     <div class="dl">
       <div class="dl-card">
         <div class="ver"><strong data-ver>v—</strong><span class="pill">Erken sürüm</span></div>
         <p class="meta"><span data-date></span> <span data-size></span> · Windows 10/11, 64 bit</p>
         <a class="btn primary" href="#indir" data-dl aria-disabled="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 20h16"/></svg>
-          Zip dosyasını indir
+          Kurulum dosyasını indir
         </a>
         <p id="dl-status" role="status" class="meta" style="margin-top:14px"></p>
         <p class="meta" data-notes style="margin:8px 0 0"></p>
@@ -284,9 +288,9 @@
       </div>
       <div>
         <ol class="install">
-          <li><span><strong>Zip’i klasöre çıkar.</strong> Masaüstü gibi yazılabilir bir yere. Zip içinden doğrudan çalıştırma.</span></li>
-          <li><span><strong><code>WhoBrokeIt.exe</code>’yi aç.</strong> İlk açılış birkaç saniye sürebilir.</span></li>
-          <li><span><strong>Sonrası otomatik.</strong> Yeni sürüm çıkınca oyun açılışta kendini günceller.</span></li>
+          <li><span><strong>Kurulum dosyasını çalıştır.</strong> <code>WhoBrokeIt-Setup-…exe</code> yönetici izni ister, çünkü oyun Program Files’a kurulur.</span></li>
+          <li><span><strong>Klasörü onayla.</strong> Varsayılan: <code>C:\Program Files\CiciByte\WhoBrokeIt</code>. İstersen değiştirebilir, masaüstü kısayolu ekleyebilirsin.</span></li>
+          <li><span><strong>Oyna.</strong> Başlat menüsünden ya da kısayoldan aç. Yeni sürüm çıkınca oyun açılışta kendini günceller; tekrar kurman gerekmez.</span></li>
         </ol>
         <p class="note" style="margin-top:20px"><strong>Windows uyarısı:</strong> Dosya henüz dijital olarak imzalı değil. SmartScreen “Bilinmeyen yayımcı” derse <em>Daha fazla bilgi → Yine de çalıştır</em> de. Güvenmek istersen, yukarıdaki SHA-256 değerini indirdiğin dosyayla karşılaştırabilirsin.</p>
       </div>
@@ -316,9 +320,9 @@
     <h2>SSS</h2>
     <details><summary>Oyun ücretsiz mi?</summary><p>Bu erken test sürümü ücretsizdir. Steam’de çıkacak sürümün fiyatı henüz belli değil; temel işbirliği ve oyun mekanikleri hiçbir zaman para karşılığı kilitlenmeyecek.</p></details>
     <details><summary>Kaç kişi oynayabilir?</summary><p>Şimdilik 1–4 kişi. Tek başına da oynanır, bir kişi oda kurar, diğerleri katılır.</p></details>
-    <details><summary>İnternetten arkadaşlarımla nasıl oynarım?</summary><p>Şu an doğrudan bağlantı kullanılıyor: oda kuran kişinin adresi ve UDP 7777 portu gerekir. Kolay yol olarak Tailscale gibi bir VPN öneriyoruz. Steam ile tek tıkla davet yolda.</p></details>
+    <details><summary>İnternetten arkadaşlarımla nasıl oynarım?</summary><p>Ana menüden “Arkadaşlarla oyna → Özel oda kur”u seç, ekranda çıkan oda kodunu arkadaşlarına ver; onlar aynı ekrandan kodu girip katılır. IP, VPN ya da port açmak gerekmez. Kodsuz, tanımadığın insanlarla oynamak istersen “Hızlı oyun”u kullan.</p></details>
     <details><summary>Oyun kendini nasıl güncelliyor?</summary><p>Açılışta bu sitedeki <code>latest.json</code> dosyasına bakar. Yeni sürüm varsa indirir, SHA-256 ile doğrular ve yeniden başlar. Bir oyun oturumundaysan bitene kadar bekler. <code>-noupdate</code> parametresiyle kapatabilirsin.</p></details>
-    <details><summary>Hangi veriler toplanıyor?</summary><p>Hesap ve kişisel veri toplamıyoruz. Oyun yalnızca güncelleme kontrolü için bu siteye bağlanır. Çok oyunculu bağlantıda yalnızca oda sahibinin adresine bağlanırsın.</p></details>
+    <details><summary>Hangi veriler toplanıyor?</summary><p>Hesap ve kişisel veri toplamıyoruz. Oyun yalnızca güncelleme kontrolü için bu siteye bağlanır. Çevrimiçi oynarken yalnızca oyun sunucumuza bağlanırsın; bağlanmak için IP adresin sunucuya ulaşır. Hesap ya da kalıcı bir profil oluşturmuyoruz.</p></details>
     <details><summary>Windows “bilinmeyen yayımcı” diyor, güvenli mi?</summary><p>Dosya henüz dijital olarak imzalanmadı; bu erken sürümlerde normal. İndirme bölümündeki SHA-256 değerini kontrol edebilirsin. Steam sürümünde bu uyarı olmayacak.</p></details>
     <details><summary>Mac veya Linux sürümü olacak mı?</summary><p>Şimdilik yalnızca Windows. Diğer platformlar için söz vermiyoruz.</p></details>
   </div>
