@@ -3,10 +3,15 @@ using UnityEngine.InputSystem;
 
 namespace WhoBrokeIt.Player
 {
-    /// <summary>Mouse-orbit follow camera with simple collision (static geometry only). Esc frees the cursor.</summary>
+    /// <summary>
+    /// Follow camera: third person (orbit with collision) or first person (V toggles, the choice is remembered).
+    /// While driving a vehicle the camera is always third person. Esc frees the cursor.
+    /// </summary>
     public class ThirdPersonCamera : MonoBehaviour
     {
         public static ThirdPersonCamera Instance { get; private set; }
+
+        const string PrefKey = "wbi_firstperson";
 
         public Transform target;
         public Vector3 pivotOffset = new Vector3(0f, 1.6f, 0f);
@@ -14,8 +19,20 @@ namespace WhoBrokeIt.Player
         public float minDistance = 2f, maxDistance = 12f;
         public float sensitivity = 0.12f;
         public float minPitch = -20f, maxPitch = 70f;
+        public Vector3 headOffset = new Vector3(0f, 0.68f, 0f);
 
+        Transform playerTarget;
         float yaw, pitch = 20f;
+
+        /// <summary>The player's own choice; applies whenever the camera follows the player (not a vehicle).</summary>
+        public static bool FirstPersonPreferred
+        {
+            get { return PlayerPrefs.GetInt(PrefKey, 0) == 1; }
+            set { PlayerPrefs.SetInt(PrefKey, value ? 1 : 0); PlayerPrefs.Save(); }
+        }
+
+        public bool IsFirstPerson => FirstPersonPreferred && target != null && target == playerTarget;
+        public float Yaw => yaw;
 
         void Awake() { Instance = this; }
 
@@ -24,6 +41,15 @@ namespace WhoBrokeIt.Player
             if (target != null) yaw = target.eulerAngles.y;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+        }
+
+        /// <summary>Follow the local player (camera mode follows the player's preference).</summary>
+        public void SetPlayer(Transform player)
+        {
+            playerTarget = player;
+            target = player;
+            pivotOffset = new Vector3(0f, 1.6f, 0f);
+            distance = Mathf.Clamp(distance, minDistance, maxDistance);
         }
 
         public void SetTarget(Transform t, Vector3 offset, float dist)
@@ -44,16 +70,30 @@ namespace WhoBrokeIt.Player
                 Cursor.lockState = locked ? CursorLockMode.None : CursorLockMode.Locked;
                 Cursor.visible = locked;
             }
+            if (kb != null && kb.vKey.wasPressedThisFrame && target == playerTarget)
+                FirstPersonPreferred = !FirstPersonPreferred;
+
+            var fp = IsFirstPerson;
+            var lo = fp ? -85f : minPitch;
+            var hi = fp ? 85f : maxPitch;
             if (mouse != null && Cursor.lockState == CursorLockMode.Locked)
             {
                 var d = mouse.delta.ReadValue();
                 yaw += d.x * sensitivity;
-                pitch = Mathf.Clamp(pitch - d.y * sensitivity, minPitch, maxPitch);
-                distance = Mathf.Clamp(distance - mouse.scroll.ReadValue().y * 0.002f, minDistance, maxDistance);
+                pitch = Mathf.Clamp(pitch - d.y * sensitivity, lo, hi);
+                if (!fp) distance = Mathf.Clamp(distance - mouse.scroll.ReadValue().y * 0.002f, minDistance, maxDistance);
+            }
+            pitch = Mathf.Clamp(pitch, lo, hi);
+
+            var rot = Quaternion.Euler(pitch, yaw, 0f);
+            if (fp)
+            {
+                var flat = Quaternion.Euler(0f, yaw, 0f);
+                transform.SetPositionAndRotation(target.position + headOffset + flat * new Vector3(0f, 0f, 0.14f), rot);
+                return;
             }
 
             var pivot = target.position + pivotOffset;
-            var rot = Quaternion.Euler(pitch, yaw, 0f);
             var dir = rot * Vector3.back;
             var dist = distance;
             if (Physics.SphereCast(pivot, 0.25f, dir, out var hit, distance, ~0, QueryTriggerInteraction.Ignore)

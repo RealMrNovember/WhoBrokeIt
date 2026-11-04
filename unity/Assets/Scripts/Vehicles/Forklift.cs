@@ -28,7 +28,7 @@ namespace WhoBrokeIt.Vehicles
         public NetworkVariable<ulong> driverId = new NetworkVariable<ulong>(ulong.MaxValue);
 
         Rigidbody body;
-        float forkHeight;
+        float forkHeight, driveSpeed;
         float throttle, steer, forkInput;       // server: last driver input
         float resetHold;                        // owner
         int enteredFrame;
@@ -46,9 +46,19 @@ namespace WhoBrokeIt.Vehicles
 
         public override void OnNetworkSpawn()
         {
+            // The kinematic forks sit a few centimetres in front of the hull. Without this the hull pushed into them on its first
+            // physics step and could not move at all (found by the automated driving test).
+            if (forks != null)
+                foreach (var hc in GetComponentsInChildren<Collider>())
+                    foreach (var fc in forks.GetComponentsInChildren<Collider>())
+                        Physics.IgnoreCollision(hc, fc);
+
+            // the hull is a box standing in for wheels: no friction, the arcade drive controls the motion
+            var slick = new PhysicsMaterial("ForkliftSlick") { dynamicFriction = 0f, staticFriction = 0f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
+            foreach (var hc in GetComponentsInChildren<Collider>()) hc.sharedMaterial = slick;
+
             if (IsServer)
             {
-                body.centerOfMass = new Vector3(0f, -0.4f, 0.3f);
                 body.interpolation = RigidbodyInterpolation.Interpolate;
                 var r = GetComponent<Resettable>();
                 if (r != null) r.onReset = () => { forkHeight = forkMin; MoveForks(); };
@@ -67,7 +77,7 @@ namespace WhoBrokeIt.Vehicles
         [Rpc(SendTo.Server, RequireOwnership = false, Delivery = RpcDelivery.Unreliable)]
         void DriveRpc(float t, float s, float f, RpcParams rpcParams = default)
         {
-            if (rpcParams.Receive.SenderClientId != driverId.Value) return;
+            if (rpcParams.Receive.SenderClientId != driverId.Value || testInput) return;
             throttle = Mathf.Clamp(t, -1f, 1f);
             steer = Mathf.Clamp(s, -1f, 1f);
             forkInput = Mathf.Clamp(f, -1f, 1f);
@@ -89,6 +99,11 @@ namespace WhoBrokeIt.Vehicles
             if (r != null) { r.ResetNow(); CaseManager.NoteReset(); CaseManager.Toast("Forklift sıfırlandı."); }
         }
 
+        /// <summary>Server only: drive input injection used by the automated tests.</summary>
+        public void ServerTestInput(float t, float s, float f) { testInput = true; throttle = t; steer = s; forkInput = f; }
+        bool testInput;
+        public float ForkHeight => forkHeight;
+
         void FixedUpdate()
         {
             if (!IsServer) return;
@@ -98,9 +113,10 @@ namespace WhoBrokeIt.Vehicles
             fwd.y = 0f;
             fwd.Normalize();
             var v = body.linearVelocity;
-            var speed = Vector3.Dot(v, fwd);
+            // own speed variable: ground friction on the flat hull otherwise eats the velocity we read back every step
             var target = throttle * maxSpeed;
-            speed = Mathf.MoveTowards(speed, target, (Mathf.Abs(target) > 0.01f ? accel : brake) * Time.fixedDeltaTime);
+            driveSpeed = Mathf.MoveTowards(driveSpeed, target, (Mathf.Abs(target) > 0.01f ? accel : brake) * Time.fixedDeltaTime);
+            var speed = driveSpeed;
             body.linearVelocity = fwd * speed + Vector3.up * v.y;
 
             var ang = body.angularVelocity;
@@ -109,6 +125,13 @@ namespace WhoBrokeIt.Vehicles
 
             forkHeight = Mathf.Clamp(forkHeight + forkInput * forkSpeed * Time.fixedDeltaTime, forkMin, forkMax);
             MoveForks();
+        }
+
+        public string Diag;
+        void OnCollisionStay(Collision c)
+        {
+            if (!IsServer) return;
+            if (Diag == null || Diag.Length < 400) Diag += c.collider.name + "@" + c.GetContact(0).normal.ToString("0.0") + " ";
         }
 
         void MoveForks()

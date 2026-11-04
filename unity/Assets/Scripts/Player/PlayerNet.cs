@@ -18,16 +18,19 @@ namespace WhoBrokeIt.Player
         public NetworkVariable<bool> hidden = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         public NetworkVariable<bool> stunned = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        /// <summary>Index into CharacterCatalog; chosen in the menu and shown to everyone.</summary>
+        public NetworkVariable<int> characterId = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         public GameObject broomVisual, hammerVisual;
-        public Renderer[] bodyRenderers;
+        public Transform visualAnchor;
+        public Renderer[] bodyRenderers = new Renderer[0];
+        GameObject visualInstance;
         public Rigidbody proxyRb;
         public CarrySystem carry;
         public Vector3 spawnBase = new Vector3(0f, 1.1f, -14f);
 
         CharacterController cc;
         PlayerController pc;
-        Color baseColor = Color.white;
         float immuneUntil, nextMelee;     // server side
 
         public bool IsHidden => hidden.Value;
@@ -61,8 +64,19 @@ namespace WhoBrokeIt.Player
         {
             cc = GetComponent<CharacterController>();
             pc = GetComponent<PlayerController>();
-            if (bodyRenderers != null && bodyRenderers.Length > 0 && bodyRenderers[0] != null) baseColor = bodyRenderers[0].sharedMaterial.color;
         }
+
+        void RebuildVisual(int id)
+        {
+            if (visualInstance != null) Destroy(visualInstance);
+            visualInstance = null;
+            bodyRenderers = new Renderer[0];
+            if (visualAnchor == null || Net.DedicatedServer.IsDedicated) return;     // servers never draw anything
+            visualInstance = CharacterCatalog.Build(id, visualAnchor);
+            if (visualInstance != null) bodyRenderers = visualInstance.GetComponentsInChildren<Renderer>();
+        }
+
+        void OnCharacterChanged(int previous, int current) => RebuildVisual(current);
 
         public override void OnNetworkSpawn()
         {
@@ -78,6 +92,10 @@ namespace WhoBrokeIt.Player
                 proxyRb.gameObject.SetActive(IsServer && !owner);
             }
 
+            characterId.OnValueChanged += OnCharacterChanged;
+            if (owner) characterId.Value = CharacterCatalog.SavedChoice();
+            RebuildVisual(characterId.Value);
+
             if (owner)
             {
                 Local = this;
@@ -88,7 +106,7 @@ namespace WhoBrokeIt.Player
                 var tpc = ThirdPersonCamera.Instance;
                 if (tpc != null)
                 {
-                    tpc.SetTarget(transform, new Vector3(0f, 1.6f, 0f), 5.5f);
+                    tpc.SetPlayer(transform);
                     tpc.enabled = true;
                 }
                 var pc = GetComponent<PlayerController>();
@@ -100,6 +118,7 @@ namespace WhoBrokeIt.Player
 
         public override void OnNetworkDespawn()
         {
+            characterId.OnValueChanged -= OnCharacterChanged;
             if (Local == this) Local = null;
             if (proxyRb != null) Destroy(proxyRb.gameObject);
         }
@@ -108,15 +127,11 @@ namespace WhoBrokeIt.Player
         {
             if (broomVisual != null) broomVisual.SetActive(toolId.Value == 1 && !hidden.Value);
             if (hammerVisual != null) hammerVisual.SetActive(toolId.Value == 2 && !hidden.Value);
-            foreach (var r in bodyRenderers) if (r != null) r.enabled = !hidden.Value;
+            // own body is hidden in first person (you would see the inside of your head); everyone is hidden while driving
+            var firstPerson = IsOwner && ThirdPersonCamera.Instance != null && ThirdPersonCamera.Instance.IsFirstPerson;
+            var show = !hidden.Value && !firstPerson;
+            foreach (var r in bodyRenderers) if (r != null && r.enabled != show) r.enabled = show;
             if (proxyRb != null && IsServer && !IsOwner) proxyRb.gameObject.SetActive(!hidden.Value);
-
-            // dazed players flash red for everyone
-            if (bodyRenderers != null && bodyRenderers.Length > 0 && bodyRenderers[0] != null)
-            {
-                var t = stunned.Value ? 0.5f + 0.5f * Mathf.Sin(Time.time * 22f) : 0f;
-                bodyRenderers[0].material.color = Color.Lerp(baseColor, new Color(1f, 0.25f, 0.2f), t);
-            }
             if (IsOwner && pc != null && stunned.Value != pc.Stunned) stunned.Value = pc.Stunned;
         }
 

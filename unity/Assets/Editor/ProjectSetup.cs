@@ -38,6 +38,15 @@ public static class ProjectSetup
         if (report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
     }
 
+    /// <summary>Builds the scene and a Linux player only (fast): used for screenshots and server tests.</summary>
+    public static void BuildLinuxShots()
+    {
+        SetupRenderPipeline();
+        SetupPlayerSettings();
+        BuildWorkshopScene();
+        BuildLinuxServer();
+    }
+
     /// <summary>Linux dedicated-server build (headless, no rendering). The scene must already exist (BuildWindows creates it).</summary>
     public static void BuildLinuxServer()
     {
@@ -95,6 +104,20 @@ public static class ProjectSetup
             asset = UniversalRenderPipelineAsset.Create(rd);
             AssetDatabase.CreateAsset(asset, assetPath);
         }
+        // quality: soft shadows, 4x MSAA, HDR (needed for bloom), shadows out to 60 m
+        var so = new SerializedObject(asset);
+        void SetF(string n, float v) { var p = so.FindProperty(n); if (p != null) p.floatValue = v; }
+        void SetI(string n, int v) { var p = so.FindProperty(n); if (p != null) p.intValue = v; }
+        void SetB(string n, bool v) { var p = so.FindProperty(n); if (p != null) p.boolValue = v; }
+        SetF("m_ShadowDistance", 60f);
+        SetI("m_MainLightShadowmapResolution", 2048);
+        SetB("m_SoftShadowsSupported", true);
+        SetI("m_MSAA", 4);
+        SetB("m_SupportsHDR", true);
+        SetI("m_ShadowCascadeCount", 3);
+        so.ApplyModifiedProperties();
+        EditorUtility.SetDirty(asset);
+
         GraphicsSettings.defaultRenderPipeline = asset;
         for (var i = 0; i < QualitySettings.names.Length; i++)
         {
@@ -178,31 +201,138 @@ public static class ProjectSetup
         return c;
     }
 
+    // ---------- procedural PBR-ish textures (original, generated here; no third-party art) ----------
+    static float N(float x, float y, float scale) { return Mathf.PerlinNoise(x * scale + 17.3f, y * scale + 91.7f); }
+    static float Fbm(float x, float y, float s)
+    {
+        return N(x, y, s) * 0.5f + N(x, y, s * 2.1f) * 0.3f + N(x, y, s * 4.3f) * 0.2f;
+    }
+
+    static Texture2D ProcTex(string name, int size, System.Func<float, float, Color> f)
+    {
+        Directory.CreateDirectory("Assets/Textures/Proc");
+        var path = "Assets/Textures/Proc/" + name + ".png";
+        var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (existing != null) return existing;
+        var tex = new Texture2D(size, size, TextureFormat.RGB24, false);
+        for (var y = 0; y < size; y++)
+            for (var x = 0; x < size; x++)
+                tex.SetPixel(x, y, f(x / (float)size, y / (float)size));
+        File.WriteAllBytes(path, tex.EncodeToPNG());
+        Object.DestroyImmediate(tex);
+        AssetDatabase.ImportAsset(path);
+        var imp = (TextureImporter)AssetImporter.GetAtPath(path);
+        imp.wrapMode = TextureWrapMode.Repeat;
+        imp.anisoLevel = 8;
+        imp.maxTextureSize = 512;
+        imp.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+
+    static Material MatTex(string name, Texture2D tex, Color tint, Vector2 tiling, float smoothness, float metallic = 0f)
+    {
+        Directory.CreateDirectory("Assets/Materials");
+        var path = "Assets/Materials/" + name + ".mat";
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (mat != null) return mat;
+        mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        mat.SetTexture("_BaseMap", tex);
+        mat.SetTextureScale("_BaseMap", tiling);
+        mat.SetColor("_BaseColor", tint);
+        mat.SetFloat("_Smoothness", smoothness);
+        mat.SetFloat("_Metallic", metallic);
+        AssetDatabase.CreateAsset(mat, path);
+        return mat;
+    }
+
+    static Color Mix(Color a, Color b, float t) { return Color.Lerp(a, b, Mathf.Clamp01(t)); }
+
+    static Texture2D TexGrass() { return ProcTex("grass", 512, (u, v) => Mix(new Color(0.20f, 0.42f, 0.16f), new Color(0.40f, 0.62f, 0.22f), Fbm(u, v, 14f)) * (0.88f + 0.12f * N(u, v, 90f))); }
+    static Texture2D TexConcrete() { return ProcTex("concrete", 512, (u, v) => Mix(new Color(0.50f, 0.50f, 0.49f), new Color(0.72f, 0.71f, 0.68f), Fbm(u, v, 9f)) * (0.93f + 0.07f * N(u, v, 140f))); }
+    static Texture2D TexPlaster() { return ProcTex("plaster", 512, (u, v) => Mix(new Color(0.82f, 0.72f, 0.55f), new Color(0.92f, 0.84f, 0.68f), Fbm(u, v, 7f)) * (1f - 0.18f * Mathf.Pow(1f - v, 3f))); }
+    static Texture2D TexMetal() { return ProcTex("metal", 512, (u, v) => { var s = 0.55f + 0.2f * N(u * 0.2f, v, 160f) + 0.1f * N(u, v, 14f); return new Color(s, s * 1.02f, s * 1.06f); }); }
+    static Texture2D TexTile() { return ProcTex("tile", 512, (u, v) => { var gx = Mathf.Abs(((u * 6f) % 1f) - 0.5f); var gy = Mathf.Abs(((v * 6f) % 1f) - 0.5f); var grout = (gx > 0.47f || gy > 0.47f) ? 0.55f : 1f; var chk = (Mathf.FloorToInt(u * 6f) + Mathf.FloorToInt(v * 6f)) % 2 == 0 ? 0.78f : 0.68f; var s = chk * grout * (0.92f + 0.08f * Fbm(u, v, 20f)); return new Color(s, s * 0.98f, s * 0.94f); }); }
+    static Texture2D TexWood()
+    {
+        return ProcTex("wood", 512, (u, v) =>
+        {
+            var plank = Mathf.Floor(u * 5f);
+            var local = (u * 5f) % 1f;
+            var tone = 0.85f + 0.3f * Mathf.PerlinNoise(plank * 3.7f, 1.3f);
+            var grain = 0.5f + 0.5f * Mathf.Sin((v * 9f + Fbm(u, v, 6f) * 5f + plank) * 6.28f);
+            var c = Mix(new Color(0.42f, 0.27f, 0.14f), new Color(0.62f, 0.43f, 0.24f), 0.35f + 0.4f * grain) * tone;
+            if (local < 0.03f || local > 0.97f) c *= 0.45f;
+            return c;
+        });
+    }
+
+    static void SetupPostProcessing()
+    {
+        Directory.CreateDirectory("Assets/Settings");
+        const string path = "Assets/Settings/WBI-Post.asset";
+        var profile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(path);
+        if (profile != null) return;
+        profile = ScriptableObject.CreateInstance<VolumeProfile>();
+        AssetDatabase.CreateAsset(profile, path);
+
+        var bloom = profile.Add<Bloom>(true);
+        bloom.intensity.Override(0.28f);
+        bloom.threshold.Override(1.05f);
+        var tone = profile.Add<Tonemapping>(true);
+        tone.mode.Override(TonemappingMode.ACES);
+        var grade = profile.Add<ColorAdjustments>(true);
+        grade.saturation.Override(4f);
+        grade.contrast.Override(10f);
+        grade.postExposure.Override(-0.1f);
+        var vignette = profile.Add<Vignette>(true);
+        vignette.intensity.Override(0.20f);
+        vignette.smoothness.Override(0.5f);
+        foreach (var c in profile.components) AssetDatabase.AddObjectToAsset(c, profile);
+        EditorUtility.SetDirty(profile);
+        AssetDatabase.SaveAssets();
+    }
+
     // ---------- scene ----------
     static void BuildWorkshopScene()
     {
         Directory.CreateDirectory("Assets/Scenes");
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
-        RenderSettings.ambientMode = AmbientMode.Flat;
-        RenderSettings.ambientLight = new Color(0.46f, 0.5f, 0.58f);
+        // sky + image based ambient light instead of a flat colour
+        var skyMat = new Material(Shader.Find("Skybox/Procedural"));
+        skyMat.SetFloat("_SunSize", 0.05f);
+        skyMat.SetFloat("_AtmosphereThickness", 1.05f);
+        skyMat.SetColor("_SkyTint", new Color(0.55f, 0.62f, 0.78f));
+        skyMat.SetColor("_GroundColor", new Color(0.38f, 0.40f, 0.36f));
+        Directory.CreateDirectory("Assets/Materials");
+        AssetDatabase.CreateAsset(skyMat, "Assets/Materials/Sky.mat");
+        RenderSettings.skybox = skyMat;
+        RenderSettings.ambientMode = AmbientMode.Skybox;
+        RenderSettings.ambientIntensity = 1.1f;
+        RenderSettings.fog = true;
+        RenderSettings.fogMode = FogMode.Linear;
+        RenderSettings.fogColor = new Color(0.66f, 0.74f, 0.84f);
+        RenderSettings.fogStartDistance = 90f;
+        RenderSettings.fogEndDistance = 280f;
+        SetupPostProcessing();
+        Debug.Log("[WBI] karakter prefabi (yapay zeka modeli): " + AiAssets.BuildCharacterPrefabs());
 
-        var ground = Mat("Ground", new Color(0.42f, 0.55f, 0.35f));
-        var wall = Mat("Wall", new Color(0.85f, 0.78f, 0.62f));
-        var crateM = Mat("Crate", new Color(0.72f, 0.5f, 0.25f));
-        var metal = Mat("Metal", new Color(0.35f, 0.4f, 0.45f));
+        var ground = MatTex("GroundGrass", TexGrass(), new Color(0.66f, 0.76f, 0.52f), new Vector2(120f, 120f), 0.05f);
+        var wall = MatTex("WallPlaster", TexPlaster(), Color.white, new Vector2(3f, 2f), 0.1f);
+        var crateM = MatTex("WoodPlanks", TexWood(), Color.white, new Vector2(1f, 1f), 0.25f);
+        var metal = MatTex("MetalBrushed", TexMetal(), new Color(0.78f, 0.82f, 0.88f), new Vector2(2f, 2f), 0.55f, 0.6f);
         var yellow = Mat("Yellow", new Color(0.97f, 0.76f, 0.1f));
         var dark = Mat("Dark", new Color(0.12f, 0.12f, 0.14f));
         var scrap = Mat("Scrap", new Color(0.55f, 0.35f, 0.3f));
         var mud = Mat("Mud", new Color(0.25f, 0.17f, 0.1f));
-        var floorM = Mat("WorkshopFloor", new Color(0.6f, 0.58f, 0.55f));
+        var floorM = MatTex("WorkshopTiles", TexTile(), new Color(0.78f, 0.78f, 0.82f), new Vector2(2.2f, 1.1f), 0.35f);
         var zoneM = Mat("Zone", new Color(0.2f, 0.7f, 0.9f));
         var red = Mat("Red", new Color(0.85f, 0.2f, 0.2f));
         var boreg = Mat("Boreg", new Color(0.85f, 0.65f, 0.3f));
         var playerMat = Mat("Player", new Color(0.95f, 0.75f, 0.1f));
 
         // ground + workshop shell (open to the south, z=7)
-        Prim(PrimitiveType.Cube, "Ground", new Vector3(0, -0.25f, 0), new Vector3(70, 0.5f, 70), ground);
+        Prim(PrimitiveType.Cube, "Ground", new Vector3(0, -0.25f, 0), new Vector3(320, 0.5f, 320), ground);
         Prim(PrimitiveType.Cube, "WorkshopFloor", new Vector3(0, 0.01f, 10.5f), new Vector3(13.5f, 0.06f, 7f), floorM);
         Prim(PrimitiveType.Cube, "Workshop_Back", new Vector3(0, 2.5f, 14), new Vector3(14, 5, 0.5f), wall);
         Prim(PrimitiveType.Cube, "Workshop_Left", new Vector3(-7, 2.5f, 10.5f), new Vector3(0.5f, 5, 7), wall);
@@ -229,13 +359,20 @@ public static class ProjectSetup
 
         // debris at the workshop entrance
         var rnd = new System.Random(7);
+        var debrisModels = new[] { "prop_sandik", "prop_varil", "prop_cop_kutusu" };
         for (var i = 0; i < 22; i++)
         {
-            var type = i % 3 == 0 ? PrimitiveType.Sphere : PrimitiveType.Cube;
-            var d = Prim(type, "Debris_" + i,
-                new Vector3(-4.5f + (float)rnd.NextDouble() * 9f, 0.4f, 3f + (float)rnd.NextDouble() * 4f),
-                Vector3.one * (0.35f + (float)rnd.NextDouble() * 0.2f), scrap);
-            d.transform.rotation = Quaternion.Euler((float)rnd.NextDouble() * 90f, (float)rnd.NextDouble() * 90f, 0);
+            var dpos = new Vector3(-4.5f + (float)rnd.NextDouble() * 9f, 0.45f, 3f + (float)rnd.NextDouble() * 4f);
+            var dsize = 0.38f + (float)rnd.NextDouble() * 0.14f;
+            var d = AiAssets.Model(debrisModels[i % 3], dsize, false, (float)rnd.NextDouble() * 360f, true);
+            if (d != null) d.transform.position = dpos;
+            else
+            {
+                var type = i % 3 == 0 ? PrimitiveType.Sphere : PrimitiveType.Cube;
+                d = Prim(type, "Debris_" + i, dpos, Vector3.one * (dsize - 0.03f), i % 3 == 0 ? metal : crateM);
+            }
+            d.name = "Debris_" + i;
+            d.transform.rotation = Quaternion.Euler((float)rnd.NextDouble() * 90f, (float)rnd.NextDouble() * 360f, (float)rnd.NextDouble() * 90f);
             Body(d, 1f);
             d.AddComponent<Debris>();
             d.AddComponent<Carryable>().prompt = "Al";
@@ -244,13 +381,49 @@ public static class ProjectSetup
         // props: a few crates and barrels in the yard
         for (var i = 0; i < 8; i++)
         {
-            var c = Prim(PrimitiveType.Cube, "Crate_" + i, new Vector3(-9 + (i % 4) * 1.2f, 0.5f + (i / 4) * 1.02f, -9), Vector3.one, crateM);
+            var cpos = new Vector3(-9 + (i % 4) * 1.25f, 0.05f + (i / 4) * 0.98f, -9);
+            var c = AiAssets.Model("prop_sandik", 0.9f, false, i * 17f, true);
+            if (c != null) c.transform.position = cpos;
+            else c = Prim(PrimitiveType.Cube, "Crate_" + i, cpos + Vector3.up * 0.45f, Vector3.one * 0.9f, crateM);
+            c.name = "Crate_" + i;
             Carry(c, 4f);
         }
         for (var i = 0; i < 3; i++)
         {
-            var b = Prim(PrimitiveType.Cylinder, "Barrel_" + i, new Vector3(-6 + i * 1.2f, 0.6f, -13), new Vector3(0.9f, 0.6f, 0.9f), red);
+            var bpos = new Vector3(-6 + i * 1.2f, 0.05f, -13);
+            var b = AiAssets.Model(i == 1 ? "prop_cop_kutusu" : "prop_varil", i == 1 ? 0.95f : 1.0f, true, i * 40f, true);
+            if (b != null) b.transform.position = bpos;
+            else b = Prim(PrimitiveType.Cylinder, "Barrel_" + i, bpos + Vector3.up * 0.5f, new Vector3(0.8f, 0.5f, 0.8f), red);
+            b.name = "Barrel_" + i;
             Carry(b, 5f);
+        }
+
+        // static scenery (no physics): dumpster, benches, hydrant, street lamps, bins
+        void Decor(string id, float size, bool byHeight, Vector3 pos, float yaw)
+        {
+            var m = AiAssets.Model(id, size, byHeight, yaw, true);
+            if (m == null) return;
+            m.transform.position = pos;
+        }
+        Decor("prop_konteyner", 1.5f, true, new Vector3(-14f, 0f, -3f), 90f);
+        Decor("prop_bank", 1.9f, false, new Vector3(-5f, 0f, -17f), 0f);
+        Decor("prop_bank", 1.9f, false, new Vector3(6f, 0f, -17.5f), 180f);
+        Decor("prop_muslugu", 0.8f, true, new Vector3(3.8f, 0f, -3.5f), 0f);
+        Decor("prop_cop_kutusu", 0.95f, true, new Vector3(-11f, 0f, -8f), 30f);
+        Decor("prop_cop_kutusu", 0.95f, true, new Vector3(12f, 0f, -5f), -20f);
+        foreach (var lp in new[] { new Vector3(-8f, 0f, -11f), new Vector3(11f, 0f, -12f) })
+        {
+            Decor("prop_lamba", 4.0f, true, lp, 0f);
+            if (AiAssets.Has("prop_lamba"))
+            {
+                var lg = new GameObject("StreetLampLight");
+                lg.transform.position = lp + new Vector3(0f, 3.7f, 0f);
+                var ll = lg.AddComponent<Light>();
+                ll.type = LightType.Point;
+                ll.range = 13f;
+                ll.intensity = 2.5f;
+                ll.color = new Color(1f, 0.82f, 0.55f);
+            }
         }
 
         // hand trolley (push it; loads ride on it)
@@ -271,46 +444,89 @@ public static class ProjectSetup
         Body(pallet, 15f);
         pallet.AddComponent<Resettable>();
 
-        var cabinet = Prim(PrimitiveType.Cube, "ToolCabinet", new Vector3(8.5f, 1.3f, -1f), new Vector3(1f, 1.8f, 0.7f), red);
+        var cabinet = AiAssets.Model("prop_dolap", 1.8f, true, 0f, true);
+        if (cabinet != null) cabinet.transform.position = new Vector3(8.5f, 0.4f, -1f);
+        else cabinet = Prim(PrimitiveType.Cube, "ToolCabinet", new Vector3(8.5f, 1.3f, -1f), new Vector3(1f, 1.8f, 0.7f), red);
+        cabinet.name = "ToolCabinet";
         Body(cabinet, 70f);
         cabinet.AddComponent<Resettable>();
         delivery.target = cabinet.GetComponent<Rigidbody>();
 
-        // forklift (faces +Z, toward the pallet)
-        var fkRoot = new GameObject("ForkliftRoot");
-        fkRoot.transform.position = new Vector3(8.5f, 0, -7f);
-        var hull = Prim(PrimitiveType.Cube, "Forklift", new Vector3(0, 0.75f, 0), new Vector3(1.6f, 0.8f, 2.2f), yellow, fkRoot.transform);
-        Prim(PrimitiveType.Cube, "Counterweight", new Vector3(0, 0.1f, -1.1f), new Vector3(1.6f, 0.9f, 0.5f), dark, hull.transform, false);
-        Prim(PrimitiveType.Cube, "CabPostL", new Vector3(-0.7f, 0.9f, -0.2f), new Vector3(0.08f, 1.2f, 0.08f), dark, hull.transform, false);
-        Prim(PrimitiveType.Cube, "CabPostR", new Vector3(0.7f, 0.9f, -0.2f), new Vector3(0.08f, 1.2f, 0.08f), dark, hull.transform, false);
-        Prim(PrimitiveType.Cube, "CabRoof", new Vector3(0, 1.5f, -0.2f), new Vector3(1.5f, 0.08f, 1.2f), dark, hull.transform, false);
-        for (var i = 0; i < 4; i++)
-            Prim(PrimitiveType.Cylinder, "Wheel_" + i, new Vector3(i % 2 == 0 ? -0.85f : 0.85f, -0.35f, i < 2 ? -0.7f : 0.7f), new Vector3(0.55f, 0.15f, 0.55f), dark, hull.transform, false)
-                .transform.localRotation = Quaternion.Euler(0, 0, 90);
-        var hullBody = Body(hull, 700f);
+        // forklift (faces +Z, toward the pallet).
+        // The hull is an EMPTY root with unit scale: shapes keep their real size and wheels sit where they should
+        // (the first version scaled a primitive and parented the parts to it, which squashed them into the ground).
+        var hull = new GameObject("Forklift");
+        hull.transform.position = new Vector3(8.5f, 0.02f, -7f);
+        var hullCol = hull.AddComponent<BoxCollider>();
+        hullCol.center = new Vector3(0f, 0.5f, -0.1f);
+        hullCol.size = new Vector3(1.5f, 1.0f, 1.9f);
+        var ht = hull.transform;
+        var tire = Mat("Tire", new Color(0.07f, 0.07f, 0.08f));
+        var orange = Mat("Beacon", new Color(1f, 0.55f, 0.05f));
+        var steel = Mat("Steel", new Color(0.55f, 0.58f, 0.62f));
+        var fkYellow = Mat("ForkliftYellow", new Color(0.98f, 0.72f, 0.05f));
+        Prim(PrimitiveType.Cube, "Chassis", new Vector3(0f, 0.5f, 0.05f), new Vector3(1.5f, 0.6f, 1.7f), fkYellow, ht, false);
+        Prim(PrimitiveType.Cube, "Counterweight", new Vector3(0f, 0.66f, -0.88f), new Vector3(1.5f, 0.78f, 0.62f), dark, ht, false);
+        Prim(PrimitiveType.Cube, "HazardStripe", new Vector3(0f, 0.90f, -1.20f), new Vector3(1.5f, 0.10f, 0.04f), fkYellow, ht, false);
+        Prim(PrimitiveType.Cube, "Seat", new Vector3(0f, 0.92f, -0.05f), new Vector3(0.52f, 0.12f, 0.5f), dark, ht, false);
+        Prim(PrimitiveType.Cube, "SeatBack", new Vector3(0f, 1.2f, -0.32f), new Vector3(0.52f, 0.5f, 0.10f), dark, ht, false);
+        Prim(PrimitiveType.Cylinder, "SteeringColumn", new Vector3(0f, 1.02f, 0.28f), new Vector3(0.06f, 0.15f, 0.06f), dark, ht, false).transform.localRotation = Quaternion.Euler(-35f, 0f, 0f);
+        Prim(PrimitiveType.Cylinder, "SteeringWheel", new Vector3(0f, 1.18f, 0.20f), new Vector3(0.30f, 0.015f, 0.30f), dark, ht, false).transform.localRotation = Quaternion.Euler(-35f, 0f, 0f);
+        foreach (var sx in new[] { -1f, 1f })
+        {
+            Prim(PrimitiveType.Cylinder, "GuardPostFront", new Vector3(0.66f * sx, 1.55f, 0.50f), new Vector3(0.07f, 0.55f, 0.07f), dark, ht, false);
+            Prim(PrimitiveType.Cylinder, "GuardPostRear", new Vector3(0.66f * sx, 1.5f, -0.58f), new Vector3(0.07f, 0.55f, 0.07f), dark, ht, false);
+        }
+        Prim(PrimitiveType.Cube, "GuardRoof", new Vector3(0f, 2.06f, -0.04f), new Vector3(1.5f, 0.06f, 1.3f), dark, ht, false);
+        for (var i = 0; i < 5; i++) Prim(PrimitiveType.Cube, "RoofSlat", new Vector3(0f, 2.10f, -0.52f + i * 0.26f), new Vector3(1.5f, 0.04f, 0.07f), steel, ht, false);
+        Prim(PrimitiveType.Cylinder, "BeaconBase", new Vector3(0.0f, 2.12f, -0.52f), new Vector3(0.14f, 0.025f, 0.14f), dark, ht, false);
+        Prim(PrimitiveType.Sphere, "Beacon", new Vector3(0.0f, 2.2f, -0.52f), new Vector3(0.18f, 0.15f, 0.18f), orange, ht, false);
+        // static mast uprights (the carriage with the forks slides in front of them)
+        foreach (var sx in new[] { -1f, 1f })
+            Prim(PrimitiveType.Cube, "MastUpright", new Vector3(0.30f * sx, 1.05f, 0.98f), new Vector3(0.10f, 2.1f, 0.12f), dark, ht, false);
+        Prim(PrimitiveType.Cube, "MastTop", new Vector3(0f, 2.08f, 0.98f), new Vector3(0.7f, 0.10f, 0.12f), dark, ht, false);
+        Prim(PrimitiveType.Cube, "MastMid", new Vector3(0f, 1.0f, 0.98f), new Vector3(0.7f, 0.07f, 0.10f), dark, ht, false);
+        // wheels: a cylinder's axis is local Y, so rotate 90 degrees to lay it along X; scale = (diameter, half width, diameter)
+        foreach (var w in new[] { new Vector3(-0.80f, 0.32f, 0.55f), new Vector3(0.80f, 0.32f, 0.55f), new Vector3(-0.78f, 0.27f, -0.72f), new Vector3(0.78f, 0.27f, -0.72f) })
+        {
+            var d = w.y * 2f;
+            Prim(PrimitiveType.Cylinder, "Tire", w, new Vector3(d, 0.13f, d), tire, ht, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            var hub = Prim(PrimitiveType.Cylinder, "Hub", w + new Vector3(Mathf.Sign(w.x) * 0.02f, 0f, 0f), new Vector3(d * 0.5f, 0.135f, d * 0.5f), steel, ht, false);
+            hub.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+        }
+        var hullBody = hull.AddComponent<Rigidbody>();
+        hullBody.mass = 700f;
         hullBody.linearDamping = 0f;
         hullBody.angularDamping = 2f;
+        hullBody.centerOfMass = new Vector3(0f, 0.45f, -0.1f);
+        Net(hull, true);
         hull.AddComponent<Resettable>();
 
+        // forks: kinematic body that follows the hull and carries loads by friction (own root, not a child of the hull)
         var forksGo = new GameObject("Forks");
-        forksGo.transform.SetParent(fkRoot.transform, false);
-        forksGo.transform.position = new Vector3(8.5f, 0, -7f);
-        Prim(PrimitiveType.Cube, "Mast", new Vector3(0, 0.7f, 1.3f), new Vector3(1.4f, 1.4f, 0.1f), dark, forksGo.transform);
-        Prim(PrimitiveType.Cube, "ProngL", new Vector3(-0.25f, 0.045f, 2.0f), new Vector3(0.18f, 0.08f, 1.3f), metal, forksGo.transform);
-        Prim(PrimitiveType.Cube, "ProngR", new Vector3(0.25f, 0.045f, 2.0f), new Vector3(0.18f, 0.08f, 1.3f), metal, forksGo.transform);
+        forksGo.transform.position = hull.transform.position;
+        Prim(PrimitiveType.Cube, "CarriagePlate", new Vector3(0f, 0.42f, 1.12f), new Vector3(1.1f, 0.85f, 0.06f), dark, forksGo.transform);
+        for (var i = 0; i < 4; i++) Prim(PrimitiveType.Cube, "CarriageBar", new Vector3(0f, 0.12f + i * 0.24f, 1.16f), new Vector3(1.1f, 0.05f, 0.04f), steel, forksGo.transform, false);
+        Prim(PrimitiveType.Cube, "ProngL", new Vector3(-0.30f, 0.045f, 1.8f), new Vector3(0.14f, 0.07f, 1.35f), steel, forksGo.transform);
+        Prim(PrimitiveType.Cube, "ProngR", new Vector3(0.30f, 0.045f, 1.8f), new Vector3(0.14f, 0.07f, 1.35f), steel, forksGo.transform);
         var forkRb = forksGo.AddComponent<Rigidbody>();
         forkRb.isKinematic = true;
         Net(forksGo, false);
         var fk = hull.AddComponent<Forklift>();
         fk.forks = forkRb;
+        fk.forkOrigin = Vector3.zero;
+        fk.forkMax = 1.6f;
         fk.prompt = "Forklifte bin";
 
         // lights + fuse box
         var sun = new GameObject("Sun");
         var sunLight = sun.AddComponent<Light>();
         sunLight.type = LightType.Directional;
-        sunLight.intensity = 0.9f;
-        sunLight.color = new Color(1f, 0.92f, 0.78f);
+        sunLight.intensity = 1.15f;
+        sunLight.color = new Color(1f, 0.93f, 0.80f);
+        sunLight.shadows = LightShadows.Soft;
+        sunLight.shadowStrength = 0.9f;
+        RenderSettings.sun = sunLight;
         sun.transform.rotation = Quaternion.Euler(50, -30, 0);
 
         var lamps = new Light[3];
@@ -346,10 +562,18 @@ public static class ProjectSetup
         MakeClue(cable, 2, "Kemirilmiş kablo", "Kablo temiz kesilmemiş: minik dişlerin izi var. Sigortanın atmasının sebebi bu.");
 
         // player prefab (spawned by the NetworkManager for each client)
-        var player = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        player.name = "Player";
-        Object.DestroyImmediate(player.GetComponent<CapsuleCollider>());
-        player.GetComponent<Renderer>().sharedMaterial = playerMat;
+        // the character model is built at runtime from CharacterCatalog (6 originals; custom prefabs go to Resources/Characters)
+        Directory.CreateDirectory("Assets/Resources/WBI");
+        if (AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/WBI/CharacterBase.mat") == null)
+        {
+            var cm0 = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            cm0.SetFloat("_Smoothness", 0.38f);
+            AssetDatabase.CreateAsset(cm0, "Assets/Resources/WBI/CharacterBase.mat");
+        }
+        var player = new GameObject("Player");
+        var visualAnchor = new GameObject("Visual");
+        visualAnchor.transform.SetParent(player.transform, false);
+        visualAnchor.transform.localPosition = new Vector3(0f, -1f, 0f);   // character models have their feet at the origin
         player.transform.position = new Vector3(0, 1.1f, -14);
         var cc = player.AddComponent<CharacterController>();
         cc.height = 2f; cc.radius = 0.5f; cc.center = Vector3.zero;
@@ -376,7 +600,7 @@ public static class ProjectSetup
         net.carry = carry;
         net.broomVisual = broom;
         net.hammerVisual = hammer;
-        net.bodyRenderers = new[] { player.GetComponent<Renderer>() };
+        net.visualAnchor = visualAnchor.transform;
         var proxy = new GameObject("PlayerProxy");
         proxy.transform.SetParent(player.transform, false);
         var pcol = proxy.AddComponent<CapsuleCollider>();
@@ -395,10 +619,16 @@ public static class ProjectSetup
         // camera (enabled for the local player once it spawns)
         var camGo = new GameObject("Main Camera") { tag = "MainCamera" };
         var cam = camGo.AddComponent<Camera>();
-        cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = new Color(0.55f, 0.75f, 0.95f);
-        cam.farClipPlane = 200f;
+        cam.clearFlags = CameraClearFlags.Skybox;
+        cam.farClipPlane = 220f;
         camGo.AddComponent<AudioListener>();
+        var camData = camGo.AddComponent<UniversalAdditionalCameraData>();
+        camData.renderPostProcessing = true;
+        camData.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+        var volGo = new GameObject("PostProcessing");
+        var vol = volGo.AddComponent<Volume>();
+        vol.isGlobal = true;
+        vol.sharedProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>("Assets/Settings/WBI-Post.asset");
         camGo.transform.position = new Vector3(0, 6, -22);
         camGo.transform.rotation = Quaternion.Euler(15, 0, 0);
         camGo.AddComponent<ThirdPersonCamera>().enabled = false;
@@ -428,6 +658,7 @@ public static class ProjectSetup
         nm.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(prefabList);
         nmGo.AddComponent<NetworkMenu>();
         nmGo.AddComponent<SmokeRunner>();
+        nmGo.AddComponent<ScreenshotRunner>();
         nmGo.AddComponent<UpdateChecker>();
         nmGo.AddComponent<InstallGuard>();
         nmGo.AddComponent<ConnectionGate>();

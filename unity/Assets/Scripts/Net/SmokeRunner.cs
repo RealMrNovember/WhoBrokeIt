@@ -234,6 +234,29 @@ namespace WhoBrokeIt.Net
             if (fk.driverId.Value != nm.LocalClientId) { Fail("forklift driver=" + fk.driverId.Value); yield break; }
             Log("forklift enter ok");
 
+            // drive it: forward for 2 s must move the hull several metres; fork up must raise the forks
+            var fkBody = fk.GetComponent<Rigidbody>();
+            var fkStart = fkBody.position;
+            fk.ServerTestInput(1f, 0f, 1f);
+            yield return new WaitForSeconds(0.6f);
+            {
+                // diagnostics: what holds the hull?
+                var col = fk.GetComponent<BoxCollider>();
+                var hits = Physics.OverlapBox(col.bounds.center, col.bounds.extents * 0.98f, fkBody.rotation);
+                var names = new System.Text.StringBuilder();
+                foreach (var h in hits) if (h != col) names.Append(h.name).Append(h.attachedRigidbody != null ? "(rb)" : "").Append(' ');
+                Log("forklift tani: kinematik=" + fkBody.isKinematic + " hiz=" + fkBody.linearVelocity.ToString("0.00") + " uyuyor=" + fkBody.IsSleeping()
+                    + " kisit=" + fkBody.constraints + " kutle=" + fkBody.mass + " cakisan=[" + names + "] konum=" + fkBody.position.ToString("0.00")
+                    + " rot=" + fkBody.rotation.eulerAngles.ToString("0") + " temas=[" + fk.Diag + "] driver=" + fk.driverId.Value + " scale=" + fk.transform.lossyScale.ToString("0.00"));
+            }
+            yield return new WaitForSeconds(1.4f);
+            fk.ServerTestInput(0f, 0f, 0f);
+            var drove = Vector3.Distance(fkBody.position, fkStart);
+            Log("forklift surus: " + drove.ToString("0.00") + " m, yukseklik " + fkBody.position.y.ToString("0.00") + ", catal " + fk.ForkHeight.ToString("0.00") + " m");
+            if (drove < 3f) { Fail("forklift hareket etmiyor (" + drove.ToString("0.00") + " m)"); yield break; }
+            if (fk.ForkHeight < 0.5f) { Fail("catal kalkmiyor (" + fk.ForkHeight.ToString("0.00") + ")"); yield break; }
+            Log("forklift surus ok");
+
             // 7) deliver the cabinet
             var dz = FindFirstObjectByType<DeliveryZone>();
             var cab = GameObject.Find("ToolCabinet").GetComponent<Rigidbody>();

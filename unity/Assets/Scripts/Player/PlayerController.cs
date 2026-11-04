@@ -72,7 +72,10 @@ namespace WhoBrokeIt.Player
             controller.Move((move * speed + knock + Vector3.up * verticalVelocity) * Time.deltaTime);
             knock = Vector3.MoveTowards(knock, Vector3.zero, 16f * Time.deltaTime);
 
-            if (move.sqrMagnitude > 0.01f)
+            var cam = ThirdPersonCamera.Instance;
+            if (cam != null && cam.IsFirstPerson)
+                transform.rotation = Quaternion.Euler(0f, cam.Yaw, 0f);        // first person: the body always faces where you look
+            else if (move.sqrMagnitude > 0.01f)
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), turnSharpness * Time.deltaTime);
         }
 

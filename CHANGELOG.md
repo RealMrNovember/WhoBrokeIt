@@ -24,3 +24,9 @@
 ## 0.3.2 (2026-11-04)
 - Firlatma (sol tik, tasirken) ve vurma (sag tik): geri itme + kisa sersemleme, hasar yok. Dostane bonk odulu.
 - latest.json artik python ile uretiliyor (not icindeki ters egik cizgi dosyayi bozuyordu: site ve otomatik guncelleme sürüm bilgisini okuyamiyordu). Sabit /download adresi, varlik dosyalarina surum eki.
+
+## 0.4.0 (2026-11-04)
+- Karakterler: oyuncu menuden karakter secer (isci, muhendis, asci, robot, kedi, kurbaga). Bes karakter yapay zeka ile uretilmis dokulu 3B modeldir; kurbaga yedek (ilkel sekil) modelle gelir.
+- Birinci sahis kamera: V tusu veya menuden secilir, kendi govdemiz gizlenir.
+- Forklift duzeltildi: gövdenin yer surtunmesi yuzunden kipirdamamasi giderildi, tekerlekler zeminin ustunde, catal kalkiyor.
+- Gorsel: cim/zemin dokusu, isik, bloom, ACES ton esleme, sis.

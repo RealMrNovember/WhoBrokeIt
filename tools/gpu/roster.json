@@ -1,0 +1,22 @@
+{
+  "_note": "Who Broke It? yapay zeka destekli varlik seti (SDXL konsept + TRELLIS 3B). Ozgun tasarimlar; hicbir marka/karakter referansi yok. Seed sabit: ayni konsept tekrar uretilir.",
+  "style": "stylized 3D game asset, single object, centered, full view, three-quarter front view, plain light grey background, chunky friendly proportions, hand-painted PBR textures, rich colors, soft studio light, detailed but clean silhouette, high quality, colorful friendly cartoon industrial style",
+  "negative": "multiple objects, cropped, text, watermark, busy background, scenery, floor, shadow on floor, blurry, photo, realistic photo, low quality, concept sheet, turnaround, several views",
+  "assets": [
+    { "id": "char_isci", "kind": "character", "height": 1.8, "seed": 3101, "prompt": "cute cartoon construction worker character, orange hard hat, yellow high-visibility vest with silver stripes, blue work trousers, brown boots, friendly face, standing, arms slightly away from the body, full body" },
+    { "id": "char_muhendis", "kind": "character", "height": 1.8, "seed": 3102, "prompt": "cute cartoon engineer character, white hard hat with safety goggles on the forehead, teal work shirt, grey trousers, tool belt, friendly face, standing, arms slightly away from the body, full body" },
+    { "id": "char_asci", "kind": "character", "height": 1.8, "seed": 3103, "prompt": "cute cartoon chef character, tall white chef hat, white double-breasted coat with apron, dark trousers, clogs, big smile, standing, arms slightly away from the body, full body" },
+    { "id": "char_robot", "kind": "character", "height": 1.8, "seed": 3104, "prompt": "cute old municipal service robot character, boxy steel grey body with rivets, glowing cyan visor eyes, small red antenna ball, rusty orange joints, standing, arms slightly away from the body, full body" },
+    { "id": "char_kedi", "kind": "character", "height": 1.8, "seed": 3105, "prompt": "cute cartoon cat character wearing blue overalls, orange fur with white chest, pointy ears, long tail, big green eyes, standing upright, arms slightly away from the body, full body" },
+    { "id": "char_kurbaga", "kind": "character", "height": 1.8, "seed": 3106, "prompt": "cute cartoon frog character wearing a yellow raincoat, bright green skin, big round eyes on top of the head, wide smile, standing upright, arms slightly away from the body, full body" },
+
+    { "id": "prop_sandik", "kind": "prop", "height": 0.9, "seed": 3201, "prompt": "wooden shipping crate with plank slats and metal corner brackets, weathered warm brown wood, stencil stripes" },
+    { "id": "prop_varil", "kind": "prop", "height": 1.0, "seed": 3202, "prompt": "red steel oil drum barrel with ribbed rings and a small dent, scuffed paint" },
+    { "id": "prop_cop_kutusu", "kind": "prop", "height": 0.95, "seed": 3203, "prompt": "green metal street trash can with a hinged lid, slightly dented, rusty edges" },
+    { "id": "prop_konteyner", "kind": "prop", "height": 1.5, "seed": 3204, "prompt": "blue metal dumpster with grey plastic lids, wheels, chunky and weathered" },
+    { "id": "prop_bank", "kind": "prop", "height": 0.9, "seed": 3205, "prompt": "wooden park bench with cast iron legs and armrests, weathered green paint slats" },
+    { "id": "prop_muslugu", "kind": "prop", "height": 0.8, "seed": 3206, "prompt": "red fire hydrant with chunky brass caps, chipped paint" },
+    { "id": "prop_lamba", "kind": "prop", "height": 4.0, "seed": 3207, "prompt": "old cast iron street lamp post with a warm glowing glass lantern on top, dark green paint" },
+    { "id": "prop_dolap", "kind": "prop", "height": 1.8, "seed": 3208, "prompt": "heavy red metal workshop tool cabinet with several drawers, steel handles, labels, scuffed paint, front view" }
+  ]
+}

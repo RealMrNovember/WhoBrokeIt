@@ -3,18 +3,19 @@ using System.Net.Sockets;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
+using WhoBrokeIt.Player;
 
 namespace WhoBrokeIt.Net
 {
     /// <summary>
     /// Main menu. Two online ways in, both through dedicated servers: quick play (public room, joins strangers automatically) and
-    /// private rooms (share a code with friends). Solo play and direct IP/LAN stay available.
+    /// private rooms (share a code with friends). Also: character selection, camera mode, solo play and direct IP/LAN.
     /// </summary>
     public class NetworkMenu : MonoBehaviour
     {
         public ushort lanPort = 7777;
 
-        enum Page { Main, Friends, Advanced }
+        enum Page { Main, Friends, Characters, Advanced }
         Page page = Page.Main;
         string code = "";
         string address = "127.0.0.1";
@@ -24,12 +25,22 @@ namespace WhoBrokeIt.Net
         string myIps = "";
         GUIStyle title, label, btn, small, field;
 
+        // character preview (rendered by a private camera into a texture, far away from the scene)
+        int charIndex;
+        Transform stage;
+        Camera previewCam;
+        RenderTexture previewRt;
+        GameObject previewModel;
+        int shownIndex = -1;
+
         void Start()
         {
-            if (DedicatedServer.IsDedicated || System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-smoke") >= 0) { enabled = false; return; }
+            var args = System.Environment.GetCommandLineArgs();
+            if (System.Array.IndexOf(args, "-server") >= 0 || System.Array.IndexOf(args, "-smoke") >= 0 || System.Array.IndexOf(args, "-shots") >= 0) { enabled = false; return; }
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
             myIps = LocalAddresses();
+            charIndex = CharacterCatalog.SavedChoice();
             var nm = NetworkManager.Singleton;
             if (nm != null) nm.OnClientDisconnectCallback += OnDisconnected;
         }
@@ -37,6 +48,7 @@ namespace WhoBrokeIt.Net
         void OnDestroy()
         {
             if (NetworkManager.Singleton != null) NetworkManager.Singleton.OnClientDisconnectCallback -= OnDisconnected;
+            if (previewRt != null) previewRt.Release();
         }
 
         void OnDisconnected(ulong id)
@@ -97,6 +109,43 @@ namespace WhoBrokeIt.Net
         void RunCreate() { var box = new OnlineApi.Room[1]; StartCoroutine(Online(OnlineApi.CreateRoom(r => box[0] = r), box, "Özel oda hazırlanıyor...")); }
         void RunJoin() { var box = new OnlineApi.Room[1]; StartCoroutine(Online(OnlineApi.JoinRoom(code, r => box[0] = r), box, "Oda bulunuyor...")); }
 
+        // ---------- character preview ----------
+        void EnsurePreview()
+        {
+            if (previewCam != null) return;
+            stage = new GameObject("CharacterPreviewStage").transform;
+            stage.position = new Vector3(500f, 500f, 500f);
+            previewRt = new RenderTexture(512, 640, 24);
+            var camGo = new GameObject("PreviewCamera");
+            camGo.transform.SetParent(stage, false);
+            camGo.transform.localPosition = new Vector3(0f, 1.0f, 4.3f);
+            camGo.transform.localRotation = Quaternion.Euler(4f, 180f, 0f);
+            previewCam = camGo.AddComponent<Camera>();
+            previewCam.fieldOfView = 28f;
+            previewCam.clearFlags = CameraClearFlags.SolidColor;
+            previewCam.backgroundColor = new Color(0.13f, 0.22f, 0.18f);
+            previewCam.cullingMask = 1 << 30;
+            previewCam.targetTexture = previewRt;
+            previewCam.depth = -10f;
+            var lightGo = new GameObject("PreviewLight");
+            lightGo.transform.SetParent(stage, false);
+            lightGo.transform.rotation = Quaternion.Euler(30f, 200f, 0f);
+            var l = lightGo.AddComponent<Light>();
+            l.type = LightType.Directional;
+            l.intensity = 1.1f;
+            l.cullingMask = 1 << 30;
+        }
+
+        void ShowPreview()
+        {
+            EnsurePreview();
+            if (shownIndex == charIndex && previewModel != null) return;
+            if (previewModel != null) Destroy(previewModel);
+            previewModel = CharacterCatalog.Build(charIndex, stage);
+            foreach (var t in previewModel.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = 30;
+            shownIndex = charIndex;
+        }
+
         void Update()
         {
             var nm = NetworkManager.Singleton;
@@ -108,6 +157,13 @@ namespace WhoBrokeIt.Net
                 busy = false;
                 status = "Sunucuya bağlanılamadı (zaman aşımı). Biraz sonra tekrar dene.";
             }
+
+            if (previewCam != null) previewCam.enabled = page == Page.Characters;
+            if (page == Page.Characters)
+            {
+                ShowPreview();
+                if (previewModel != null) previewModel.transform.localRotation = Quaternion.Euler(0f, Time.time * 38f, 0f);
+            }
         }
 
         // ---------- UI ----------
@@ -118,6 +174,12 @@ namespace WhoBrokeIt.Net
             var pressed = GUI.Button(r, text, btn);
             GUI.backgroundColor = prev;
             return pressed;
+        }
+
+        void ChooseCharacter(int index)
+        {
+            charIndex = (index + CharacterCatalog.Count) % CharacterCatalog.Count;
+            CharacterCatalog.Save(charIndex);
         }
 
         void OnGUI()
@@ -138,52 +200,75 @@ namespace WhoBrokeIt.Net
                 field = new GUIStyle(GUI.skin.textField) { fontSize = 30, alignment = TextAnchor.MiddleCenter };
             }
             title.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUI.Box(new Rect(w / 2f - 440, 100, 880, 860), "");
-            GUI.Label(new Rect(w / 2f - 420, 120, 840, 90), "Who Broke It?", title);
-            GUI.Label(new Rect(w / 2f - 420, 205, 840, 40), "Greenfield · Kimin Alet Çantası?", label);
+            GUI.Box(new Rect(w / 2f - 440, 70, 880, 940), "");
+            GUI.Label(new Rect(w / 2f - 420, 90, 840, 90), "Who Broke It?", title);
+            GUI.Label(new Rect(w / 2f - 420, 175, 840, 40), "Greenfield · Kimin Alet Çantası?", label);
 
             var connecting = nm.IsListening && nm.IsClient && !nm.IsConnectedClient;
             GUI.enabled = !busy && !connecting;
             var x = w / 2f - 320;
+            var fp = ThirdPersonCamera.FirstPersonPreferred;
 
             if (page == Page.Main)
             {
-                if (Button(new Rect(x, 290, 640, 84), "Hızlı oyun (online)", true)) RunQuick();
-                GUI.Label(new Rect(x, 376, 640, 34), "Açık bir odaya otomatik girersin, orada kimse varsa onlarla oynarsın.", small);
-                if (Button(new Rect(x, 430, 640, 84), "Arkadaşlarla oyna (oda kodu)")) { page = Page.Friends; status = ""; }
-                GUI.Label(new Rect(x, 516, 640, 34), "Özel oda aç, kodu arkadaşlarına söyle.", small);
-                if (Button(new Rect(x, 570, 640, 70), "Tek kişilik oyna")) HostLocal("127.0.0.1");
-                if (Button(new Rect(x, 664, 640, 56), "Gelişmiş: IP ile bağlan / LAN odası")) { page = Page.Advanced; status = ""; }
+                if (Button(new Rect(x, 250, 640, 84), "Hızlı oyun (online)", true)) RunQuick();
+                GUI.Label(new Rect(x, 336, 640, 34), "Açık bir odaya otomatik girersin, orada kimse varsa onlarla oynarsın.", small);
+                if (Button(new Rect(x, 386, 640, 84), "Arkadaşlarla oyna (oda kodu)")) { page = Page.Friends; status = ""; }
+                GUI.Label(new Rect(x, 472, 640, 34), "Özel oda aç, kodu arkadaşlarına söyle.", small);
+                if (Button(new Rect(x, 522, 640, 70), "Tek kişilik oyna")) HostLocal("127.0.0.1");
+
+                if (Button(new Rect(x, 616, 310, 64), "Karakter: " + CharacterCatalog.All[charIndex].name)) { page = Page.Characters; status = ""; }
+                if (Button(new Rect(x + 330, 616, 310, 64), fp ? "Kamera: 1. şahıs" : "Kamera: 3. şahıs")) ThirdPersonCamera.FirstPersonPreferred = !fp;
+                GUI.Label(new Rect(x, 684, 640, 30), "Oyun içinde V tuşu kamerayı değiştirir.", small);
+
+                if (Button(new Rect(x, 730, 640, 56), "Gelişmiş: IP ile bağlan / LAN odası")) { page = Page.Advanced; status = ""; }
+            }
+            else if (page == Page.Characters)
+            {
+                var entry = CharacterCatalog.All[charIndex];
+                GUI.Label(new Rect(w / 2f - 420, 225, 840, 40), "Karakterini seç", label);
+                if (previewRt != null) GUI.DrawTexture(new Rect(w / 2f - 160, 270, 320, 400), previewRt, ScaleMode.ScaleToFit, false);
+                if (Button(new Rect(w / 2f - 330, 420, 140, 90), "◀")) ChooseCharacter(charIndex - 1);
+                if (Button(new Rect(w / 2f + 190, 420, 140, 90), "▶")) ChooseCharacter(charIndex + 1);
+                title.fontSize = 40;
+                GUI.Label(new Rect(w / 2f - 420, 685, 840, 60), entry.name + "  (" + (charIndex + 1) + "/" + CharacterCatalog.Count + ")", title);
+                title.fontSize = 64;
+                GUI.Label(new Rect(w / 2f - 380, 745, 760, 70), entry.blurb, label);
+                GUI.Label(new Rect(x, 820, 640, 30), "Seçimin kaydedilir; odaya girince diğer oyuncular da seni bu karakterle görür.", small);
+                if (Button(new Rect(x, 870, 640, 70), "Tamam", true)) page = Page.Main;
             }
             else if (page == Page.Friends)
             {
-                if (Button(new Rect(x, 290, 640, 84), "Özel oda kur", true)) RunCreate();
-                GUI.Label(new Rect(x, 376, 640, 34), "Oda kodu oyunun içinde ekranın sağ üstünde görünür.", small);
-                GUI.Label(new Rect(x, 440, 640, 36), "Arkadaşının odasına katıl: kodu yaz", label);
-                code = GUI.TextField(new Rect(x, 486, 640, 64), code, 10, field).ToUpperInvariant();
-                if (Button(new Rect(x, 566, 640, 74), "Koda katıl") && code.Trim().Length >= 4) RunJoin();
-                if (Button(new Rect(x, 664, 640, 56), "← Geri")) { page = Page.Main; status = ""; }
+                if (Button(new Rect(x, 270, 640, 84), "Özel oda kur", true)) RunCreate();
+                GUI.Label(new Rect(x, 356, 640, 34), "Oda kodu oyunun içinde ekranın sağ üstünde görünür.", small);
+                GUI.Label(new Rect(x, 430, 640, 36), "Arkadaşının odasına katıl: kodu yaz", label);
+                code = GUI.TextField(new Rect(x, 476, 640, 64), code, 10, field).ToUpperInvariant();
+                if (Button(new Rect(x, 556, 640, 74), "Koda katıl") && code.Trim().Length >= 4) RunJoin();
+                if (Button(new Rect(x, 654, 640, 56), "← Geri")) { page = Page.Main; status = ""; }
             }
             else
             {
-                GUI.Label(new Rect(x, 270, 640, 60), "Aynı ağdakilerle ya da VPN üzerinden doğrudan oynamak için.", label);
-                if (Button(new Rect(x, 340, 640, 74), "LAN odası kur")) HostLocal("0.0.0.0");
-                GUI.Label(new Rect(x, 418, 640, 52), "Bu bilgisayar: " + myIps + " · UDP " + lanPort, small);
-                address = GUI.TextField(new Rect(x, 486, 640, 64), address, 40, field);
-                if (Button(new Rect(x, 566, 640, 74), "Bu adrese katıl")) Connect(address.Trim(), lanPort);
-                if (Button(new Rect(x, 664, 640, 56), "← Geri")) { page = Page.Main; status = ""; }
+                GUI.Label(new Rect(x, 260, 640, 60), "Aynı ağdakilerle ya da VPN üzerinden doğrudan oynamak için.", label);
+                if (Button(new Rect(x, 330, 640, 74), "LAN odası kur")) HostLocal("0.0.0.0");
+                GUI.Label(new Rect(x, 408, 640, 52), "Bu bilgisayar: " + myIps + " · UDP " + lanPort, small);
+                address = GUI.TextField(new Rect(x, 476, 640, 64), address, 40, field);
+                if (Button(new Rect(x, 556, 640, 74), "Bu adrese katıl")) Connect(address.Trim(), lanPort);
+                if (Button(new Rect(x, 654, 640, 56), "← Geri")) { page = Page.Main; status = ""; }
             }
             GUI.enabled = true;
 
-            if (connecting || busy)
-                GUI.Label(new Rect(x, 750, 640, 50), connecting ? "Bağlanıyor..." : status, label);
-            else if (!string.IsNullOrEmpty(status))
+            if (page != Page.Characters)
             {
-                label.normal.textColor = new Color(1f, 0.55f, 0.5f);
-                GUI.Label(new Rect(x - 40, 750, 720, 120), status, label);
-                label.normal.textColor = Color.white;
+                if (connecting || busy)
+                    GUI.Label(new Rect(x, 800, 640, 50), connecting ? "Bağlanıyor..." : status, label);
+                else if (!string.IsNullOrEmpty(status))
+                {
+                    label.normal.textColor = new Color(1f, 0.55f, 0.5f);
+                    GUI.Label(new Rect(x - 40, 800, 720, 120), status, label);
+                    label.normal.textColor = Color.white;
+                }
             }
-            GUI.Label(new Rect(w / 2f - 420, 900, 840, 30), "Sürüm " + Application.version, small);
+            GUI.Label(new Rect(w / 2f - 420, 975, 840, 30), "Sürüm " + Application.version, small);
         }
     }
 }
