@@ -13,7 +13,7 @@ namespace WhoBrokeIt.Net
     {
         // ---------- palette ----------
         public static readonly Color Ink = new Color(0.10f, 0.12f, 0.22f);
-        public static readonly Color Panel = new Color(0.09f, 0.11f, 0.22f, 0.82f);
+        public static readonly Color Panel = new Color(0.09f, 0.11f, 0.22f, 0.93f);
         public static readonly Color Cream = new Color(1f, 0.96f, 0.86f);
         public static readonly Color Sun = new Color(1f, 0.78f, 0.20f);
         public static readonly Color SunDeep = new Color(0.95f, 0.56f, 0.10f);

@@ -18,10 +18,16 @@ namespace WhoBrokeIt.Net
         {
             Directory.CreateDirectory(dir);
             yield return new WaitForSeconds(4f);
-            yield return new WaitForEndOfFrame();
-            var tex = ScreenCapture.CaptureScreenshotAsTexture();
-            File.WriteAllBytes(Path.Combine(dir, "menu_main.jpg"), tex.EncodeToJPG(90));
-            Debug.Log("[SHOT] menu");
+            foreach (var page in new[] { "main", "characters", "characters2", "settings", "profile", "credits", "friends", "exit" })
+            {
+                if (NetworkMenu.Instance != null) NetworkMenu.Instance.DebugGo(page);
+                yield return new WaitForSeconds(page.StartsWith("characters") ? 2.0f : 1.2f);
+                yield return new WaitForEndOfFrame();
+                var tex = ScreenCapture.CaptureScreenshotAsTexture();
+                File.WriteAllBytes(Path.Combine(dir, "menu_" + page + ".jpg"), tex.EncodeToJPG(90));
+                Destroy(tex);
+                Debug.Log("[SHOT] menu " + page);
+            }
             Application.Quit(0);
         }
 

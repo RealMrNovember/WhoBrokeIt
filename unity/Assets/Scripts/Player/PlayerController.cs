@@ -80,8 +80,14 @@ namespace WhoBrokeIt.Player
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(move), turnSharpness * Time.deltaTime);
         }
 
+        /// <summary>Debug: the last thing the character controller touched (name, age) - used by the multiplayer test log.</summary>
+        public static string DebugLastHit = "";
+        public static float DebugLastHitTime = -99f;
+
         void OnControllerColliderHit(ControllerColliderHit hit)
         {
+            DebugLastHit = hit.collider.name + "(" + (hit.collider.attachedRigidbody != null ? "rb" : "static") + ")@" + hit.normal.y.ToString("0.0");
+            DebugLastHitTime = Time.time;
             var body = hit.collider.attachedRigidbody;
             if (body == null || body.isKinematic || hit.moveDirection.y < -0.3f) return;
             var dir = new Vector3(hit.moveDirection.x, 0f, hit.moveDirection.z);

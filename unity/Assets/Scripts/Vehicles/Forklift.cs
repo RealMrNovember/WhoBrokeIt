@@ -134,6 +134,11 @@ namespace WhoBrokeIt.Vehicles
         public float ForkHeight => forkHeight;
         public void RequestExit() => ExitRpc();
 
+        bool testDrive; float testT, testS, testF;
+        /// <summary>Automated tests (client side): drive with these inputs instead of the keyboard (goes through the real prediction and input path).</summary>
+        public void TestDrive(float t, float s, float f) { testDrive = true; testT = t; testS = s; testF = f; }
+        public bool IsDriverLocal => localDriving && seated;
+
         /// <summary>Server only (tests): put the forklift somewhere facing a heading, standing still.</summary>
         public void ServerTeleport(Vector3 pos, float yaw)
         {
@@ -369,12 +374,13 @@ namespace WhoBrokeIt.Vehicles
         {
             if (!localDriving) return;
             var kb = Keyboard.current;
-            if (kb == null) return;
+            if (kb == null && !testDrive) return;
             if (PauseMenu_Open()) return;
-            if (kb.eKey.wasPressedThisFrame && Time.frameCount != enteredFrame && seated) { ExitRpc(); return; }
+            if (kb != null && kb.eKey.wasPressedThisFrame && Time.frameCount != enteredFrame && seated) { ExitRpc(); return; }
 
             float t = 0f, s = 0f, f = 0f;
-            if (seated)
+            if (seated && testDrive) { t = testT; s = testS; f = testF; }
+            else if (seated && kb != null)
             {
                 if (kb.wKey.isPressed) t += 1f;
                 if (kb.sKey.isPressed) t -= 1f;
@@ -397,7 +403,7 @@ namespace WhoBrokeIt.Vehicles
                 DriveRpc(t, s, f);
             }
 
-            if (kb.xKey.isPressed)
+            if (kb != null && kb.xKey.isPressed)
             {
                 resetHold += Time.deltaTime;
                 if (resetHold > 1f) { resetHold = 0f; ResetRpc(); }

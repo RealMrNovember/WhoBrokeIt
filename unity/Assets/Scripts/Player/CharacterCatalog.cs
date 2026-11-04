@@ -21,12 +21,12 @@ namespace WhoBrokeIt.Player
 
         public static readonly Entry[] All =
         {
-            new Entry { key = "isci",     name = "Reclaimer İşçisi", blurb = "Turuncu baret, sarı yelek. Kasabanın klasik tamircisi.", accent = new Color(1f,0.62f,0.15f), tag = "TAMİRCİ" },
-            new Entry { key = "muhendis", name = "Mühendis",         blurb = "Beyaz baret ve gözlük. Her şeyi ölçer, yine de bozar.", accent = new Color(0.35f,0.65f,1f), tag = "PLANCI" },
-            new Entry { key = "asci",     name = "Aşçı",             blurb = "Börek uzmanı. Sigorta kutusunda ne işi var, bilinmez.", accent = new Color(1f,0.45f,0.42f), tag = "ŞÜPHELİ" },
-            new Entry { key = "robot",    name = "Robot",            blurb = "Eski belediye otomasyonundan kalma. Antenli ve inatçı.", accent = new Color(0.55f,0.85f,0.9f), tag = "OTOMASYON" },
-            new Entry { key = "kedi",     name = "Kedi",             blurb = "Kablo kemirmediğine yemin eder.", accent = new Color(0.95f,0.78f,0.35f), tag = "ŞÜPHELİ" },
-            new Entry { key = "kurbaga",  name = "Kurbağa",          blurb = "Su kulesinin yakınlarında yaşar, çok zıplar.", accent = new Color(0.45f,0.85f,0.45f), tag = "ZIPLAYICI" },
+            new Entry { key = "isci",     name = "Reclaimer İşçisi", blurb = "Turuncu baret, sarı yelek. İşi sağlam yapmaya meraklı.", accent = new Color(1f,0.62f,0.15f), tag = "İNSAN" },
+            new Entry { key = "muhendis", name = "Mühendis",         blurb = "Beyaz baret ve gözlük. Önce ölçer, sonra düşünür.", accent = new Color(0.35f,0.65f,1f), tag = "İNSAN" },
+            new Entry { key = "asci",     name = "Aşçı",             blurb = "Beyaz önlük, uzun şapka. Her işe bir tarif bulur.", accent = new Color(1f,0.45f,0.42f), tag = "İNSAN" },
+            new Entry { key = "robot",    name = "Robot",            blurb = "Antenli, köşeli ve inatçı. Pili hiç bitmez.", accent = new Color(0.55f,0.85f,0.9f), tag = "ROBOT" },
+            new Entry { key = "kedi",     name = "Kedi",             blurb = "Yumuşak adımlı, meraklı. Her kutunun içine bakar.", accent = new Color(0.95f,0.78f,0.35f), tag = "HAYVAN" },
+            new Entry { key = "kurbaga",  name = "Kurbağa",          blurb = "Büyük gözlü, enerjik. Durmayı pek sevmez.", accent = new Color(0.45f,0.85f,0.45f), tag = "HAYVAN" },
         };
 
         const string PrefKey = "wbi_character";

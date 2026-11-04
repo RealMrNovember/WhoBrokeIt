@@ -64,6 +64,7 @@ namespace WhoBrokeIt.Net
             while (true)
             {
                 yield return new WaitForSeconds(5f);
+                Debug.Log("[MPSRV] t=" + System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + " clients=" + nm.ConnectedClientsIds.Count + " objs=" + nm.SpawnManager.SpawnedObjectsList.Count);
                 if (string.IsNullOrEmpty(api)) continue;
                 var body = JsonUtility.ToJson(new Beat { slot = slot, players = nm.ConnectedClientsIds.Count, version = Application.version });
                 using (var req = new UnityWebRequest(api + "/server/heartbeat", "POST"))
