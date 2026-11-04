@@ -78,6 +78,7 @@ public static partial class ProjectSetup
         rv.tiltPivot = tilt;
         rv.mountLocal = new Vector3(0f, 0.135f, 0f);
         rv.sitting = false;
+        rv.visual = GatherVisual(hull);
     }
 
     static void BuildBicycle(Vector3 position, float yaw)
@@ -179,5 +180,20 @@ public static partial class ProjectSetup
         rv.crank = crank;
         rv.mountLocal = new Vector3(0f, 0.97f, -0.20f);
         rv.sitting = true;
+        rv.visual = GatherVisual(hull);
+    }
+}
+
+public static partial class ProjectSetup
+{
+    /// <summary>Moves every child of the hull under a "Visual" child: the driver's machine shows that root at the predicted pose while the physics hull stays on the replicated pose.</summary>
+    static Transform GatherVisual(GameObject hull)
+    {
+        var v = new GameObject("Visual").transform;
+        v.SetParent(hull.transform, false);
+        var kids = new List<Transform>();
+        foreach (Transform c in hull.transform) if (c != v) kids.Add(c);
+        foreach (var c in kids) c.SetParent(v, true);
+        return v;
     }
 }

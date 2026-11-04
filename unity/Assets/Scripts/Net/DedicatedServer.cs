@@ -40,7 +40,7 @@ namespace WhoBrokeIt.Net
             slot = Arg("-slot", "local");
             port = ushort.TryParse(Arg("-port", "7777"), out var p) ? p : (ushort)7777;
             api = Arg("-api", "");
-            Application.targetFrameRate = 30;
+            Application.targetFrameRate = 60;
             QualitySettings.vSyncCount = 0;
             // runs under a virtual display with software GL: never render anything
             foreach (var cam in Camera.allCameras) cam.enabled = false;

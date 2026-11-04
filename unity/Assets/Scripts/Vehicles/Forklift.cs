@@ -35,9 +35,12 @@ namespace WhoBrokeIt.Vehicles
         public Transform steeringWheel;
         public Vector3[] wheelPoints;            // local positions where the wheels touch the ground (for the ground probe)
         public Vector3 seatLocal = new Vector3(0f, 0.98f, -0.14f);
+        public Transform visual;                 // child of the hull holding every renderer (the driver sees it at the predicted pose)
+        public Transform forkVisual;             // the fork meshes (the real fork body only carries colliders)
 
         public NetworkVariable<ulong> driverId = new NetworkVariable<ulong>(ulong.MaxValue);
         public NetworkVariable<float> steerAngle = new NetworkVariable<float>(0f);
+        public NetworkVariable<float> forkNet = new NetworkVariable<float>(0f);
 
         Rigidbody body;
         float forkHeight;
@@ -52,6 +55,10 @@ namespace WhoBrokeIt.Vehicles
         Coroutine climbRoutine;
         float spin;
         Vector3 lastVisualPos;
+        VehiclePrediction pred = new VehiclePrediction();
+        bool predicting;
+        float predFork, shownFork, sendTimer, inT, inS, inF, serverSpeedEst;
+        Transform V => visual != null ? visual : transform;
 
         public override string Prompt => driverId.Value == ulong.MaxValue ? "Forklifte bin" : "Forklift dolu";
 
@@ -196,6 +203,7 @@ namespace WhoBrokeIt.Vehicles
             }
 
             forkHeight = Mathf.Clamp(forkHeight + forkInput * forkSpeed * dt, forkMin, forkMax);
+            if (Mathf.Abs(forkNet.Value - forkHeight) > 0.004f) forkNet.Value = forkHeight;
             MoveForks();
         }
 
@@ -206,16 +214,26 @@ namespace WhoBrokeIt.Vehicles
             forks.MoveRotation(body.rotation);
         }
 
-        // ---------- visuals on every machine: rolling wheels, steering ----------
+        // ---------- visuals on every machine: rolling wheels, steering, forks, predicted pose for the driver ----------
         void LateUpdate()
         {
             var dt = Mathf.Max(Time.deltaTime, 0.0001f);
             var delta = transform.position - lastVisualPos;
             lastVisualPos = transform.position;
-            var fwdSpeed = Vector3.Dot(delta, transform.forward) / dt;
-            fwdSpeed = Mathf.Clamp(fwdSpeed, -12f, 12f);
-            spin += fwdSpeed * dt;                                 // metres rolled; converted per wheel radius below
+            var measured = Mathf.Clamp(Vector3.Dot(delta, transform.forward) / dt, -12f, 12f);
+            serverSpeedEst = Mathf.Lerp(serverSpeedEst, measured, 1f - Mathf.Exp(-10f * dt));
+
+            var fwdSpeed = measured;
             var steerDeg = steerAngle.Value;
+            if (predicting)
+            {
+                pred.Reconcile(transform.position, transform.eulerAngles.y, serverSpeedEst, VehiclePrediction.Latency(), dt);
+                var yawDelta = Mathf.DeltaAngle(transform.eulerAngles.y, pred.heading);
+                V.SetPositionAndRotation(new Vector3(pred.pos.x, transform.position.y, pred.pos.z), Quaternion.AngleAxis(yawDelta, Vector3.up) * transform.rotation);
+                fwdSpeed = pred.speed;
+                steerDeg = pred.steer;
+            }
+            spin += fwdSpeed * dt;                                 // metres rolled; converted per wheel radius below
             if (spinPivots != null)
                 for (var i = 0; i < spinPivots.Length; i++)
                 {
@@ -226,10 +244,27 @@ namespace WhoBrokeIt.Vehicles
                 foreach (var s in steerPivots) if (s != null) s.localRotation = Quaternion.Euler(0f, steerDeg, 0f);
             if (steeringWheel != null) steeringWheel.localRotation = Quaternion.Euler(-35f, 0f, 0f) * Quaternion.Euler(0f, steerDeg * 2.6f, 0f);
 
+            // fork visuals: the server's value for everybody else, the driver's own input for the driver
+            if (IsServer) shownFork = forkHeight;
+            else if (predicting) shownFork = predFork;
+            else shownFork = Mathf.Lerp(shownFork, forkNet.Value, 1f - Mathf.Exp(-12f * dt));
+            if (forkVisual != null) forkVisual.localPosition = new Vector3(0f, shownFork, 0f);
+
+            if (driverId.Value != ulong.MaxValue && NetworkManager.Singleton != null)
+            {
+                var riderObj = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(driverId.Value);
+                var rider = riderObj != null ? riderObj.GetComponent<PlayerNet>() : null;
+                if (rider != null && driverId.Value != NetworkManager.Singleton.LocalClientId)
+                {
+                    if (rider.seated.Value) RiderVisuals.Follow(rider, SeatRoot(rider) - Vector3.up, V.eulerAngles.y);
+                    else RiderVisuals.Release(rider);
+                }
+            }
+
             if (localDriving && seated && PlayerNet.Local != null)
             {
                 var p = PlayerNet.Local.transform;
-                p.SetPositionAndRotation(SeatRoot(PlayerNet.Local), Quaternion.Euler(0f, transform.eulerAngles.y, 0f));
+                p.SetPositionAndRotation(SeatRoot(PlayerNet.Local), Quaternion.Euler(0f, V.eulerAngles.y, 0f));
             }
         }
 
@@ -238,6 +273,11 @@ namespace WhoBrokeIt.Vehicles
 
         void OnDriverChanged(ulong previous, ulong current)
         {
+            if (previous != ulong.MaxValue && previous != NetworkManager.Singleton.LocalClientId)
+            {
+                var po = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(previous);
+                if (po != null) RiderVisuals.Release(po.GetComponent<PlayerNet>());
+            }
             var me = NetworkManager.Singleton.LocalClientId;
             if (current == me && !localDriving) EnterLocal();
             else if (previous == me && current != me && localDriving) ExitLocal();
@@ -248,7 +288,7 @@ namespace WhoBrokeIt.Vehicles
         {
             var anim = p.GetComponentInChildren<CharacterAnimator>();
             var hip = anim != null ? anim.HipHeight : 0.86f;
-            var feetAtSeat = transform.TransformPoint(seatLocal) - transform.up * hip;
+            var feetAtSeat = V.TransformPoint(seatLocal) - V.up * hip;
             return feetAtSeat + Vector3.up * 1f;
         }
 
@@ -262,7 +302,7 @@ namespace WhoBrokeIt.Vehicles
             disabled = new Behaviour[] { p.GetComponent<PlayerController>(), p.GetComponent<ToolController>(), p.GetComponent<InteractionSystem>() };
             foreach (var b in disabled) if (b != null) b.enabled = false;
             p.GetComponent<CharacterController>().enabled = false;
-            if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.SetTarget(transform, new Vector3(0f, 1.8f, 0f), 8f);
+            if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.SetTarget(V, new Vector3(0f, 1.8f, 0f), 8f);
             climbRoutine = StartCoroutine(Climb(p));
             CaseManager.Toast("Forklift: W/S sür · A/D dön · R/F çatalı kaldır/indir · E çık");
         }
@@ -299,6 +339,9 @@ namespace WhoBrokeIt.Vehicles
             p.climbing.Value = false;
             p.seated.Value = true;
             seated = true;
+            predicting = !IsServer;
+            predFork = forkNet.Value;
+            if (predicting) pred.Begin(transform.position, transform.eulerAngles.y, serverSpeedEst);
             climbRoutine = null;
         }
 
@@ -307,6 +350,8 @@ namespace WhoBrokeIt.Vehicles
             var p = PlayerNet.Local;
             localDriving = false;
             seated = false;
+            predicting = false;
+            V.localPosition = Vector3.zero; V.localRotation = Quaternion.identity;
             if (climbRoutine != null) { StopCoroutine(climbRoutine); climbRoutine = null; }
             if (p == null) return;
             p.seated.Value = false;
@@ -337,7 +382,19 @@ namespace WhoBrokeIt.Vehicles
                 if (kb.rKey.isPressed) f += 1f;
                 if (kb.fKey.isPressed) f -= 1f;
             }
-            DriveRpc(t, s, f);
+            if (predicting)
+            {
+                pred.Step(Time.deltaTime, t, s, maxSpeed, accel, brake, 1f, steerMax, wheelBase, 0f);
+                predFork = Mathf.Clamp(predFork + f * forkSpeed * Time.deltaTime, forkMin, forkMax);
+            }
+            // send the input at 30 Hz (and at once when it changes), not once per rendered frame
+            sendTimer += Time.deltaTime;
+            var changed = !Mathf.Approximately(t, inT) || !Mathf.Approximately(s, inS) || !Mathf.Approximately(f, inF);
+            if (changed || sendTimer >= 1f / 30f)
+            {
+                sendTimer = 0f; inT = t; inS = s; inF = f;
+                DriveRpc(t, s, f);
+            }
 
             if (kb.xKey.isPressed)
             {

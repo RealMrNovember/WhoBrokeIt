@@ -134,6 +134,35 @@ namespace WhoBrokeIt.Net
             if (cm.sparks.Value != 1) { Fail("kivilcim yansimadi: " + cm.sparks.Value); yield break; }
             Log("online: cekic -> kivilcim kazasi sunucuda gerceklesti ve yansidi");
 
+            // vehicle prediction: the driver's machine moves at once, the server follows, the rider stays on the vehicle
+            var skate = FindObjectsByType<RideableVehicle>(FindObjectsSortMode.None).FirstOrDefault(x => x.kind == RideKind.Skateboard);
+            if (skate == null) { Fail("online: kaykay yok"); yield break; }
+            cc.enabled = false;
+            player.transform.position = skate.transform.position + skate.transform.right * 1.2f + Vector3.up * 1.1f;
+            cc.enabled = true;
+            Physics.SyncTransforms();
+            skate.RequestInteract();
+            yield return new WaitForSeconds(1.6f);
+            if (skate.driverId.Value != nm.LocalClientId) { Fail("online: kaykaya binilemedi, surucu=" + skate.driverId.Value); yield break; }
+            var visStart = skate.VisualPosition; var hullStart = skate.transform.position;
+            skate.TestDrive(1f, 0f);
+            yield return new WaitForSeconds(0.5f);
+            var visEarly = Vector3.Distance(skate.VisualPosition, visStart);
+            var hullEarly = Vector3.Distance(skate.transform.position, hullStart);
+            yield return new WaitForSeconds(2.0f);
+            var visLate = Vector3.Distance(skate.VisualPosition, visStart);
+            var hullLate = Vector3.Distance(skate.transform.position, hullStart);
+            var gap = Vector3.Distance(player.transform.position, skate.VisualPosition);
+            Log("online kaykay: 0.5 sn sonra gorsel " + visEarly.ToString("0.00") + " m (sunucu govdesi " + hullEarly.ToString("0.00") + " m); 2.5 sn sonra gorsel " + visLate.ToString("0.0") + " m, govde " + hullLate.ToString("0.0") + " m, surucu mesafesi " + gap.ToString("0.0") + " m");
+            if (visEarly < 0.35f) { Fail("online: tahmin yok, arac aninda hareket etmedi"); yield break; }
+            if (hullLate < 3f) { Fail("online: sunucu araci ilerletmedi"); yield break; }
+            if (Mathf.Abs(visLate - hullLate) > 5f) { Fail("online: gorsel ile sunucu arasi fark buyuk"); yield break; }
+            if (gap > 2.5f) { Fail("online: surucu arac uzerinde degil"); yield break; }
+            skate.TestDrive(0f, 0f);
+            skate.RequestExit();
+            yield return new WaitForSeconds(1.0f);
+            Log("online: arac tahmini ok");
+
             yield return new WaitForSeconds(2f);
             Log("ONLINE PASS");
             Finish(0);

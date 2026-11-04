@@ -23,6 +23,8 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 13 | "Tüm bu isteklerimi kesinlikle yazılı not al." | ✅ Bu dosya |
 | 14 | "Karakterlerin elleri kolları hareket etmesi lazım." | ✅ Kemikli modellerde kollar yürürken sallanır, taşırken öne uzanır, fırlatırken savrulur |
 | 15 | "Bisiklet ve kaykay'a binerken karakterin duruşları da araca uygun olması lazım. Bisiklet sürerken pedal çevrilmesi, kaykay sürerken ara ara bir ayağını yere indirip kendini ittirmesi lazım." | ✅ Kaykayda yandan duruş ve yerden itme animasyonu, bisiklette oturuş ve pedala bağlı bacaklar |
+| 16 | "Oyunda baya bi gecikme var. Tuşa basıyorum neredeyse bir buçuk saniye sonra işlem yapıyo. Arkadaşımı izlerken de mesela bisiklet gidiyo arkadaşım arkadan havada gidiyo gibi görünüyo." | ✅ (0.4.3) Araç sürerken tahmin (sürücünün makinesi hemen tepki verir), uzaktaki sürücü araca bağlı çizilir, girdiler 30 Hz, FPS/ping göstergesi (F3), otomatik/elle grafik kalitesi, sunucu 60 kare, game1–3 başlatma çökmesi düzeltildi. Not: kullanıcının hattı Kale ile ~120 ms ve %50 paket kaybı gösterdi; kalan gecikmenin bir kısmı ağdır |
+| 17 | "https://gameskill.dev/skills — Buradan bizim oyun için işimize yarayacağını düşündüğün tüm skilleri çekip öğrenmeni istiyorum." | 🔧 Site tarandı (230 beceri); ilgili olanların içeriği okunup özetleniyor (docs/OYUN_BECERILERI.md), uygulanabilir ilkeler projeye alınacak; üçüncü taraf eklentiler incelenmeden kurulmaz |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 

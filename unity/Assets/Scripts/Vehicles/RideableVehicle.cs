@@ -36,6 +36,7 @@ namespace WhoBrokeIt.Vehicles
         public Vector3[] wheelPoints;            // local ground contact points
         public Vector3 mountLocal;               // standing: where the feet go; sitting: where the hips go
         public bool sitting;
+        public Transform visual;                 // child of the hull holding every renderer (the driver sees it at the predicted pose)
 
         public NetworkVariable<ulong> driverId = new NetworkVariable<ulong>(ulong.MaxValue);
         public NetworkVariable<float> steerAngle = new NetworkVariable<float>(0f);
@@ -51,9 +52,18 @@ namespace WhoBrokeIt.Vehicles
         float spin, crankAngle;
         Vector3 lastVisualPos;
         bool testInput;
+        VehiclePrediction pred = new VehiclePrediction();
+        bool predicting;
+        float sendTimer, inT, inS, inJ, serverSpeedEst;
+        Transform V => visual != null ? visual : transform;
 
         public override string Prompt => driverId.Value == ulong.MaxValue ? label + " kullan" : label + " dolu";
         public float Heading => heading;
+        public Vector3 VisualPosition => V.position;
+
+        bool testDrive; float testT, testS;
+        /// <summary>Automated tests (client side): drive with these inputs instead of the keyboard.</summary>
+        public void TestDrive(float t, float s) { testDrive = true; testT = t; testS = s; }
         public float Speed => driveSpeed;
 
         void Awake() { body = GetComponent<Rigidbody>(); }
@@ -189,9 +199,20 @@ namespace WhoBrokeIt.Vehicles
             var dt = Mathf.Max(Time.deltaTime, 0.0001f);
             var delta = transform.position - lastVisualPos;
             lastVisualPos = transform.position;
-            var fwdSpeed = Mathf.Clamp(Vector3.Dot(delta, transform.forward) / dt, -14f, 14f);
+            var measured = Mathf.Clamp(Vector3.Dot(delta, transform.forward) / dt, -14f, 14f);
+            serverSpeedEst = Mathf.Lerp(serverSpeedEst, measured, 1f - Mathf.Exp(-10f * dt));
+
+            // the driver's machine shows its own predicted pose right away and eases toward the replicated one
+            var fwdSpeed = measured;
+            if (predicting)
+            {
+                pred.Reconcile(transform.position, transform.eulerAngles.y, serverSpeedEst, VehiclePrediction.Latency(), dt);
+                var yawDelta = Mathf.DeltaAngle(transform.eulerAngles.y, pred.heading);
+                V.SetPositionAndRotation(new Vector3(pred.pos.x, transform.position.y, pred.pos.z), Quaternion.AngleAxis(yawDelta, Vector3.up) * transform.rotation);
+                fwdSpeed = pred.speed;
+            }
             spin += fwdSpeed * dt;
-            var steerDeg = steerAngle.Value;
+            var steerDeg = predicting ? pred.steer : steerAngle.Value;
 
             if (spinPivots != null)
                 for (var i = 0; i < spinPivots.Length; i++)
@@ -210,21 +231,34 @@ namespace WhoBrokeIt.Vehicles
                 crank.localRotation = Quaternion.Euler(crankAngle, 0f, 0f);
             }
 
-            // tell the rider's animator where the pedals are
             if (driverId.Value != ulong.MaxValue)
             {
                 var riderObj = NetworkManager.Singleton != null ? NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(driverId.Value) : null;
                 var rider = riderObj != null ? riderObj.GetComponent<PlayerNet>() : null;
-                if (rider != null) rider.pedalAngle = crankAngle;
+                if (rider != null)
+                {
+                    rider.pedalAngle = crankAngle;       // legs follow the pedals
+                    // other players: draw their body on the vehicle as we show it (their own transform arrives later than the vehicle's)
+                    if (driverId.Value != NetworkManager.Singleton.LocalClientId)
+                    {
+                        if (rider.ride.Value != 0) RiderVisuals.Follow(rider, RiderRoot(rider) - Vector3.up, V.eulerAngles.y);
+                        else RiderVisuals.Release(rider);
+                    }
+                }
             }
 
             if (localRiding && mounted && PlayerNet.Local != null)
-                PlayerNet.Local.transform.SetPositionAndRotation(RiderRoot(PlayerNet.Local), Quaternion.Euler(0f, transform.eulerAngles.y, 0f));
+                PlayerNet.Local.transform.SetPositionAndRotation(RiderRoot(PlayerNet.Local), Quaternion.Euler(0f, V.eulerAngles.y, 0f));
         }
 
         // ---------- local rider: hop on, ride, hop off ----------
         void OnDriverChanged(ulong previous, ulong current)
         {
+            if (previous != ulong.MaxValue && previous != NetworkManager.Singleton.LocalClientId)
+            {
+                var po = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(previous);
+                if (po != null) RiderVisuals.Release(po.GetComponent<PlayerNet>());
+            }
             var me = NetworkManager.Singleton.LocalClientId;
             if (current == me && !localRiding) EnterLocal();
             else if (previous == me && current != me && localRiding) ExitLocal();
@@ -234,8 +268,8 @@ namespace WhoBrokeIt.Vehicles
         {
             var anim = p.GetComponentInChildren<CharacterAnimator>();
             var hip = anim != null ? anim.HipHeight : 0.86f;
-            var point = transform.TransformPoint(mountLocal);
-            return sitting ? point - transform.up * hip + Vector3.up * 1f : point + Vector3.up * 1f;
+            var point = V.TransformPoint(mountLocal);
+            return sitting ? point - V.up * hip + Vector3.up * 1f : point + Vector3.up * 1f;
         }
 
         void EnterLocal()
@@ -248,7 +282,7 @@ namespace WhoBrokeIt.Vehicles
             disabled = new Behaviour[] { p.GetComponent<PlayerController>(), p.GetComponent<ToolController>(), p.GetComponent<InteractionSystem>() };
             foreach (var b in disabled) if (b != null) b.enabled = false;
             p.GetComponent<CharacterController>().enabled = false;
-            if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.SetTarget(transform, new Vector3(0f, 1.3f, 0f), 5f);
+            if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.SetTarget(V, new Vector3(0f, 1.3f, 0f), 5f);
             hopRoutine = StartCoroutine(Hop(p));
             CaseManager.Toast(label + ": W/S hız · A/D yön" + (kind == RideKind.Skateboard ? " · Boşluk zıpla" : "") + " · E in");
         }
@@ -262,11 +296,13 @@ namespace WhoBrokeIt.Vehicles
             {
                 var k = Mathf.SmoothStep(0f, 1f, e / d);
                 var pos = Vector3.Lerp(from, RiderRoot(p), k) + Vector3.up * Mathf.Sin(k * Mathf.PI) * 0.45f;
-                t.SetPositionAndRotation(pos, Quaternion.Slerp(t.rotation, Quaternion.Euler(0f, transform.eulerAngles.y, 0f), 12f * Time.deltaTime));
+                t.SetPositionAndRotation(pos, Quaternion.Slerp(t.rotation, Quaternion.Euler(0f, V.eulerAngles.y, 0f), 12f * Time.deltaTime));
                 yield return null;
             }
             p.ride.Value = (byte)kind;
             mounted = true;
+            predicting = !IsServer;
+            if (predicting) { pred.Begin(transform.position, transform.eulerAngles.y, serverSpeedEst); }
             hopRoutine = null;
         }
 
@@ -275,6 +311,8 @@ namespace WhoBrokeIt.Vehicles
             var p = PlayerNet.Local;
             localRiding = false;
             mounted = false;
+            predicting = false;
+            V.localPosition = Vector3.zero; V.localRotation = Quaternion.identity;
             if (hopRoutine != null) { StopCoroutine(hopRoutine); hopRoutine = null; }
             if (p == null) return;
             p.ride.Value = 0;
@@ -289,10 +327,11 @@ namespace WhoBrokeIt.Vehicles
         {
             if (!localRiding) return;
             var kb = Keyboard.current;
-            if (kb == null || Net.PauseMenu.Open) return;
-            if (kb.eKey.wasPressedThisFrame && Time.frameCount != enteredFrame && mounted) { ExitRpc(); return; }
+            if (!testDrive && (kb == null || Net.PauseMenu.Open)) return;
+            if (kb != null && kb.eKey.wasPressedThisFrame && Time.frameCount != enteredFrame && mounted) { ExitRpc(); return; }
             float t = 0f, s = 0f, j = 0f;
-            if (mounted)
+            if (mounted && testDrive) { t = testT; s = testS; }
+            else if (mounted && kb != null)
             {
                 if (kb.wKey.isPressed) t += 1f;
                 if (kb.sKey.isPressed) t -= 1f;
@@ -300,7 +339,17 @@ namespace WhoBrokeIt.Vehicles
                 if (kb.aKey.isPressed) s -= 1f;
                 if (kb.spaceKey.isPressed) j = 1f;
             }
-            DriveRpc(t, s, j);
+            // predicted motion on the driver's machine (the server runs the same rules)
+            if (predicting)
+                pred.Step(Time.deltaTime, t, s, maxSpeed, accel, brake * 0.45f, 0.35f, steerMax, wheelBase, 1.2f);
+            // send the input at 30 Hz (and at once when it changes), not once per rendered frame
+            sendTimer += Time.deltaTime;
+            var changed = !Mathf.Approximately(t, inT) || !Mathf.Approximately(s, inS) || !Mathf.Approximately(j, inJ);
+            if (changed || sendTimer >= 1f / 30f)
+            {
+                sendTimer = 0f; inT = t; inS = s; inJ = j;
+                DriveRpc(t, s, j);
+            }
         }
     }
 }

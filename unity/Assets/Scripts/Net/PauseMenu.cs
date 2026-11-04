@@ -91,7 +91,7 @@ namespace WhoBrokeIt.Net
             var w = Screen.width / s;
             var x = w / 2f - 320;
             title.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUI.Box(new Rect(w / 2f - 380, 90, 760, 900), "");
+            GUI.Box(new Rect(w / 2f - 380, 80, 760, 880), "");
             GUI.Label(new Rect(x, 110, 640, 70), "Duraklatıldı", title);
 
             if (Button(new Rect(x, 195, 640, 70), "Devam et", true)) SetOpen(false);
@@ -120,19 +120,21 @@ namespace WhoBrokeIt.Net
             var p = PlayerNet.Local;
             if (p != null)
             {
-                GUI.Label(new Rect(x, 712, 640, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
-                if (Button(new Rect(x, 750, 310, 54), "◀ Önceki")) ChangeCharacter(p, -1);
-                if (Button(new Rect(x + 330, 750, 310, 54), "Sonraki ▶")) ChangeCharacter(p, 1);
+                var qlv = GraphicsQuality.Level < 0 ? GraphicsQuality.Detect() : GraphicsQuality.Level;
+                if (Button(new Rect(x, 702, 640, 50), "Grafik kalitesi: " + GraphicsQuality.Names[qlv] + "  (değiştir)")) GraphicsQuality.Cycle();
+                GUI.Label(new Rect(x, 764, 640, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
+                if (Button(new Rect(x, 802, 310, 50), "◀ Önceki")) ChangeCharacter(p, -1);
+                if (Button(new Rect(x + 330, 802, 310, 50), "Sonraki ▶")) ChangeCharacter(p, 1);
             }
 
-            if (Button(new Rect(x, 840, 310, 60), "Ana menüye dön"))
+            if (Button(new Rect(x, 886, 310, 56), "Ana menüye dön"))
             {
                 SetOpen(false);
                 NetworkManager.Singleton.Shutdown();
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
-            if (Button(new Rect(x + 330, 840, 310, 60), "Oyundan çık")) Application.Quit();
+            if (Button(new Rect(x + 330, 886, 310, 56), "Oyundan çık")) Application.Quit();
         }
 
         static void ChangeCharacter(PlayerNet p, int dir)

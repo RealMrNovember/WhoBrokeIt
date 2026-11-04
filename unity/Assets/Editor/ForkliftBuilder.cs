@@ -220,5 +220,21 @@ public static partial class ProjectSetup
         fk.steeringWheel = wheelPivot;
         fk.seatLocal = new Vector3(0f, 0.98f, -0.12f);
         fk.wheelBase = 1.46f;
+
+        // visuals: everything under one root; the fork meshes are copied there (the fork body keeps only its colliders)
+        var vis = GatherVisual(hull);
+        var forkPivot = new GameObject("ForkVisual").transform;
+        forkPivot.SetParent(vis, false);
+        var forkParts = new List<Transform>();
+        foreach (Transform c in forksGo.transform) forkParts.Add(c);
+        foreach (var c in forkParts)
+        {
+            var twin = Object.Instantiate(c.gameObject, forkPivot, false);
+            foreach (var col in twin.GetComponentsInChildren<Collider>()) Object.DestroyImmediate(col);
+            var mr = c.GetComponent<MeshRenderer>();
+            if (mr != null) mr.enabled = false;
+        }
+        fk.visual = vis;
+        fk.forkVisual = forkPivot;
     }
 }

@@ -42,3 +42,9 @@
 - Kaykay ve bisiklet: sahnede sürülebilir (E ile bin, W/S hız, A/D yön, kaykayda Boşluk zıpla); çok oyunculu, herkes sürücüyü görür.
 - Araca uygun duruş: kaykayda yandan duruş, dönüşe yatma, ara ara yerden itme; bisiklette oturuş, gidonda eller, pedal ile bacakların senkron dönmesi; tekerler döner, bisiklette gidon ve ön tekerlek yönlenir.
 - Site: kontrol tablosuna araçlar, Esc menüsü ve F11.
+
+## 0.4.3 (2026-11-04)
+- Gecikme: araç sürerken istemci tarafı tahmin (kaykay, bisiklet, forklift sürücünün makinesinde anında tepki verir, sunucu pozuna yumuşakça yaklaşır); sürücü girdileri saniyede 30 kez gönderilir.
+- Uzaktaki sürücü artık araca bağlı çizilir (arkadan havada giden arkadaş sorunu).
+- F3: FPS ve ping göstergesi; grafik kalitesi Düşük/Orta/Yüksek (ilk açılışta donanıma göre seçilir, FPS uzun süre düşükse otomatik düşer; Esc menüsünden değişir).
+- Sunucu: 60 kare, başlatma yarışı düzeltildi (game1–3 "video aygıtı yok" ile çöküp yeniden başlıyordu).
