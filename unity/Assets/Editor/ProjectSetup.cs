@@ -45,6 +45,8 @@ public static class ProjectSetup
         // so the server is the normal Linux player run under a virtual display (Xvfb); cameras are disabled at runtime.
         SetupRenderPipeline();
         SetupPlayerSettings();
+        // the server talks to the matchmaker over the private docker network (plain http)
+        PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
         var opts = new BuildPlayerOptions
         {
             scenes = new[] { ScenePath },
@@ -110,6 +112,7 @@ public static class ProjectSetup
         PlayerSettings.defaultScreenHeight = 720;
         PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
         PlayerSettings.runInBackground = true;
+        PlayerSettings.insecureHttpOption = InsecureHttpOption.NotAllowed;   // game clients only use https
         var versionFile = Path.Combine(Application.dataPath, "..", "VERSION");
         PlayerSettings.bundleVersion = File.Exists(versionFile) ? File.ReadAllText(versionFile).Trim() : "0.0.1";
     }

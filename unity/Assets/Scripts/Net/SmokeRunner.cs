@@ -61,9 +61,26 @@ namespace WhoBrokeIt.Net
             yield return null;
             var nm = NetworkManager.Singleton;
             if (apiBase.StartsWith("http")) OnlineApi.Base = apiBase;
+            var a2 = System.Environment.GetCommandLineArgs();
+            var privateRoom = System.Array.IndexOf(a2, "private") >= 0;
             OnlineApi.Room room = null;
-            yield return OnlineApi.QuickPlay(r => room = r);
-            if (room == null || !string.IsNullOrEmpty(room.error) || string.IsNullOrEmpty(room.address)) { Fail("quickplay: " + (room != null ? room.error : "null")); yield break; }
+            if (privateRoom) yield return OnlineApi.CreateRoom(r => room = r);
+            else yield return OnlineApi.QuickPlay(r => room = r);
+            if (room == null || !string.IsNullOrEmpty(room.error) || string.IsNullOrEmpty(room.address)) { Fail("eslestirme: " + (room != null ? room.error : "null")); yield break; }
+            if (privateRoom)
+            {
+                if (string.IsNullOrEmpty(room.code) || room.type != "private") { Fail("ozel oda kodu yok: " + room.type); yield break; }
+                Log("ozel oda olusturuldu, kod " + room.code);
+                // a second player (here: a second API lookup) must be sent to the same server by that code
+                OnlineApi.Room again = null;
+                yield return OnlineApi.JoinRoom(room.code.ToLowerInvariant().Replace("-", " "), r => again = r);
+                if (again == null || !string.IsNullOrEmpty(again.error) || again.port != room.port) { Fail("kodla katilim farkli oda: " + (again != null ? again.error + " port " + again.port : "null")); yield break; }
+                Log("kodla katilim ayni odayi verdi (port " + again.port + ")");
+                OnlineApi.Room wrong = null;
+                yield return OnlineApi.JoinRoom("ZZZZ-99", r => wrong = r);
+                if (wrong == null || string.IsNullOrEmpty(wrong.error)) { Fail("yanlis kod kabul edildi"); yield break; }
+                Log("yanlis kod reddedildi: " + wrong.error);
+            }
             Log("matchmaker: " + room.type + " oda " + room.address + ":" + room.port + " oyuncu " + room.players + "/" + room.capacity + " sürüm " + room.version);
 
             ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetConnectionData(room.address, (ushort)room.port);
@@ -75,6 +92,11 @@ namespace WhoBrokeIt.Net
             yield return WaitFor(() => PlayerNet.Local != null && CaseManager.I != null && CaseManager.I.IsSpawned, 20f);
             if (PlayerNet.Local == null || CaseManager.I == null) { Fail("oyuncu/vaka olusmadi"); yield break; }
             var cm = CaseManager.I;
+            if (privateRoom)
+            {
+                yield return WaitFor(() => cm.roomCode.Value.Length > 0, 15f);
+                if (cm.roomCode.Value.ToString() != room.code) { Fail("oyun ici oda kodu '" + cm.roomCode.Value + "' beklenen '" + room.code + "'"); yield break; }
+            }
             Log("online: oyuncu dogdu; nesne=" + nm.SpawnManager.SpawnedObjects.Count + " oda kodu='" + cm.roomCode.Value + "'");
 
             // clues over RPC -> server state -> replicated back
