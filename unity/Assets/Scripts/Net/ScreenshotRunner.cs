@@ -14,9 +14,22 @@ namespace WhoBrokeIt.Net
     /// </summary>
     public class ScreenshotRunner : MonoBehaviour
     {
+        IEnumerator MenuShot(string dir)
+        {
+            Directory.CreateDirectory(dir);
+            yield return new WaitForSeconds(4f);
+            yield return new WaitForEndOfFrame();
+            var tex = ScreenCapture.CaptureScreenshotAsTexture();
+            File.WriteAllBytes(Path.Combine(dir, "menu_main.jpg"), tex.EncodeToJPG(90));
+            Debug.Log("[SHOT] menu");
+            Application.Quit(0);
+        }
+
         void Start()
         {
             var a = Environment.GetCommandLineArgs();
+            var m = Array.IndexOf(a, "-menushot");
+            if (m >= 0) { StartCoroutine(MenuShot(m + 1 < a.Length ? a[m + 1] : "shots_menu")); return; }
             var i = Array.IndexOf(a, "-shots");
             if (i < 0) return;
             StartCoroutine(Run(i + 1 < a.Length ? a[i + 1] : "shots"));
@@ -84,7 +97,45 @@ namespace WhoBrokeIt.Net
                 yield return Shot(dir, "char_" + c + "_" + CharacterCatalog.All[c].key, new Vector3(-3f, 1.35f, -6.6f), new Vector3(-3f, 1.0f, -10f));
             }
 
+            // frozen animation poses (CharacterAnimator.DebugPose): walk, jump, throw, carry
+            foreach (var c in new[] { 0, 2, 3 })
+            {
+                cc.enabled = false;
+                p.transform.position = new Vector3(-3f, 1.0f, -10f);
+                p.transform.rotation = Quaternion.Euler(0f, 35f, 0f);
+                cc.enabled = true;
+                p.characterId.Value = c;
+                yield return new WaitForSeconds(0.5f);
+                foreach (var pose in new[] { 1, 3, 5, 6 })
+                {
+                    CharacterAnimator.DebugPose = pose;
+                    CharacterAnimator.DebugPhase = Mathf.PI * 0.5f;
+                    yield return Shot(dir, "pose_" + c + "_" + pose, new Vector3(-0.9f, 1.4f, -7.6f), new Vector3(-3f, 1.0f, -10f));
+                }
+                CharacterAnimator.DebugPose = 0;
+            }
+
+            // climbing onto the forklift and sitting on it
+            p.characterId.Value = 0;
+            yield return new WaitForSeconds(0.3f);
+            var fk = FindFirstObjectByType<WhoBrokeIt.Vehicles.Forklift>();
+            if (fk != null)
+            {
+                cc.enabled = false;
+                p.transform.position = fk.transform.position + fk.transform.right * -2.2f + Vector3.up * 1.1f;
+                p.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+                cc.enabled = true;
+                Physics.SyncTransforms();
+                fk.RequestInteract();
+                yield return new WaitForSeconds(0.85f);
+                yield return Shot(dir, "08_forklift_climb", new Vector3(5.2f, 1.8f, -9.4f), new Vector3(8.2f, 1.1f, -7f));
+                yield return new WaitForSeconds(1.2f);
+                yield return Shot(dir, "09_forklift_sitting", new Vector3(5.6f, 1.7f, -9.0f), new Vector3(8.4f, 1.15f, -7.1f));
+                yield return Shot(dir, "10_forklift_front", new Vector3(10.3f, 1.9f, -4.0f), new Vector3(8.5f, 1.0f, -7f));
+            }
+
             // first person view
+            if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.enabled = false;
             p.characterId.Value = 0;
             ThirdPersonCamera.FirstPersonPreferred = true;
             yield return Shot(dir, "07_birinci_sahis", p.transform.position + new Vector3(0f, 0.68f, 0.14f), p.transform.position + new Vector3(0f, 0.5f, 6f));

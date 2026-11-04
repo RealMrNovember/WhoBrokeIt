@@ -238,24 +238,39 @@ namespace WhoBrokeIt.Net
             var fkBody = fk.GetComponent<Rigidbody>();
             var fkStart = fkBody.position;
             fk.ServerTestInput(1f, 0f, 1f);
-            yield return new WaitForSeconds(0.6f);
-            {
-                // diagnostics: what holds the hull?
-                var col = fk.GetComponent<BoxCollider>();
-                var hits = Physics.OverlapBox(col.bounds.center, col.bounds.extents * 0.98f, fkBody.rotation);
-                var names = new System.Text.StringBuilder();
-                foreach (var h in hits) if (h != col) names.Append(h.name).Append(h.attachedRigidbody != null ? "(rb)" : "").Append(' ');
-                Log("forklift tani: kinematik=" + fkBody.isKinematic + " hiz=" + fkBody.linearVelocity.ToString("0.00") + " uyuyor=" + fkBody.IsSleeping()
-                    + " kisit=" + fkBody.constraints + " kutle=" + fkBody.mass + " cakisan=[" + names + "] konum=" + fkBody.position.ToString("0.00")
-                    + " rot=" + fkBody.rotation.eulerAngles.ToString("0") + " temas=[" + fk.Diag + "] driver=" + fk.driverId.Value + " scale=" + fk.transform.lossyScale.ToString("0.00"));
-            }
-            yield return new WaitForSeconds(1.4f);
+            yield return new WaitForSeconds(2.0f);
             fk.ServerTestInput(0f, 0f, 0f);
             var drove = Vector3.Distance(fkBody.position, fkStart);
             Log("forklift surus: " + drove.ToString("0.00") + " m, yukseklik " + fkBody.position.y.ToString("0.00") + ", catal " + fk.ForkHeight.ToString("0.00") + " m");
             if (drove < 3f) { Fail("forklift hareket etmiyor (" + drove.ToString("0.00") + " m)"); yield break; }
             if (fk.ForkHeight < 0.5f) { Fail("catal kalkmiyor (" + fk.ForkHeight.ToString("0.00") + ")"); yield break; }
             Log("forklift surus ok");
+
+            // steering: full lock for 1.5 s must turn the hull
+            var yaw0 = fk.Heading;
+            fk.ServerTestInput(1f, 1f, 0f);
+            yield return new WaitForSeconds(1.5f);
+            var turned = Mathf.Abs(Mathf.DeltaAngle(yaw0, fk.Heading));
+            fk.ServerTestInput(0f, 0f, 0f);
+            Log("forklift direksiyon: " + turned.ToString("0") + " derece, tekerlek " + fk.steerAngle.Value.ToString("0"));
+            if (turned < 15f) { Fail("forklift donmuyor (" + turned.ToString("0") + ")"); yield break; }
+
+            // ramp: start below the ramp (x -6, z -11) facing +Z and drive up; must climb and stay upright
+            fk.ServerTeleport(new Vector3(-6f, 0.1f, -11f), 0f);
+            fk.ServerTestInput(1f, 0f, 0f);
+            var maxY = 0f; var minUp = 1f;
+            for (var tick = 0; tick < 40; tick++)
+            {
+                yield return new WaitForSeconds(0.1f);
+                maxY = Mathf.Max(maxY, fkBody.position.y);
+                if (fkBody.position.y > 0.3f) minUp = Mathf.Min(minUp, fk.transform.up.y);
+            }
+            fk.ServerTestInput(0f, 0f, 0f);
+            Log("forklift rampa: en yuksek " + maxY.ToString("0.00") + " m, en kucuk dikeylik " + minUp.ToString("0.00"));
+            if (maxY < 0.6f) { Fail("forklift rampaya cikamadi (" + maxY.ToString("0.00") + ")"); yield break; }
+            if (minUp < 0.7f) { Fail("forklift rampada devrildi (" + minUp.ToString("0.00") + ")"); yield break; }
+            fk.ServerTeleport(new Vector3(8.5f, 0.1f, -7f), 0f);
+            Log("forklift rampa ok");
 
             // 7) deliver the cabinet
             var dz = FindFirstObjectByType<DeliveryZone>();

@@ -59,6 +59,126 @@ public static class AiAssets
         return wrap;
     }
 
+    /// <summary>Where the limbs of one generated character are (metres, character 1.8 m tall, facing +Z).</summary>
+    struct RigSpec
+    {
+        public float hipY, armX, shoulderX, shoulderY, armTop, armBottom, legSwing, armSwing;
+        public RigSpec(float hipY, float armX, float shoulderX, float shoulderY, float armTop, float armBottom, float legSwing = 36f, float armSwing = 32f)
+        { this.hipY = hipY; this.armX = armX; this.shoulderX = shoulderX; this.shoulderY = shoulderY; this.armTop = armTop; this.armBottom = armBottom; this.legSwing = legSwing; this.armSwing = armSwing; }
+    }
+
+    static RigSpec SpecFor(string key)
+    {
+        switch (key)
+        {
+            case "muhendis": return new RigSpec(0.84f, 0.23f, 0.24f, 1.35f, 1.45f, 0.72f);
+            case "asci":     return new RigSpec(0.55f, 0.20f, 0.22f, 0.95f, 1.05f, 0.45f, 30f, 40f);
+            case "robot":    return new RigSpec(0.58f, 0.27f, 0.30f, 0.95f, 1.10f, 0.45f, 14f, 30f);
+            case "kedi":     return new RigSpec(0.62f, 0.22f, 0.25f, 1.10f, 1.25f, 0.55f, 30f, 28f);
+            default:         return new RigSpec(0.86f, 0.22f, 0.22f, 1.38f, 1.45f, 0.70f);   // isci
+        }
+    }
+
+    static float Smooth(float a, float b, float x)
+    {
+        var t = Mathf.Clamp01((x - a) / Mathf.Max(b - a, 0.0001f));
+        return t * t * (3f - 2f * t);
+    }
+
+    /// <summary>
+    /// The generated models are single static meshes. This adds a small skeleton (hips, two legs, two arms) and skins the mesh by region
+    /// (below the hip = legs, split left/right; to the sides of the torso = arms) so CharacterAnimator can swing the limbs.
+    /// Returns false (model left untouched) when the mesh cannot be read.
+    /// </summary>
+    static bool Rig(GameObject wrap, string key)
+    {
+        var spec = SpecFor(key);
+        var original = wrap.transform.GetChild(0).gameObject;
+        var filters = wrap.GetComponentsInChildren<MeshFilter>();
+        if (filters.Length == 0) return false;
+        foreach (var f in filters) if (f.sharedMesh == null || !f.sharedMesh.isReadable) { Debug.Log("[WBI] rig: mesh okunamiyor: " + key); return false; }
+
+        var hips = new GameObject("Hips").transform;
+        hips.SetParent(wrap.transform, false);
+        hips.localPosition = new Vector3(0f, spec.hipY, 0f);
+        Transform Bone(string name, Vector3 pos)
+        {
+            var b = new GameObject(name).transform;
+            b.SetParent(hips, false);
+            b.position = wrap.transform.TransformPoint(pos);
+            return b;
+        }
+        var legL = Bone("LegL", new Vector3(-0.09f, spec.hipY, 0f));
+        var legR = Bone("LegR", new Vector3(0.09f, spec.hipY, 0f));
+        var armL = Bone("ArmL", new Vector3(-spec.shoulderX, spec.shoulderY, 0f));
+        var armR = Bone("ArmR", new Vector3(spec.shoulderX, spec.shoulderY, 0f));
+        var bones = new[] { hips, legL, legR, armL, armR };
+        var bind = new Matrix4x4[bones.Length];
+        for (var i = 0; i < bones.Length; i++) bind[i] = bones[i].worldToLocalMatrix * wrap.transform.localToWorldMatrix;
+
+        Directory.CreateDirectory("Assets/Resources/Characters/Meshes");
+        var n = 0;
+        foreach (var f in filters)
+        {
+            var r = f.GetComponent<MeshRenderer>();
+            if (r == null) continue;
+            var src = f.sharedMesh;
+            var m = Object.Instantiate(src);
+            m.name = key + "_skin" + n;
+            var v = src.vertices;
+            var nrm = src.normals;
+            var w = new BoneWeight[v.Length];
+            for (var i = 0; i < v.Length; i++)
+            {
+                var p = wrap.transform.InverseTransformPoint(f.transform.TransformPoint(v[i]));
+                v[i] = p;
+                if (nrm.Length == v.Length) nrm[i] = wrap.transform.InverseTransformDirection(f.transform.TransformDirection(nrm[i])).normalized;
+
+                var wLeg = 1f - Smooth(spec.hipY - 0.07f, spec.hipY + 0.07f, p.y);
+                var sideR = Smooth(-0.035f, 0.035f, p.x);
+                var wArm = Smooth(spec.armX - 0.06f, spec.armX + 0.06f, Mathf.Abs(p.x))
+                         * Smooth(spec.armBottom - 0.05f, spec.armBottom + 0.05f, p.y)
+                         * (1f - Smooth(spec.armTop - 0.05f, spec.armTop + 0.05f, p.y)) * (1f - wLeg);
+                var legIdx = p.x >= 0f ? 2 : 1;
+                var armIdx = p.x >= 0f ? 4 : 3;
+                var legW = wLeg * (p.x >= 0f ? sideR : 1f - sideR);
+                var legOther = wLeg - legW;                     // near the middle the other leg takes its share
+                var bw = new BoneWeight();
+                bw.boneIndex0 = 0; bw.weight0 = Mathf.Max(0f, 1f - wLeg - wArm);
+                bw.boneIndex1 = legIdx; bw.weight1 = legW;
+                bw.boneIndex2 = p.x >= 0f ? 1 : 2; bw.weight2 = legOther;
+                bw.boneIndex3 = armIdx; bw.weight3 = wArm;
+                w[i] = bw;
+            }
+            m.vertices = v;
+            if (nrm.Length == v.Length) m.normals = nrm;
+            m.tangents = null;
+            m.boneWeights = w;
+            m.bindposes = bind;
+            m.RecalculateBounds();
+            AssetDatabase.CreateAsset(m, "Assets/Resources/Characters/Meshes/" + m.name + ".asset");
+
+            var body = new GameObject("Body" + n);
+            body.transform.SetParent(wrap.transform, false);
+            var smr = body.AddComponent<SkinnedMeshRenderer>();
+            smr.sharedMesh = m;
+            smr.sharedMaterials = r.sharedMaterials;
+            smr.bones = bones;
+            smr.rootBone = hips;
+            smr.localBounds = new Bounds(new Vector3(0f, 0.9f, 0f), new Vector3(2.4f, 2.2f, 2.4f));
+            smr.updateWhenOffscreen = false;
+            n++;
+        }
+        // the static original is no longer needed
+        Object.DestroyImmediate(original);
+
+        var anim = wrap.AddComponent<WhoBrokeIt.Player.CharacterAnimator>();
+        anim.hips = hips; anim.legL = legL; anim.legR = legR; anim.armL = armL; anim.armR = armR;
+        anim.swingDegrees = spec.legSwing; anim.armSwingDegrees = spec.armSwing;
+        return true;
+    }
+
+
     /// <summary>Character models: Resources/Characters/&lt;key&gt;.prefab (the runtime catalog prefers these over the generated primitives).</summary>
     public static int BuildCharacterPrefabs()
     {
@@ -74,6 +194,7 @@ public static class AiAssets
                 continue;
             }
             model.name = "Character_" + entry.key;
+            Debug.Log("[WBI] iskelet " + entry.key + ": " + (Rig(model, entry.key) ? "tamam" : "yok (statik)"));
             PrefabUtility.SaveAsPrefabAsset(model, path);
             Object.DestroyImmediate(model);
             made++;

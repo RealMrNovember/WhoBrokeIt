@@ -3,75 +3,186 @@ using UnityEngine;
 namespace WhoBrokeIt.Player
 {
     /// <summary>
-    /// Procedural animation for any character: walk cycle (limbs swing, body bobs and leans), carrying pose (arms forward) and a dizzy
-    /// wobble while stunned. Works from the player's movement, so remote players animate without any extra network data.
-    /// Custom models can leave the limb references empty and still get bob/lean/wobble.
+    /// Procedural animation for every character (no animation clips): idle breathing and sway, walk/run cycle with swinging limbs, body bob and
+    /// lean, jump pose in the air, carrying and tool poses, throw and hit swings, dizzy flailing, climbing and sitting on a vehicle.
+    /// Everything is derived from the player's movement and a few synced flags, so remote players animate without extra network traffic.
+    /// Works on limb pivots (primitive characters) or on the small skeleton built for the generated models (hips + two legs + two arms).
     /// </summary>
     public class CharacterAnimator : MonoBehaviour
     {
-        public Transform legL, legR, armL, armR;
-        public float swingDegrees = 38f;
+        public Transform hips, legL, legR, armL, armR;
+        public float swingDegrees = 36f;
+        public float armSwingDegrees = 32f;
+
+        /// <summary>Editor/screenshot tool: freezes a pose (0 none, 1 walk, 2 sit, 3 jump, 4 climb, 5 throw, 6 carry).</summary>
+        public static int DebugPose;
+        public static float DebugPhase;
 
         PlayerNet net;
-        Transform follow;
+        Transform follow, feet;
         Vector3 lastPos;
         float speed, phase;
-        Vector3 basePos;
-        Quaternion baseRot;
+        Vector3 hipsBasePos;
+        Quaternion hipsBaseRot;
+        Vector3 hipsBaseScale;
+        int lastTick;
+        float actionStart = -10f;
+        int actionKind;
+        bool air;
+        float hipHeight = 0.86f;
+
+        /// <summary>Height of the hips above the feet (the seat position of a vehicle is derived from it).</summary>
+        public float HipHeight => hipHeight;
+
+        // smoothed pose values (degrees / metres)
+        float lLx, lRx, aLx, aRx, aLz, aRz, bob, lean, twist, roll, sink;
+
+        Transform Body => hips != null ? hips : transform;
 
         void Start()
         {
             net = GetComponentInParent<PlayerNet>();
             follow = net != null ? net.transform : transform.parent;
+            feet = net != null && net.visualAnchor != null ? net.visualAnchor : transform;
             lastPos = follow != null ? follow.position : Vector3.zero;
-            basePos = transform.localPosition;
-            baseRot = transform.localRotation;
+            hipsBasePos = Body.localPosition;
+            hipsBaseRot = Body.localRotation;
+            hipsBaseScale = Body.localScale;
+            if (hips != null) hipHeight = hips.localPosition.y;
+            lastTick = net != null ? net.actionTick.Value : 0;
         }
+
+        static float Sm(float current, float target, float k) { return Mathf.Lerp(current, target, 1f - Mathf.Exp(-k * Time.deltaTime)); }
 
         void LateUpdate()
         {
             if (follow == null) return;
+            var dt = Mathf.Max(Time.deltaTime, 0.0001f);
             var delta = follow.position - lastPos;
-            delta.y = 0f;
             lastPos = follow.position;
-            var v = delta.magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
-            speed = Mathf.Lerp(speed, Mathf.Min(v, 12f), 12f * Time.deltaTime);
+            var flat = new Vector3(delta.x, 0f, delta.z);
+            speed = Mathf.Lerp(speed, Mathf.Min(flat.magnitude / dt, 12f), 1f - Mathf.Exp(-14f * dt));
 
-            var moving = Mathf.Clamp01(speed / 4f);
-            phase += speed * 1.5f * Time.deltaTime;
+            if (net != null && net.actionTick.Value != lastTick)
+            {
+                lastTick = net.actionTick.Value;
+                actionStart = Time.time;
+                actionKind = lastTick & 1;
+            }
 
             var stunned = net != null && net.stunned.Value;
             var carrying = net != null && net.carry != null && net.carry.IsCarrying;
+            var seated = net != null && net.seated.Value;
+            var climbing = net != null && net.climbing.Value;
+            var tool = net != null ? net.toolId.Value : 0;
+            air = !Physics.Raycast(feet.position + Vector3.up * 0.15f, Vector3.down, 0.45f, ~0, QueryTriggerInteraction.Ignore);
 
-            // body: bob while walking, tiny breathing when idle, lean into the run, wobble when dazed
-            var bob = Mathf.Abs(Mathf.Sin(phase * 2f)) * 0.05f * moving + Mathf.Sin(Time.time * 2f) * 0.004f * (1f - moving);
-            transform.localPosition = basePos + Vector3.up * bob;
-            var wobble = stunned ? Mathf.Sin(Time.time * 18f) * 16f : 0f;
-            transform.localRotation = baseRot * Quaternion.Euler(moving * 7f, 0f, wobble);
-
+            var moving = Mathf.Clamp01(speed / 2.5f);
+            var run = Mathf.Clamp01((speed - 4.5f) / 3f);
+            phase += (speed * 1.25f + (climbing ? 5.5f : 0f)) * dt;
             var swing = Mathf.Sin(phase) * swingDegrees * moving;
-            if (legL != null) legL.localRotation = Quaternion.Euler(swing, 0f, 0f);
-            if (legR != null) legR.localRotation = Quaternion.Euler(-swing, 0f, 0f);
+            var armSwing = Mathf.Sin(phase) * armSwingDegrees * moving;
 
-            if (armL != null && armR != null)
+            // ---- targets ----
+            float tLL = swing, tLR = -swing, tAL = -armSwing, tAR = armSwing, tAZL = 4f, tAZR = -4f;
+            float tBob = -Mathf.Abs(Mathf.Sin(phase)) * 0.035f * moving;
+            float tLean = moving * 4f + run * 6f;
+            float tTwist = Mathf.Sin(phase) * 6f * moving;
+            float tRoll = Mathf.Cos(phase) * 2f * moving;
+            float tSink = 0f;
+
+            // idle: slow breathing, weight shift, loosely swinging arms
+            if (moving < 0.2f)
             {
-                if (carrying)
+                var t = Time.time;
+                tRoll += Mathf.Sin(t * 0.9f) * 1.8f;
+                tTwist += Mathf.Sin(t * 0.6f + 1f) * 3f;
+                tAL += Mathf.Sin(t * 1.3f) * 3f;
+                tAR += Mathf.Sin(t * 1.3f + 1.7f) * 3f;
+                tBob += Mathf.Sin(t * 2.2f) * 0.006f;
+            }
+
+            if (tool != 0 && !carrying)
+            {
+                tAR = -55f + Mathf.Sin(Time.time * 4f) * 4f * moving;
+                tAL = -35f;
+            }
+            if (carrying)
+            {
+                tAL = -80f; tAR = -80f; tAZL = 8f; tAZR = -8f;
+                tLean += 2f;
+            }
+
+            if (air)
+            {
+                tLL = -38f; tLR = 22f;
+                tAL = -25f; tAR = -25f; tAZL = 55f; tAZR = -55f;
+                tBob = 0.02f; tLean = 4f;
+            }
+
+            var since = Time.time - actionStart;
+            if (since < 0.5f)
+            {
+                var u = Mathf.Clamp01(since / 0.5f);
+                if (actionKind == 0)          // throw: both arms wind back then fling forward
                 {
-                    armL.localRotation = Quaternion.Euler(-80f, 0f, 8f);
-                    armR.localRotation = Quaternion.Euler(-80f, 0f, -8f);
+                    var a = u < 0.35f ? Mathf.Lerp(-30f, -125f, u / 0.35f) : Mathf.Lerp(-125f, 35f, (u - 0.35f) / 0.65f);
+                    tAL = a; tAR = a; tAZL = 10f; tAZR = -10f; tLean = u < 0.35f ? -6f : 14f;
                 }
-                else if (stunned)
+                else                          // hit: right arm winds up and chops down, body twists
                 {
-                    var flail = Mathf.Sin(Time.time * 20f) * 40f;
-                    armL.localRotation = Quaternion.Euler(-30f + flail, 0f, 35f);
-                    armR.localRotation = Quaternion.Euler(-30f - flail, 0f, -35f);
-                }
-                else
-                {
-                    armL.localRotation = Quaternion.Euler(-swing * 0.9f, 0f, 4f);
-                    armR.localRotation = Quaternion.Euler(swing * 0.9f, 0f, -4f);
+                    var a = u < 0.3f ? Mathf.Lerp(-30f, -120f, u / 0.3f) : Mathf.Lerp(-120f, 45f, (u - 0.3f) / 0.7f);
+                    tAR = a; tTwist = u < 0.3f ? 14f : -22f; tLean = u < 0.3f ? -4f : 12f;
                 }
             }
+
+            if (stunned)
+            {
+                var flail = Mathf.Sin(Time.time * 20f) * 40f;
+                tAL = -30f + flail; tAR = -30f - flail; tAZL = 35f; tAZR = -35f;
+                tLL = Mathf.Sin(Time.time * 9f) * 14f; tLR = -tLL;
+                tRoll = Mathf.Sin(Time.time * 18f) * 14f;
+            }
+
+            if (climbing)                     // reaching up and stepping with high knees
+            {
+                tAL = -115f + Mathf.Sin(phase) * 22f; tAR = -115f - Mathf.Sin(phase) * 22f; tAZL = 8f; tAZR = -8f;
+                tLL = -55f + Mathf.Sin(phase) * 30f; tLR = -55f - Mathf.Sin(phase) * 30f;
+                tLean = 8f; tBob = 0f; tTwist = 0f;
+            }
+            else if (seated)                  // hands on the wheel, legs forward
+            {
+                tLL = -88f; tLR = -88f; tAL = -62f; tAR = -62f; tAZL = 10f; tAZR = -10f;
+                tBob = 0f; tLean = -4f; tTwist = 0f; tRoll = 0f; tSink = -0.05f;
+            }
+
+            switch (DebugPose)
+            {
+                case 1: tLL = Mathf.Sin(DebugPhase) * swingDegrees; tLR = -tLL; tAL = -Mathf.Sin(DebugPhase) * armSwingDegrees; tAR = -tAL; tLean = 5f; tBob = -Mathf.Abs(Mathf.Sin(DebugPhase)) * 0.035f; break;
+                case 2: tLL = -88f; tLR = -88f; tAL = -62f; tAR = -62f; tLean = -4f; break;
+                case 3: tLL = -38f; tLR = 22f; tAL = -25f; tAR = -25f; tAZL = 55f; tAZR = -55f; break;
+                case 4: tAL = -115f; tAR = -115f; tLL = -55f; tLR = -20f; tLean = 8f; break;
+                case 5: tAL = -125f; tAR = -125f; tLean = -6f; break;
+                case 6: tAL = -80f; tAR = -80f; break;
+            }
+
+            // ---- apply (smoothed) ----
+            var k = DebugPose != 0 ? 80f : 16f;
+            lLx = Sm(lLx, tLL, k); lRx = Sm(lRx, tLR, k);
+            aLx = Sm(aLx, tAL, k); aRx = Sm(aRx, tAR, k);
+            aLz = Sm(aLz, tAZL, k); aRz = Sm(aRz, tAZR, k);
+            bob = Sm(bob, tBob, 20f); lean = Sm(lean, tLean, 10f); twist = Sm(twist, tTwist, 12f); roll = Sm(roll, tRoll, 12f); sink = Sm(sink, tSink, 10f);
+
+            var body = Body;
+            body.localPosition = hipsBasePos + Vector3.up * (bob + sink);
+            body.localRotation = hipsBaseRot * Quaternion.Euler(lean, twist, roll);
+            var breathe = 1f + Mathf.Sin(Time.time * 2.2f) * 0.01f * (1f - moving);
+            body.localScale = new Vector3(hipsBaseScale.x, hipsBaseScale.y * breathe, hipsBaseScale.z);
+
+            if (legL != null) legL.localRotation = Quaternion.Euler(lLx, 0f, 0f);
+            if (legR != null) legR.localRotation = Quaternion.Euler(lRx, 0f, 0f);
+            if (armL != null) armL.localRotation = Quaternion.Euler(aLx, 0f, aLz);
+            if (armR != null) armR.localRotation = Quaternion.Euler(aRx, 0f, aRz);
         }
     }
 }

@@ -30,3 +30,10 @@
 - Birinci sahis kamera: V tusu veya menuden secilir, kendi govdemiz gizlenir.
 - Forklift duzeltildi: gövdenin yer surtunmesi yuzunden kipirdamamasi giderildi, tekerlekler zeminin ustunde, catal kalkiyor.
 - Gorsel: cim/zemin dokusu, isik, bloom, ACES ton esleme, sis.
+
+## 0.4.1 (2026-11-04)
+- Karakterler: yapay zeka modellerine otomatik iskelet (bacak/kol); yürüme, bekleme, zıplama, taşıma, fırlatma, vurma, sersemleme animasyonları.
+- Forklift: yeni modern tasarım (kabin, aydınlatma, direk, basamak), dönen ve sağa sola yönlenen tekerlekler, rampaya tırmanma (devrilmez), sürücü tırmanıp oturur ve görünür.
+- Esc duraklatma menüsü: kamera (mesafe, yükseklik, omuz, görüş alanı, fare hızı), tam ekran (F11), karakter değiştirme, menüye dön / çık. Varsayılan tam ekran penceresi.
+- Logo ve oyun ikonu, haritadan bağımsız yeni ana menü arka planı; site logosu.
+- Kullanıcı istekleri docs/ISTEKLER.md dosyasında tutulur.

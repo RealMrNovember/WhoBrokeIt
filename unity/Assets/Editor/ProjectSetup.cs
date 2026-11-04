@@ -16,7 +16,7 @@ using WhoBrokeIt.Props;
 using WhoBrokeIt.Vehicles;
 
 /// <summary>Batchmode entry points: builds the P1 workshop scene and a Windows player. Run via -executeMethod ProjectSetup.BuildWindows.</summary>
-public static class ProjectSetup
+public static partial class ProjectSetup
 {
     const string ScenePath = "Assets/Scenes/Workshop.unity";
 
@@ -133,7 +133,10 @@ public static class ProjectSetup
         PlayerSettings.productName = "Who Broke It";
         PlayerSettings.defaultScreenWidth = 1280;
         PlayerSettings.defaultScreenHeight = 720;
-        PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+        PlayerSettings.fullScreenMode = FullScreenMode.FullScreenWindow;
+        PlayerSettings.resizableWindow = true;
+        var brandIcon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Resources/Brand/icon.png");
+        if (brandIcon != null) PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { brandIcon }, IconKind.Application);
         PlayerSettings.runInBackground = true;
         PlayerSettings.insecureHttpOption = InsecureHttpOption.NotAllowed;   // game clients only use https
         var versionFile = Path.Combine(Application.dataPath, "..", "VERSION");
@@ -452,71 +455,7 @@ public static class ProjectSetup
         cabinet.AddComponent<Resettable>();
         delivery.target = cabinet.GetComponent<Rigidbody>();
 
-        // forklift (faces +Z, toward the pallet).
-        // The hull is an EMPTY root with unit scale: shapes keep their real size and wheels sit where they should
-        // (the first version scaled a primitive and parented the parts to it, which squashed them into the ground).
-        var hull = new GameObject("Forklift");
-        hull.transform.position = new Vector3(8.5f, 0.02f, -7f);
-        var hullCol = hull.AddComponent<BoxCollider>();
-        hullCol.center = new Vector3(0f, 0.5f, -0.1f);
-        hullCol.size = new Vector3(1.5f, 1.0f, 1.9f);
-        var ht = hull.transform;
-        var tire = Mat("Tire", new Color(0.07f, 0.07f, 0.08f));
-        var orange = Mat("Beacon", new Color(1f, 0.55f, 0.05f));
-        var steel = Mat("Steel", new Color(0.55f, 0.58f, 0.62f));
-        var fkYellow = Mat("ForkliftYellow", new Color(0.98f, 0.72f, 0.05f));
-        Prim(PrimitiveType.Cube, "Chassis", new Vector3(0f, 0.5f, 0.05f), new Vector3(1.5f, 0.6f, 1.7f), fkYellow, ht, false);
-        Prim(PrimitiveType.Cube, "Counterweight", new Vector3(0f, 0.66f, -0.88f), new Vector3(1.5f, 0.78f, 0.62f), dark, ht, false);
-        Prim(PrimitiveType.Cube, "HazardStripe", new Vector3(0f, 0.90f, -1.20f), new Vector3(1.5f, 0.10f, 0.04f), fkYellow, ht, false);
-        Prim(PrimitiveType.Cube, "Seat", new Vector3(0f, 0.92f, -0.05f), new Vector3(0.52f, 0.12f, 0.5f), dark, ht, false);
-        Prim(PrimitiveType.Cube, "SeatBack", new Vector3(0f, 1.2f, -0.32f), new Vector3(0.52f, 0.5f, 0.10f), dark, ht, false);
-        Prim(PrimitiveType.Cylinder, "SteeringColumn", new Vector3(0f, 1.02f, 0.28f), new Vector3(0.06f, 0.15f, 0.06f), dark, ht, false).transform.localRotation = Quaternion.Euler(-35f, 0f, 0f);
-        Prim(PrimitiveType.Cylinder, "SteeringWheel", new Vector3(0f, 1.18f, 0.20f), new Vector3(0.30f, 0.015f, 0.30f), dark, ht, false).transform.localRotation = Quaternion.Euler(-35f, 0f, 0f);
-        foreach (var sx in new[] { -1f, 1f })
-        {
-            Prim(PrimitiveType.Cylinder, "GuardPostFront", new Vector3(0.66f * sx, 1.55f, 0.50f), new Vector3(0.07f, 0.55f, 0.07f), dark, ht, false);
-            Prim(PrimitiveType.Cylinder, "GuardPostRear", new Vector3(0.66f * sx, 1.5f, -0.58f), new Vector3(0.07f, 0.55f, 0.07f), dark, ht, false);
-        }
-        Prim(PrimitiveType.Cube, "GuardRoof", new Vector3(0f, 2.06f, -0.04f), new Vector3(1.5f, 0.06f, 1.3f), dark, ht, false);
-        for (var i = 0; i < 5; i++) Prim(PrimitiveType.Cube, "RoofSlat", new Vector3(0f, 2.10f, -0.52f + i * 0.26f), new Vector3(1.5f, 0.04f, 0.07f), steel, ht, false);
-        Prim(PrimitiveType.Cylinder, "BeaconBase", new Vector3(0.0f, 2.12f, -0.52f), new Vector3(0.14f, 0.025f, 0.14f), dark, ht, false);
-        Prim(PrimitiveType.Sphere, "Beacon", new Vector3(0.0f, 2.2f, -0.52f), new Vector3(0.18f, 0.15f, 0.18f), orange, ht, false);
-        // static mast uprights (the carriage with the forks slides in front of them)
-        foreach (var sx in new[] { -1f, 1f })
-            Prim(PrimitiveType.Cube, "MastUpright", new Vector3(0.30f * sx, 1.05f, 0.98f), new Vector3(0.10f, 2.1f, 0.12f), dark, ht, false);
-        Prim(PrimitiveType.Cube, "MastTop", new Vector3(0f, 2.08f, 0.98f), new Vector3(0.7f, 0.10f, 0.12f), dark, ht, false);
-        Prim(PrimitiveType.Cube, "MastMid", new Vector3(0f, 1.0f, 0.98f), new Vector3(0.7f, 0.07f, 0.10f), dark, ht, false);
-        // wheels: a cylinder's axis is local Y, so rotate 90 degrees to lay it along X; scale = (diameter, half width, diameter)
-        foreach (var w in new[] { new Vector3(-0.80f, 0.32f, 0.55f), new Vector3(0.80f, 0.32f, 0.55f), new Vector3(-0.78f, 0.27f, -0.72f), new Vector3(0.78f, 0.27f, -0.72f) })
-        {
-            var d = w.y * 2f;
-            Prim(PrimitiveType.Cylinder, "Tire", w, new Vector3(d, 0.13f, d), tire, ht, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-            var hub = Prim(PrimitiveType.Cylinder, "Hub", w + new Vector3(Mathf.Sign(w.x) * 0.02f, 0f, 0f), new Vector3(d * 0.5f, 0.135f, d * 0.5f), steel, ht, false);
-            hub.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-        }
-        var hullBody = hull.AddComponent<Rigidbody>();
-        hullBody.mass = 700f;
-        hullBody.linearDamping = 0f;
-        hullBody.angularDamping = 2f;
-        hullBody.centerOfMass = new Vector3(0f, 0.45f, -0.1f);
-        Net(hull, true);
-        hull.AddComponent<Resettable>();
-
-        // forks: kinematic body that follows the hull and carries loads by friction (own root, not a child of the hull)
-        var forksGo = new GameObject("Forks");
-        forksGo.transform.position = hull.transform.position;
-        Prim(PrimitiveType.Cube, "CarriagePlate", new Vector3(0f, 0.42f, 1.12f), new Vector3(1.1f, 0.85f, 0.06f), dark, forksGo.transform);
-        for (var i = 0; i < 4; i++) Prim(PrimitiveType.Cube, "CarriageBar", new Vector3(0f, 0.12f + i * 0.24f, 1.16f), new Vector3(1.1f, 0.05f, 0.04f), steel, forksGo.transform, false);
-        Prim(PrimitiveType.Cube, "ProngL", new Vector3(-0.30f, 0.045f, 1.8f), new Vector3(0.14f, 0.07f, 1.35f), steel, forksGo.transform);
-        Prim(PrimitiveType.Cube, "ProngR", new Vector3(0.30f, 0.045f, 1.8f), new Vector3(0.14f, 0.07f, 1.35f), steel, forksGo.transform);
-        var forkRb = forksGo.AddComponent<Rigidbody>();
-        forkRb.isKinematic = true;
-        Net(forksGo, false);
-        var fk = hull.AddComponent<Forklift>();
-        fk.forks = forkRb;
-        fk.forkOrigin = Vector3.zero;
-        fk.forkMax = 1.6f;
-        fk.prompt = "Forklifte bin";
+        BuildForklift(new Vector3(8.5f, 0.02f, -7f));
 
         // lights + fuse box
         var sun = new GameObject("Sun");
@@ -657,6 +596,7 @@ public static class ProjectSetup
         };
         nm.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(prefabList);
         nmGo.AddComponent<NetworkMenu>();
+        nmGo.AddComponent<PauseMenu>();
         nmGo.AddComponent<SmokeRunner>();
         nmGo.AddComponent<ScreenshotRunner>();
         nmGo.AddComponent<UpdateChecker>();

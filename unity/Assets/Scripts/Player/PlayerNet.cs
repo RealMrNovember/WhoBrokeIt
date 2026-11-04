@@ -21,6 +21,12 @@ namespace WhoBrokeIt.Player
         /// <summary>Index into CharacterCatalog; chosen in the menu and shown to everyone.</summary>
         public NetworkVariable<int> characterId = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+        /// <summary>True while sitting on a vehicle (everyone animates the sitting pose; the server proxy collider is switched off).</summary>
+        public NetworkVariable<bool> seated = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        public NetworkVariable<bool> climbing = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        /// <summary>Counts one-shot actions (throw, hit) so every client can play the swing: low bit of kind in the value, counter in the rest.</summary>
+        public NetworkVariable<int> actionTick = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
         public GameObject broomVisual, hammerVisual;
         public Transform visualAnchor;
         public Renderer[] bodyRenderers = new Renderer[0];
@@ -34,6 +40,9 @@ namespace WhoBrokeIt.Player
         float immuneUntil, nextMelee;     // server side
 
         public bool IsHidden => hidden.Value;
+
+        /// <summary>Owner: announce a one-shot action to everyone (kind 0 = throw, 1 = hit).</summary>
+        public void NoteAction(int kind) { if (IsOwner) actionTick.Value = ((actionTick.Value >> 1) + 1) << 1 | kind; }
 
         /// <summary>Finds the player a collider belongs to: the player itself (own controller) or its detached server proxy.</summary>
         public static PlayerNet FromCollider(Collider c)
@@ -131,7 +140,7 @@ namespace WhoBrokeIt.Player
             var firstPerson = IsOwner && ThirdPersonCamera.Instance != null && ThirdPersonCamera.Instance.IsFirstPerson;
             var show = !hidden.Value && !firstPerson;
             foreach (var r in bodyRenderers) if (r != null && r.enabled != show) r.enabled = show;
-            if (proxyRb != null && IsServer && !IsOwner) proxyRb.gameObject.SetActive(!hidden.Value);
+            if (proxyRb != null && IsServer && !IsOwner) proxyRb.gameObject.SetActive(!hidden.Value && !seated.Value && !climbing.Value);
             if (IsOwner && pc != null && stunned.Value != pc.Stunned) stunned.Value = pc.Stunned;
         }
 

@@ -35,6 +35,8 @@ VIAddVersionKey /LANG=1055 "LegalCopyright" "© 2026 ${COMPANY}"
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 !include "LogicLib.nsh"
+!define MUI_ICON "wbi.ico"
+!define MUI_UNICON "wbi.ico"
 
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXE}"

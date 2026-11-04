@@ -182,15 +182,65 @@ namespace WhoBrokeIt.Net
             CharacterCatalog.Save(charIndex);
         }
 
+        // ---------- backdrop: a map-independent dusk gradient with drifting soft lights (covers the 3D scene behind the menu) ----------
+        Texture2D logo, gradient, glow;
+
+        void DrawBackdrop()
+        {
+            if (gradient == null)
+            {
+                gradient = new Texture2D(1, 256, TextureFormat.RGB24, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                var top = new Color(0.05f, 0.09f, 0.17f);
+                var mid = new Color(0.12f, 0.27f, 0.38f);
+                var low = new Color(0.93f, 0.58f, 0.24f);
+                for (var y = 0; y < 256; y++)
+                {
+                    var t = y / 255f;               // 0 = bottom of the screen
+                    var c = t < 0.35f ? Color.Lerp(low, mid, Mathf.SmoothStep(0f, 1f, t / 0.35f)) : Color.Lerp(mid, top, Mathf.SmoothStep(0f, 1f, (t - 0.35f) / 0.65f));
+                    gradient.SetPixel(0, y, c);
+                }
+                gradient.Apply();
+                glow = new Texture2D(64, 64, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+                for (var y = 0; y < 64; y++)
+                    for (var x = 0; x < 64; x++)
+                    {
+                        var d = Vector2.Distance(new Vector2(x, y), new Vector2(31.5f, 31.5f)) / 32f;
+                        var a = Mathf.Clamp01(1f - d);
+                        glow.SetPixel(x, y, new Color(1f, 1f, 1f, a * a * (0.55f + 0.45f * Mathf.SmoothStep(0.8f, 0.95f, d))));
+                    }
+                glow.Apply();
+            }
+            var prevMatrix = GUI.matrix;
+            GUI.matrix = Matrix4x4.identity;
+            var sw = (float)Screen.width; var sh = (float)Screen.height;
+            GUI.DrawTexture(new Rect(0, 0, sw, sh), gradient, ScaleMode.StretchToFill, false);
+            var prevColor = GUI.color;
+            for (var i = 0; i < 16; i++)
+            {
+                var seed = i * 12.9898f;
+                var speed = 0.006f + (i % 5) * 0.004f;
+                var x = Mathf.Repeat(Mathf.Sin(seed) * 0.5f + 0.5f + Time.time * speed, 1.2f) - 0.1f;
+                var y = Mathf.Repeat(Mathf.Cos(seed * 1.7f) * 0.5f + 0.5f - Time.time * speed * 0.7f, 1f);
+                var size = sh * (0.08f + (i % 4) * 0.07f);
+                var warm = i % 3 == 0;
+                GUI.color = new Color(warm ? 1f : 0.55f, warm ? 0.78f : 0.85f, warm ? 0.45f : 1f, 0.07f + (i % 4) * 0.025f);
+                GUI.DrawTexture(new Rect(x * sw - size / 2f, y * sh - size / 2f, size, size), glow, ScaleMode.StretchToFill, true);
+            }
+            GUI.color = prevColor;
+            GUI.matrix = prevMatrix;
+        }
+
         void OnGUI()
         {
             var nm = NetworkManager.Singleton;
             if (nm == null || InstallGuard.Blocked) return;
             if (nm.IsListening && (nm.IsHost || nm.IsConnectedClient || (nm.IsServer && !nm.IsClient))) return;
 
+            DrawBackdrop();
             var s = Screen.height / 1080f;
             GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1f));
             var w = Screen.width / s;
+            if (logo == null) logo = Resources.Load<Texture2D>("Brand/logo");
             if (title == null)
             {
                 title = new GUIStyle(GUI.skin.label) { fontSize = 64, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
@@ -200,9 +250,10 @@ namespace WhoBrokeIt.Net
                 field = new GUIStyle(GUI.skin.textField) { fontSize = 30, alignment = TextAnchor.MiddleCenter };
             }
             title.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUI.Box(new Rect(w / 2f - 440, 70, 880, 940), "");
-            GUI.Label(new Rect(w / 2f - 420, 90, 840, 90), "Who Broke It?", title);
-            GUI.Label(new Rect(w / 2f - 420, 175, 840, 40), "Greenfield · Kimin Alet Çantası?", label);
+            GUI.Box(new Rect(w / 2f - 440, 36, 880, 984), "");
+            if (logo != null) GUI.DrawTexture(new Rect(w / 2f - 340, 48, 680, 170), logo, ScaleMode.ScaleToFit, true);
+            else GUI.Label(new Rect(w / 2f - 420, 90, 840, 90), "Who Broke It?", title);
+            GUI.Label(new Rect(w / 2f - 420, 205, 840, 40), "Greenfield · Kimin Alet Çantası?", label);
 
             var connecting = nm.IsListening && nm.IsClient && !nm.IsConnectedClient;
             GUI.enabled = !busy && !connecting;
@@ -217,7 +268,10 @@ namespace WhoBrokeIt.Net
                 GUI.Label(new Rect(x, 472, 640, 34), "Özel oda aç, kodu arkadaşlarına söyle.", small);
                 if (Button(new Rect(x, 522, 640, 70), "Tek kişilik oyna")) HostLocal("127.0.0.1");
 
-                if (Button(new Rect(x, 616, 310, 64), "Karakter: " + CharacterCatalog.All[charIndex].name)) { page = Page.Characters; status = ""; }
+                var prevFont = btn.fontSize; btn.fontSize = 22;
+                var charPressed = Button(new Rect(x, 616, 310, 64), "Karakter: " + CharacterCatalog.All[charIndex].name);
+                btn.fontSize = prevFont;
+                if (charPressed) { page = Page.Characters; status = ""; }
                 if (Button(new Rect(x + 330, 616, 310, 64), fp ? "Kamera: 1. şahıs" : "Kamera: 3. şahıs")) ThirdPersonCamera.FirstPersonPreferred = !fp;
                 GUI.Label(new Rect(x, 684, 640, 30), "Oyun içinde V tuşu kamerayı değiştirir.", small);
 
