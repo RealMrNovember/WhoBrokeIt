@@ -32,7 +32,7 @@ public static partial class ProjectSetup
         return mat;
     }
 
-    static Transform WheelAssembly(Transform hull, string name, Vector3 pos, float r, float width, Material tire, Material rim, Material bolt, out Transform steerPivot, out Transform spinPivot)
+    static Transform WheelAssembly(Transform hull, string name, Vector3 pos, float r, float width, Material tire, Material rim, Material bolt, out Transform steerPivot, out Transform spinPivot, float rimFrac = 0.625f, bool treads = true, bool lugs = true)
     {
         var root = new GameObject(name).transform;
         root.SetParent(hull, false);
@@ -42,16 +42,16 @@ public static partial class ProjectSetup
         var sx = Mathf.Sign(pos.x);
         // a cylinder's axis is local Y: rotate to lay it along X; scale = (diameter, half width, diameter)
         Prim(PrimitiveType.Cylinder, "Tire", Vector3.zero, new Vector3(2f * r, width * 0.5f, 2f * r), tire, spin, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
-        Prim(PrimitiveType.Cylinder, "Rim", new Vector3(sx * 0.012f, 0f, 0f), new Vector3(r * 1.25f, width * 0.5f + 0.012f, r * 1.25f), rim, spin, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+        Prim(PrimitiveType.Cylinder, "Rim", new Vector3(sx * 0.012f, 0f, 0f), new Vector3(r * 2f * rimFrac, width * 0.5f + 0.012f, r * 2f * rimFrac), rim, spin, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
         Prim(PrimitiveType.Cylinder, "Cap", new Vector3(sx * (width * 0.5f + 0.02f), 0f, 0f), new Vector3(r * 0.5f, 0.012f, r * 0.5f), bolt, spin, false).transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
         for (var i = 0; i < 3; i++)       // three spokes across the rim
-            Prim(PrimitiveType.Cube, "Spoke", new Vector3(sx * (width * 0.5f + 0.014f), 0f, 0f), new Vector3(0.018f, r * 1.15f, 0.07f), bolt, spin, false).transform.localRotation = Quaternion.Euler(i * 60f, 0f, 0f);
-        for (var i = 0; i < 5; i++)       // lug nuts
+            Prim(PrimitiveType.Cube, "Spoke", new Vector3(sx * (width * 0.5f + 0.014f), 0f, 0f), new Vector3(0.018f, r * 2f * rimFrac * 0.95f, 0.07f), bolt, spin, false).transform.localRotation = Quaternion.Euler(i * 60f, 0f, 0f);
+        for (var i = 0; lugs && i < 5; i++)       // lug nuts
         {
             var a = i * 72f * Mathf.Deg2Rad;
             Prim(PrimitiveType.Sphere, "Lug", new Vector3(sx * (width * 0.5f + 0.02f), Mathf.Sin(a) * r * 0.32f, Mathf.Cos(a) * r * 0.32f), Vector3.one * 0.035f, bolt, spin, false);
         }
-        for (var i = 0; i < 16; i++)      // tread blocks so the rolling is visible
+        for (var i = 0; treads && i < 16; i++)      // tread blocks so the rolling is visible
         {
             var phi = i * 22.5f;
             var a = phi * Mathf.Deg2Rad;

@@ -24,6 +24,10 @@ namespace WhoBrokeIt.Player
         /// <summary>True while sitting on a vehicle (everyone animates the sitting pose; the server proxy collider is switched off).</summary>
         public NetworkVariable<bool> seated = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         public NetworkVariable<bool> climbing = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        /// <summary>What the player is riding: 0 nothing, 1 skateboard, 2 bicycle (everybody animates the matching stance).</summary>
+        public NetworkVariable<byte> ride = new NetworkVariable<byte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        /// <summary>Crank angle in degrees, written every frame by the bicycle the player rides so the legs follow the pedals.</summary>
+        [System.NonSerialized] public float pedalAngle;
         /// <summary>Counts one-shot actions (throw, hit) so every client can play the swing: low bit of kind in the value, counter in the rest.</summary>
         public NetworkVariable<int> actionTick = new NetworkVariable<int>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
@@ -140,7 +144,7 @@ namespace WhoBrokeIt.Player
             var firstPerson = IsOwner && ThirdPersonCamera.Instance != null && ThirdPersonCamera.Instance.IsFirstPerson;
             var show = !hidden.Value && !firstPerson;
             foreach (var r in bodyRenderers) if (r != null && r.enabled != show) r.enabled = show;
-            if (proxyRb != null && IsServer && !IsOwner) proxyRb.gameObject.SetActive(!hidden.Value && !seated.Value && !climbing.Value);
+            if (proxyRb != null && IsServer && !IsOwner) proxyRb.gameObject.SetActive(!hidden.Value && !seated.Value && !climbing.Value && ride.Value == 0);
             if (IsOwner && pc != null && stunned.Value != pc.Stunned) stunned.Value = pc.Stunned;
         }
 

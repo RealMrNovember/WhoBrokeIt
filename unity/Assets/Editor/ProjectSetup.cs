@@ -456,6 +456,8 @@ public static partial class ProjectSetup
         delivery.target = cabinet.GetComponent<Rigidbody>();
 
         BuildForklift(new Vector3(8.5f, 0.02f, -7f));
+        BuildSkateboard(new Vector3(2.4f, 0.02f, -10.2f), 20f);
+        BuildBicycle(new Vector3(4.8f, 0.02f, -10.8f), -15f);
 
         // lights + fuse box
         var sun = new GameObject("Sun");

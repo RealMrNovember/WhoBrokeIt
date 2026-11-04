@@ -106,7 +106,7 @@ namespace WhoBrokeIt.Net
                 cc.enabled = true;
                 p.characterId.Value = c;
                 yield return new WaitForSeconds(0.5f);
-                foreach (var pose in new[] { 1, 3, 5, 6 })
+                foreach (var pose in new[] { 1, 3, 5, 6, 7, 8, 9 })
                 {
                     CharacterAnimator.DebugPose = pose;
                     CharacterAnimator.DebugPhase = Mathf.PI * 0.5f;
@@ -132,6 +132,23 @@ namespace WhoBrokeIt.Net
                 yield return new WaitForSeconds(1.2f);
                 yield return Shot(dir, "09_forklift_sitting", new Vector3(5.6f, 1.7f, -9.0f), new Vector3(8.4f, 1.15f, -7.1f));
                 yield return Shot(dir, "10_forklift_front", new Vector3(10.3f, 1.9f, -4.0f), new Vector3(8.5f, 1.0f, -7f));
+            }
+
+            // riding the skateboard and the bicycle (rider mounted, vehicle standing still)
+            if (fk != null) { fk.RequestExit(); yield return new WaitForSeconds(1.0f); }
+            foreach (var rv in FindObjectsByType<WhoBrokeIt.Vehicles.RideableVehicle>(FindObjectsSortMode.None))
+            {
+                cc.enabled = false;
+                p.transform.position = rv.transform.position + rv.transform.right * 1.2f + Vector3.up * 1.1f;
+                cc.enabled = true;
+                Physics.SyncTransforms();
+                rv.RequestInteract();
+                yield return new WaitForSeconds(1.2f);
+                var rp = rv.transform.position;
+                yield return Shot(dir, "13_ride_" + rv.kind, rp + rv.transform.right * -2.4f + Vector3.up * 1.0f + rv.transform.forward * 0.4f, rp + Vector3.up * 0.75f);
+                yield return Shot(dir, "14_ride_front_" + rv.kind, rp + rv.transform.forward * 2.6f + rv.transform.right * 0.9f + Vector3.up * 1.2f, rp + Vector3.up * 0.8f);
+                rv.RequestExit();
+                yield return new WaitForSeconds(0.8f);
             }
 
             // first person view

@@ -19,9 +19,10 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 9 | "Oyunu tam ekran da yapamıyorum, hep küçük." | ✅ Varsayılan tam ekran (pencere), F11 / Alt+Enter, menüden de |
 | 10 | "Forklift önündeki rampaya asla çıkamıyor, direk takla atıyor. Öndeki çatalı yükseltmeme rağmen çıkamıyor." | ✅ Sürüş fiziği: rampa tırmanma, devrilmeme |
 | 11 | "Forklift tekerleri dönmüyor, çok daha modern ve çok daha güzel tasarlanması lazım, tekerler sağa sola da dönebilecek şekilde." | ✅ Yeni forklift tasarımı, dönen ve yönlenen tekerlekler |
-| 12 | "Sana örnek başka modeller de vermiştim bisiklet gibi, kaykay gibi. Onlardan da istiyorum." | ⏳ Bisiklet, kaykay vb. araçlar (örnek modeller `Downloads\WhoBrokeIt_Models`, özgün üretim) (sıradaki iş: bisiklet/kaykay gibi sürülebilir araçlar) |
+| 12 | "Sana örnek başka modeller de vermiştim bisiklet gibi, kaykay gibi. Onlardan da istiyorum." | ✅ Kaykay ve bisiklet (özgün modeller, sürülebilir, çok oyunculu); örnek modeller kullanılmadı |
 | 13 | "Tüm bu isteklerimi kesinlikle yazılı not al." | ✅ Bu dosya |
 | 14 | "Karakterlerin elleri kolları hareket etmesi lazım." | ✅ Kemikli modellerde kollar yürürken sallanır, taşırken öne uzanır, fırlatırken savrulur |
+| 15 | "Bisiklet ve kaykay'a binerken karakterin duruşları da araca uygun olması lazım. Bisiklet sürerken pedal çevrilmesi, kaykay sürerken ara ara bir ayağını yere indirip kendini ittirmesi lazım." | ✅ Kaykayda yandan duruş ve yerden itme animasyonu, bisiklette oturuş ve pedala bağlı bacaklar |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 

@@ -123,6 +123,7 @@ namespace WhoBrokeIt.Vehicles
         public void ServerTestInput(float t, float s, float f) { testInput = true; throttle = t; steer = s; forkInput = f; }
         bool testInput;
         public float ForkHeight => forkHeight;
+        public void RequestExit() => ExitRpc();
 
         /// <summary>Server only (tests): put the forklift somewhere facing a heading, standing still.</summary>
         public void ServerTeleport(Vector3 pos, float yaw)

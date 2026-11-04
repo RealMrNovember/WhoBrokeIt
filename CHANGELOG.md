@@ -37,3 +37,8 @@
 - Esc duraklatma menüsü: kamera (mesafe, yükseklik, omuz, görüş alanı, fare hızı), tam ekran (F11), karakter değiştirme, menüye dön / çık. Varsayılan tam ekran penceresi.
 - Logo ve oyun ikonu, haritadan bağımsız yeni ana menü arka planı; site logosu.
 - Kullanıcı istekleri docs/ISTEKLER.md dosyasında tutulur.
+
+## 0.4.2 (2026-11-04)
+- Kaykay ve bisiklet: sahnede sürülebilir (E ile bin, W/S hız, A/D yön, kaykayda Boşluk zıpla); çok oyunculu, herkes sürücüyü görür.
+- Araca uygun duruş: kaykayda yandan duruş, dönüşe yatma, ara ara yerden itme; bisiklette oturuş, gidonda eller, pedal ile bacakların senkron dönmesi; tekerler döner, bisiklette gidon ve ön tekerlek yönlenir.
+- Site: kontrol tablosuna araçlar, Esc menüsü ve F11.

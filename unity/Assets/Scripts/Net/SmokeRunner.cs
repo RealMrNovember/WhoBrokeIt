@@ -282,7 +282,45 @@ namespace WhoBrokeIt.Net
 
             // 8) tool RPC does not throw
             player.UseToolRpc(1, 0.016f);
-            yield return new WaitForSeconds(6f);
+            yield return new WaitForSeconds(2f);
+
+            // 9) skateboard and bicycle: hop on, ride, steer, hop off
+            fk.RequestExit();
+            yield return new WaitForSeconds(1.0f);
+            var rides = FindObjectsByType<RideableVehicle>(FindObjectsSortMode.None);
+            if (rides.Length < 2) { Fail("kaykay/bisiklet sahnede yok (" + rides.Length + ")"); yield break; }
+            foreach (var rv in rides)
+            {
+                var pcc = player.GetComponent<CharacterController>();
+                pcc.enabled = false;
+                player.transform.position = rv.transform.position + rv.transform.right * 1.2f + Vector3.up * 1.1f;
+                pcc.enabled = true;
+                Physics.SyncTransforms();
+                rv.RequestInteract();
+                yield return new WaitForSeconds(1.0f);
+                if (rv.driverId.Value != nm.LocalClientId) { Fail(rv.label + ": binilemedi, surucu=" + rv.driverId.Value); yield break; }
+                if (player.ride.Value != (byte)rv.kind) { Fail(rv.label + ": ride degeri " + player.ride.Value); yield break; }
+                var rvStart = rv.transform.position;
+                rv.ServerTestInput(1f, 0f, 0f);
+                yield return new WaitForSeconds(2.0f);
+                var rvDist = Vector3.Distance(rv.transform.position, rvStart);
+                var rvYaw = rv.Heading;
+                rv.ServerTestInput(1f, 1f, 0f);
+                yield return new WaitForSeconds(1.5f);
+                var rvTurn = Mathf.Abs(Mathf.DeltaAngle(rvYaw, rv.Heading));
+                rv.ServerTestInput(0f, 0f, 0f);
+                yield return new WaitForSeconds(0.8f);
+                var rvGap = Vector3.Distance(player.transform.position, rv.transform.position);
+                Log(rv.label + ": yol " + rvDist.ToString("0.0") + " m, donus " + rvTurn.ToString("0") + " derece, surucu-arac mesafesi " + rvGap.ToString("0.0") + " m");
+                if (rvDist < 3f) { Fail(rv.label + " ilerlemiyor"); yield break; }
+                if (rvTurn < 12f) { Fail(rv.label + " donmuyor"); yield break; }
+                if (rvGap > 2.5f) { Fail(rv.label + ": surucu arac uzerinde degil"); yield break; }
+                rv.RequestExit();
+                yield return new WaitForSeconds(0.8f);
+                if (rv.driverId.Value != ulong.MaxValue || player.ride.Value != 0) { Fail(rv.label + ": inilemedi"); yield break; }
+            }
+            Log("kaykay ve bisiklet ok");
+            yield return new WaitForSeconds(2f);
             Log("HOST PASS");
             Finish(0);
         }

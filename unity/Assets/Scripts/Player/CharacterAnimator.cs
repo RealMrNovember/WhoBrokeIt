@@ -36,6 +36,7 @@ namespace WhoBrokeIt.Player
 
         // smoothed pose values (degrees / metres)
         float lLx, lRx, aLx, aRx, aLz, aRz, bob, lean, twist, roll, sink;
+        float speedForAcc, accSm, vySm, yawRateSm, lastYaw, pushPhase;
 
         Transform Body => hips != null ? hips : transform;
 
@@ -54,6 +55,36 @@ namespace WhoBrokeIt.Player
 
         static float Sm(float current, float target, float k) { return Mathf.Lerp(current, target, 1f - Mathf.Exp(-k * Time.deltaTime)); }
 
+        /// <summary>Stance for riding: kind 1 = skateboard (side-on, knees soft, pushes off the ground now and then), 2 = bicycle (sitting, legs follow the pedals).</summary>
+        void RidePose(int kind, ref float tLL, ref float tLR, ref float tAL, ref float tAR, ref float tAZL, ref float tAZR, ref float tBob, ref float tLean, ref float tTwist, ref float tRoll, ref float tSink, float dt, float debugPush = -1f)
+        {
+            tRoll -= Mathf.Clamp(yawRateSm * 0.10f, -14f, 14f);               // lean into the turn
+            if (kind == 1)
+            {
+                var tuck = Mathf.Abs(vySm) > 1.2f;
+                var wantPush = debugPush < 0f ? (accSm > 0.35f || (speed < 0.6f && accSm > 0.05f)) && speed < 6.5f : debugPush > 0f;
+                if (debugPush < 0f) { if (wantPush) pushPhase += dt * 1.45f; else pushPhase = Mathf.Ceil(pushPhase - 0.0001f); }
+                var u = debugPush > 0f ? 0.3f : Mathf.Repeat(pushPhase, 1f);
+                tTwist = 28f; tLean = 9f; tSink = -0.07f; tBob = 0f;
+                tLL = -12f; tLR = 10f;                                                  // front foot forward, back foot behind
+                tAZL = 42f; tAZR = -42f; tAL = -22f; tAR = -14f;                         // arms out for balance
+                if (u < 0.6f && (wantPush || debugPush > 0f))               // push: back foot swings down to the ground and kicks
+                {
+                    var k = u / 0.6f;
+                    tLR = Mathf.Lerp(10f, 62f, Mathf.Sin(k * Mathf.PI * 0.5f)) * (k < 0.8f ? 1f : Mathf.Lerp(1f, 0.2f, (k - 0.8f) / 0.2f));
+                    tLean = 18f; tSink = -0.12f; tTwist = 12f; tAL = -50f; tAR = 28f;
+                }
+                if (tuck) { tLL = -34f; tLR = -34f; tSink = -0.16f; tAL = -35f; tAR = -35f; }
+            }
+            else
+            {
+                var a = (debugPush >= 0f ? 40f : net != null ? net.pedalAngle : 0f) * Mathf.Deg2Rad;
+                tLL = -42f + Mathf.Sin(a) * 38f; tLR = -42f - Mathf.Sin(a) * 38f;     // thighs follow the pedals
+                tAL = -60f; tAR = -60f; tAZL = 12f; tAZR = -12f;                      // hands on the handlebar
+                tLean = 16f; tBob = 0f; tSink = 0f; tTwist = Mathf.Clamp(yawRateSm * 0.06f, -8f, 8f);
+            }
+        }
+
         void LateUpdate()
         {
             if (follow == null) return;
@@ -62,6 +93,12 @@ namespace WhoBrokeIt.Player
             lastPos = follow.position;
             var flat = new Vector3(delta.x, 0f, delta.z);
             speed = Mathf.Lerp(speed, Mathf.Min(flat.magnitude / dt, 12f), 1f - Mathf.Exp(-14f * dt));
+            var prevSpeed = speedForAcc; speedForAcc = speed;
+            accSm = Mathf.Lerp(accSm, (speed - prevSpeed) / dt, 1f - Mathf.Exp(-6f * dt));
+            vySm = Mathf.Lerp(vySm, delta.y / dt, 1f - Mathf.Exp(-12f * dt));
+            var yawNow = follow.eulerAngles.y;
+            yawRateSm = Mathf.Lerp(yawRateSm, Mathf.DeltaAngle(lastYaw, yawNow) / dt, 1f - Mathf.Exp(-10f * dt));
+            lastYaw = yawNow;
 
             if (net != null && net.actionTick.Value != lastTick)
             {
@@ -156,6 +193,9 @@ namespace WhoBrokeIt.Player
                 tBob = 0f; tLean = -4f; tTwist = 0f; tRoll = 0f; tSink = -0.05f;
             }
 
+            var ride = net != null ? net.ride.Value : 0;
+            if (ride != 0 && !climbing && !seated) RidePose(ride, ref tLL, ref tLR, ref tAL, ref tAR, ref tAZL, ref tAZR, ref tBob, ref tLean, ref tTwist, ref tRoll, ref tSink, dt);
+
             switch (DebugPose)
             {
                 case 1: tLL = Mathf.Sin(DebugPhase) * swingDegrees; tLR = -tLL; tAL = -Mathf.Sin(DebugPhase) * armSwingDegrees; tAR = -tAL; tLean = 5f; tBob = -Mathf.Abs(Mathf.Sin(DebugPhase)) * 0.035f; break;
@@ -164,6 +204,9 @@ namespace WhoBrokeIt.Player
                 case 4: tAL = -115f; tAR = -115f; tLL = -55f; tLR = -20f; tLean = 8f; break;
                 case 5: tAL = -125f; tAR = -125f; tLean = -6f; break;
                 case 6: tAL = -80f; tAR = -80f; break;
+                case 7: RidePose(1, ref tLL, ref tLR, ref tAL, ref tAR, ref tAZL, ref tAZR, ref tBob, ref tLean, ref tTwist, ref tRoll, ref tSink, 0f, 0f); break;
+                case 8: RidePose(1, ref tLL, ref tLR, ref tAL, ref tAR, ref tAZL, ref tAZR, ref tBob, ref tLean, ref tTwist, ref tRoll, ref tSink, 0f, 0.3f); break;
+                case 9: RidePose(2, ref tLL, ref tLR, ref tAL, ref tAR, ref tAZL, ref tAZR, ref tBob, ref tLean, ref tTwist, ref tRoll, ref tSink, 0f, 0f); break;
             }
 
             // ---- apply (smoothed) ----
