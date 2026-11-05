@@ -244,6 +244,26 @@ namespace WhoBrokeIt.Net
                 }
             }
             else L("el arabasi/kutu bulunamadi, el arabasi adimi atlandi");
+            // 7) placement audit: NPCs, vendors and stalls must not stand inside walls, props or each other
+            {
+                var bad = 0;
+                foreach (var npc0 in FindObjectsByType<WhoBrokeIt.World.Npc>(FindObjectsSortMode.None))
+                {
+                    var p = npc0.transform.position;
+                    var names = Physics.OverlapCapsule(p + Vector3.up * 0.45f, p + Vector3.up * 1.5f, 0.3f, ~0, QueryTriggerInteraction.Ignore).Where(h => !h.transform.IsChildOf(npc0.transform) && h.bounds.max.y > 0.3f).Select(h => h.name).Distinct().ToArray();
+                    if (names.Length > 0) { bad++; L("yerlesim: " + npc0.name + " " + p.ToString("0.0") + " engel=" + string.Join(",", names)); }
+                }
+                foreach (var tr in FindObjectsByType<Transform>(FindObjectsSortMode.None).Where(t => t.name == "prop_stall_a"))
+                {
+                    var cols = tr.GetComponentsInChildren<Collider>();
+                    if (cols.Length == 0) { L("yerlesim: tezgah " + tr.position.ToString("0.0") + " collider yok"); continue; }
+                    var b = cols[0].bounds; foreach (var cc9 in cols) b.Encapsulate(cc9.bounds);
+                    var names = Physics.OverlapBox(b.center, b.extents * 0.9f, Quaternion.identity, ~0, QueryTriggerInteraction.Ignore).Where(h => !h.transform.IsChildOf(tr) && h.bounds.max.y > 0.3f).Select(h => h.name).Distinct().ToArray();
+                    if (names.Length > 0) { bad++; L("yerlesim: tezgah " + tr.position.ToString("0.0") + " engel=" + string.Join(",", names)); }
+                }
+                foreach (var sc in FindObjectsByType<Collider>(FindObjectsSortMode.None).Where(q => q.name == "COL_prop_stall_a_1")) L("yerlesim: tezgah-collider " + sc.bounds.min.ToString("0.00") + ".." + sc.bounds.max.ToString("0.00"));
+                L("yerlesim: sorunlu=" + bad);
+            }
 
             yield return new WaitForSeconds(0.5f);
             if (exceptions > 0) { Quit(1, "istisna sayisi " + exceptions); yield break; }

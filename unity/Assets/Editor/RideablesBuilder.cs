@@ -303,7 +303,7 @@ public static partial class ProjectSetup
     static void BuildVendor(string name, string title, string[] lines, Vector3 stallPos, float yaw)
     {
         var stall = Kit("prop_stall_a", stallPos, yaw);
-        var back = Quaternion.Euler(0f, yaw, 0f) * new Vector3(0f, 0f, -1.1f);
+        var back = Quaternion.Euler(0f, yaw, 0f) * new Vector3(0f, 0f, -1.3f);   // the stall collider is 1.5 m deep (0.82 m behind its centre)
         var go = new GameObject(name);
         go.transform.SetPositionAndRotation(new Vector3(stallPos.x + back.x, 0.02f, stallPos.z + back.z), Quaternion.Euler(0f, yaw, 0f));
         var cap = go.AddComponent<CapsuleCollider>();
