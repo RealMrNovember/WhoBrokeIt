@@ -36,6 +36,8 @@ namespace WhoBrokeIt.Net
             var a = Environment.GetCommandLineArgs();
             var m = Array.IndexOf(a, "-menushot");
             if (m >= 0) { StartCoroutine(MenuShot(m + 1 < a.Length ? a[m + 1] : "shots_menu")); return; }
+            var g = Array.IndexOf(a, "-gfshots");
+            if (g >= 0) { StartCoroutine(RunGreenfield(g + 1 < a.Length ? a[g + 1] : "shots")); return; }
             var i = Array.IndexOf(a, "-shots");
             if (i < 0) return;
             StartCoroutine(Run(i + 1 < a.Length ? a[i + 1] : "shots"));
@@ -65,6 +67,33 @@ namespace WhoBrokeIt.Net
             File.WriteAllBytes(Path.Combine(dir, name + ".jpg"), tex.EncodeToJPG(88));
             Destroy(tex);
             Debug.Log("[SHOT] " + name);
+        }
+
+        /// <summary>Greenfield Square tour: a fixed set of viewpoints (world coordinates, origin = plaza centre).</summary>
+        IEnumerator RunGreenfield(string dir)
+        {
+            Directory.CreateDirectory(dir);
+            yield return null;
+            var nm = NetworkManager.Singleton;
+            ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetConnectionData("127.0.0.1", 7777, "127.0.0.1");
+            if (!nm.StartHost()) { Application.Quit(1); yield break; }
+            var t = 0f;
+            while (PlayerNet.Local == null && t < 20f) { t += Time.deltaTime; yield return null; }
+            if (PlayerNet.Local == null) { Debug.Log("[SHOT] oyuncu yok"); Application.Quit(2); yield break; }
+            yield return new WaitForSeconds(2f);
+            if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.enabled = false;
+            yield return Shot(dir, "g01_hava", new Vector3(-48f, 40f, -42f), new Vector3(4f, 0f, 4f));
+            yield return Shot(dir, "g02_meydan", new Vector3(0f, 3.2f, -13f), new Vector3(0f, 2.2f, 4f));
+            yield return Shot(dir, "g03_cesme_kule", new Vector3(-8f, 2.2f, -6f), new Vector3(0f, 4.5f, 8f));
+            yield return Shot(dir, "g04_cadde", new Vector3(-30f, 2.6f, -14f), new Vector3(-12f, 3f, -30f));
+            yield return Shot(dir, "g05_depo", new Vector3(-6f, 3f, 8f), new Vector3(-24f, 2.5f, 19f));
+            yield return Shot(dir, "g06_atolye", new Vector3(4f, 2.6f, 14f), new Vector3(4f, 2f, 28f));
+            yield return Shot(dir, "g07_insaat", new Vector3(20f, 4f, -2f), new Vector3(31f, 2f, 12f));
+            yield return Shot(dir, "g08_tepe", new Vector3(17f, 4f, -4f), new Vector3(34f, 1f, -10f));
+            yield return Shot(dir, "g09_su_kulesi", new Vector3(-16f, 5f, 18f), new Vector3(-33f, 8f, 36f));
+            yield return Shot(dir, "g10_forklift", new Vector3(-4f, 2.2f, 17f), new Vector3(-8f, 1f, 21f));
+            Debug.Log("[SHOT] bitti");
+            Application.Quit(0);
         }
 
         IEnumerator Run(string dir)

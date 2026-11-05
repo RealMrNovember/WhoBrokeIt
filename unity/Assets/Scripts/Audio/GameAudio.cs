@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace WhoBrokeIt.Audio
 {
-    public enum Sfx { Step, Bonk, Whoosh, Swing, Pickup, Mount, Spark, UiHover, UiClick, UiBack }
+    public enum Sfx { Step, Bonk, Whoosh, Swing, Pickup, Mount, Spark, UiHover, UiClick, UiBack, WoodCrack, WoodSmash, MetalClang, GlassShatter, ConcreteThud, CeramicSmash, PlasticKnock, CanvasFlap, Creak, RepairTap }
     public enum LoopKind { ForkliftEngine, SkateRoll, BikeTick }
 
     /// <summary>
@@ -65,7 +65,7 @@ namespace WhoBrokeIt.Audio
             if (clips != null) return;
             const float TwoPi = Mathf.PI * 2f;
             var lp = 0f;
-            clips = new AudioClip[10];
+            clips = new AudioClip[20];
             // soft footstep: a dull thump plus a short scuff
             clips[(int)Sfx.Step] = Make("step", 0.13f, false, (t, u) => Mathf.Sin(TwoPi * (95f - 55f * u) * t) * Mathf.Exp(-u * 9f) * 0.7f + Noise() * Mathf.Exp(-u * 25f) * 0.22f);
             // cartoon bonk: a falling boing with a knock on top
@@ -85,6 +85,35 @@ namespace WhoBrokeIt.Audio
             clips[(int)Sfx.UiHover] = Make("ui_hover", 0.07f, false, (t, u) => Mathf.Sin(TwoPi * 880f * t) * Mathf.Exp(-u * 7f) * 0.28f);
             clips[(int)Sfx.UiClick] = Make("ui_click", 0.16f, false, (t, u) => (Mathf.Sin(TwoPi * 660f * t) * (u < 0.45f ? 1f : 0f) + Mathf.Sin(TwoPi * 990f * t) * (u >= 0.35f ? 1f : 0f)) * Mathf.Exp(-u * 5f) * 0.42f);
             clips[(int)Sfx.UiBack] = Make("ui_back", 0.18f, false, (t, u) => Mathf.Sin(TwoPi * (300f - 140f * u) * t) * Mathf.Exp(-u * 7f) * 0.5f);
+
+            // ---- material impacts, breaking and repair (all synthesised) ----
+            var hpPrev = 0f; var lpc = 0f;
+            clips[(int)Sfx.WoodCrack] = Make("wood_crack", 0.22f, false, (t, u) => Noise() * Mathf.Exp(-u * 28f) * 0.7f + Mathf.Sin(TwoPi * (210f - 80f * u) * t) * Mathf.Exp(-u * 14f) * 0.55f);
+            clips[(int)Sfx.WoodSmash] = Make("wood_smash", 0.6f, false, (t, u) =>
+            {
+                var sm = Mathf.Sin(TwoPi * 95f * t) * Mathf.Exp(-u * 8f) * 0.6f;
+                var k = 0f;
+                for (var i = 0; i < 4; i++) { if (u >= k) sm += Noise() * Mathf.Exp(-(u - k) * 32f) * (0.75f - k); k += 0.13f; }
+                return sm;
+            });
+            clips[(int)Sfx.MetalClang] = Make("metal_clang", 0.8f, false, (t, u) =>
+                (Mathf.Sin(TwoPi * 523f * t) * 0.4f + Mathf.Sin(TwoPi * 1318f * t) * 0.3f + Mathf.Sin(TwoPi * 2217f * t) * 0.2f + Mathf.Sin(TwoPi * 3391f * t) * 0.12f) * Mathf.Exp(-u * 5.5f) + Noise() * Mathf.Exp(-u * 60f) * 0.3f);
+            clips[(int)Sfx.GlassShatter] = Make("glass_shatter", 0.7f, false, (t, u) =>
+            {
+                var n = Noise(); var hp = n - hpPrev; hpPrev = n;
+                var cell = u * 40f;
+                return hp * Mathf.Exp(-u * 5f) * 0.5f + Mathf.Sin(TwoPi * (2500f + ((int)cell % 7) * 700f) * t) * Mathf.Exp(-(cell % 1f) * 6f) * 0.25f * Mathf.Exp(-u * 3f);
+            });
+            clips[(int)Sfx.ConcreteThud] = Make("concrete_thud", 0.35f, false, (t, u) => Mathf.Sin(TwoPi * (70f - 30f * u) * t) * Mathf.Exp(-u * 10f) * 0.8f + Noise() * Mathf.Exp(-u * 30f) * 0.45f);
+            clips[(int)Sfx.CeramicSmash] = Make("ceramic_smash", 0.45f, false, (t, u) =>
+            {
+                var cell = u * 30f;
+                return Noise() * Mathf.Exp(-u * 26f) * 0.55f + Mathf.Sin(TwoPi * 520f * t) * Mathf.Exp(-u * 18f) * 0.35f + Mathf.Sin(TwoPi * (1800f + ((int)cell % 5) * 500f) * t) * Mathf.Exp(-(cell % 1f) * 7f) * 0.3f * Mathf.Exp(-u * 3f);
+            });
+            clips[(int)Sfx.PlasticKnock] = Make("plastic_knock", 0.16f, false, (t, u) => Mathf.Sin(TwoPi * (430f - 120f * u) * t) * Mathf.Exp(-u * 16f) * 0.6f + Noise() * Mathf.Exp(-u * 50f) * 0.2f);
+            clips[(int)Sfx.CanvasFlap] = Make("canvas_flap", 0.3f, false, (t, u) => { lpc += (Noise() - lpc) * 0.12f; var a = Mathf.Sin(Mathf.PI * u); return lpc * a * a * 2.2f; });
+            clips[(int)Sfx.Creak] = Make("creak", 0.6f, false, (t, u) => Mathf.Sin(TwoPi * (230f + 25f * Mathf.Sin(TwoPi * 9f * t)) * t) * 0.25f * Mathf.Sin(Mathf.PI * u) + Noise() * 0.05f * Mathf.Sin(Mathf.PI * u));
+            clips[(int)Sfx.RepairTap] = Make("repair_tap", 0.14f, false, (t, u) => Mathf.Sin(TwoPi * 820f * t) * Mathf.Exp(-u * 20f) * 0.5f + Noise() * Mathf.Exp(-u * 70f) * 0.3f);
 
             loops = new AudioClip[3];
             // loops use whole numbers of cycles so they join without a click (1 second long)
@@ -125,6 +154,14 @@ namespace WhoBrokeIt.Audio
             s.volume = Mathf.Clamp01(volume * Effects);
             s.pitch = pitch;
             s.Play();
+        }
+
+        /// <summary>Material impact: louder with speed, deeper with mass (heavy things sound heavy), small random pitch so repeats do not machine-gun.</summary>
+        public static void PlayImpact(Props.MaterialKind material, Vector3 position, float intensity, float mass)
+        {
+            var info = Props.MaterialTable.Get(material);
+            var pitch = Mathf.Clamp(1.55f - 0.16f * Mathf.Log(Mathf.Max(1f, mass) + 1f, 2f), 0.55f, 1.6f) * Random.Range(0.94f, 1.06f);
+            Play(info.hit, position, Mathf.Clamp01(0.15f + 0.85f * intensity), pitch);
         }
 
         // ---------- menu: 2D sounds and music ----------

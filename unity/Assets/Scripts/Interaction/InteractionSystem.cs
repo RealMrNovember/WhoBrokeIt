@@ -9,6 +9,7 @@ namespace WhoBrokeIt.Interaction
     {
         public float range = 2.5f;
         Interactable current;
+        PlayerNet mate;
         PlayerNet net;
         GUIStyle style;
 
@@ -21,11 +22,29 @@ namespace WhoBrokeIt.Interaction
             if (net.carry != null && net.carry.IsCarrying)
             {
                 current = null;
-                if (pressed) net.DropRpc();
+                mate = FindTeammate();
+                if (pressed) { if (mate != null) net.carry.HandOverRpc(); else net.DropRpc(); }
                 return;
             }
             current = FindBest();
             if (current != null && pressed) current.RequestInteract();
+        }
+
+        /// <summary>A teammate close in front of us who has free hands (for handing over what we carry).</summary>
+        PlayerNet FindTeammate()
+        {
+            PlayerNet best = null; var bestScore = float.MinValue;
+            foreach (var other in FindObjectsByType<PlayerNet>(FindObjectsSortMode.None))
+            {
+                if (other == net || other.IsHidden || other.carry == null || other.carry.IsCarrying) continue;
+                var to = other.transform.position - transform.position; to.y = 0f;
+                if (to.magnitude > 2.5f) continue;
+                var facing = Vector3.Dot(transform.forward, to.normalized);
+                if (facing < 0.3f) continue;
+                var score = facing * 2f - to.magnitude;
+                if (score > bestScore) { best = other; bestScore = score; }
+            }
+            return best;
         }
 
         Interactable FindBest()
@@ -48,7 +67,7 @@ namespace WhoBrokeIt.Interaction
         void OnGUI()
         {
             string text = null;
-            if (net.carry != null && net.carry.IsCarrying) text = "[E] Bırak  ·  [Sol tık] Fırlat";
+            if (net.carry != null && net.carry.IsCarrying) text = (mate != null ? "[E] Arkadaşına ver" : "[E] Bırak") + "  ·  [Sol tık] Fırlat";
             else if (current != null) text = "[E] " + current.Prompt;
             if (text == null) return;
             if (style == null)

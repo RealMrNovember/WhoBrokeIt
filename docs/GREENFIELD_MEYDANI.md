@@ -88,3 +88,20 @@ Her aşama sonunda: çalışan build, ekran görüntüsü, test sonucu, bilinen 
 
 ## 11. Doğrulama ölçütleri
 Grey-box: sıkışma/boşluk yok, rota süreleri, 8 spawn, görüş açıları (meydandan 3 zon görünür). Oynanış: bir sözleşme baştan sona 2 oyuncuyla otomatik botla tamamlanır (kalite kapısına eklenir). Ağ: yıkım durumu A=B=sunucu; geç katılım kırık hâli görür; fizik anomalisi sayacı (nesne ≥ 5 m beklenmedik hareket) 0. Performans: Doku'da Windows hedefi ölçülemez → kullanıcı makinesinde F3 FPS/ping gözlemi + sunucu kare süresi.
+
+## 12. Durum ve kanıtlar (2026-11-05)
+Uygulandı: Blender kitinden 44 varlıkla kurulan sahne (`GreenfieldBuilder`), veri odaklı sözleşme sistemi (3 pano, 5 bölge, 5 sözleşme), modüler yıkım/onarım (`Destructible`, `Repairable`, malzeme tablosu, havuzlu yerel enkaz), forklift, elektrik panosu, ağ nesnesi sayısı 87.
+
+Doğrulama (Doku, Linux oyuncusu, Xvfb; `tools/gfshots.sh`, `tools/contract-test.sh`, `tools/mp/run.sh`, `tools/mp/destruct.sh`):
+- Sözleşme senaryosu: teklif, başlat, teslim, puan, süre dolunca başarısız, yeniden teklif, çift başlatma reddi → GEÇTİ (istisna 0).
+- İki istemcili ağ testi: clean / bad / hell → 17/17.
+- Yıkım senaryosu (A fırlatıp kırar, geç katılan C kırık hâli görür, çekiçle onarım): clean / bad / hell → 24/24.
+- Ekran görüntüsü turu: 10 kare (`docs/blender-kit-preview/` ve `shots_gf`).
+
+Bulunan ve düzeltilen hatalar:
+1. **Sahne bozulması ("level0 is corrupted")**: derlemede rastgele (aynı girdiyle bazen çöküyor). Zaman aşımlı, tekrarlı bisect (aynı varyant 6'şar kez) ile bulundu: `RepairPrompt` sınıfı `Repairable.cs` içinde duruyordu. Sahnede kayıtlı her bileşenin kendi adını taşıyan dosyası olmalıdır. `RepairPrompt.cs` ve `RepairMaterial.cs` ayrıldı → tam sahne 0/6 çökme (önceden 8/8). Onarım tetikleyicisi artık alt nesne değil, köke eklenen devre dışı bir `BoxCollider`; istemi `Carryable` (kırıkken onarım ipucu) ya da kökteki `RepairPrompt` verir.
+2. **Başlangıçta kırılan sandıklar**: rastgele yerleşen sandıklar çakışıp 51 m/s'lik itmeyle oyun başlamadan kırılıyordu. Gevşek ızgara yerleşimi + doğuşta 4 sn / onarım sonrası 1,5 sn hasar koruması.
+3. Yıkım testi Workshop'un eski sunucu derlemesini kullanıyordu: `BUILD_DIR`/`TOOLS_DIR` parametreleri eklendi.
+
+Bilinen sınırlar: Windows istemcisi gerçek pencerede test edilmedi; 4 oyuncu sınırı (MaxPlayers=4) değişmedi; karakter GLB üçgen bütçesi >8000; sözleşme testi bazen "ikinci sözleşme başlamadı" ile dalgalanıyor (araştırılacak).
+

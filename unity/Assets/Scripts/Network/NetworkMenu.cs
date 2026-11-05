@@ -62,7 +62,7 @@ namespace WhoBrokeIt.Net
         void Start()
         {
             var args = System.Environment.GetCommandLineArgs();
-            if (System.Array.IndexOf(args, "-server") >= 0 || System.Array.IndexOf(args, "-smoke") >= 0 || System.Array.IndexOf(args, "-shots") >= 0) { enabled = false; return; }
+            if (System.Array.IndexOf(args, "-server") >= 0 || System.Array.IndexOf(args, "-smoke") >= 0 || System.Array.IndexOf(args, "-shots") >= 0 || System.Array.IndexOf(args, "-gfshots") >= 0) { enabled = false; return; }
             Instance = this;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;

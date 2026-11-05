@@ -194,6 +194,13 @@ namespace WhoBrokeIt.Player
             var center = transform.position + transform.forward * 1.0f;
             foreach (var c in Physics.OverlapSphere(center, 2.4f))
             {
+                var rep = c.GetComponentInParent<Props.Repairable>();
+                if (rep != null && rep.NeedsRepair)
+                {
+                    var rt = rep.transform.position - transform.position;
+                    rt.y = 0f;
+                    if (Vector3.Dot(transform.forward, rt.normalized) > 0.1f && rep.ServerRepair(this, Mathf.Clamp(dt, 0f, 0.1f))) return;
+                }
                 var fuse = c.GetComponentInParent<FuseBox>();
                 if (fuse == null) continue;
                 var to = fuse.transform.position - transform.position;

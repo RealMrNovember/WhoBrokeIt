@@ -29,6 +29,8 @@ namespace WhoBrokeIt.Net
             soloHost = a[i + 1] == "host1";
             var mode = a[i + 1];
             if (mode.StartsWith("two")) { gameObject.AddComponent<TwoClientSmoke>(); return; }   // two-client scenario (tools/mp)
+            if (mode == "contract") { gameObject.AddComponent<ContractSmoke>(); return; }   // contract system scenario (tools/contract-test.sh)
+            if (mode.StartsWith("dest")) { gameObject.AddComponent<DestructSmoke>(); return; }   // destruction scenario (tools/mp/destruct.sh)
             if (mode == "online") StartCoroutine(Online(ip));
             else StartCoroutine(mode.StartsWith("host") ? Host() : Client(ip));
         }

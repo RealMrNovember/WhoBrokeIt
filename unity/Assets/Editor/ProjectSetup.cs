@@ -18,13 +18,13 @@ using WhoBrokeIt.Vehicles;
 /// <summary>Batchmode entry points: builds the P1 workshop scene and a Windows player. Run via -executeMethod ProjectSetup.BuildWindows.</summary>
 public static partial class ProjectSetup
 {
-    const string ScenePath = "Assets/Scenes/Workshop.unity";
+    const string ScenePath = "Assets/Scenes/Greenfield.unity";   // the game scene (the old Workshop test yard: BuildWorkshopScene, no longer built by default)
 
     public static void BuildWindows()
     {
         SetupRenderPipeline();
         SetupPlayerSettings();
-        BuildWorkshopScene();
+        BuildGreenfieldScene();
 
         var opts = new BuildPlayerOptions
         {
@@ -43,7 +43,7 @@ public static partial class ProjectSetup
     {
         SetupRenderPipeline();
         SetupPlayerSettings();
-        BuildWorkshopScene();
+        BuildGreenfieldScene();
         BuildLinuxServer();
     }
 
@@ -502,6 +502,13 @@ public static partial class ProjectSetup
         var cable = Prim(PrimitiveType.Cylinder, "ChewedCable", new Vector3(-3.4f, 1.1f, 13.6f), new Vector3(0.08f, 0.5f, 0.08f), dark);
         MakeClue(cable, 2, "Kemirilmiş kablo", "Kablo temiz kesilmemiş: minik dişlerin izi var. Sigortanın atmasının sebebi bu.");
 
+        WireDestructibles();
+        BuildPlayerAndRuntime(scene, ScenePath, crateM, scrap, metal, collection, delivery, new Vector3(0, 1.1f, -14));
+    }
+
+    /// <summary>Player prefab, camera + post processing, case manager, NetworkManager with all runtime components, NetworkObject hashes, scene save. Shared by every scene.</summary>
+    static void BuildPlayerAndRuntime(UnityEngine.SceneManagement.Scene scene, string scenePath, Material crateM, Material scrap, Material metal, CollectionZone collection, DeliveryZone delivery, Vector3 spawnBase)
+    {
         // player prefab (spawned by the NetworkManager for each client)
         // the character model is built at runtime from CharacterCatalog (6 originals; custom prefabs go to Resources/Characters)
         Directory.CreateDirectory("Assets/Resources/WBI");
@@ -515,7 +522,7 @@ public static partial class ProjectSetup
         var visualAnchor = new GameObject("Visual");
         visualAnchor.transform.SetParent(player.transform, false);
         visualAnchor.transform.localPosition = new Vector3(0f, -1f, 0f);   // character models have their feet at the origin
-        player.transform.position = new Vector3(0, 1.1f, -14);
+        player.transform.position = spawnBase;
         var cc = player.AddComponent<CharacterController>();
         cc.height = 2f; cc.radius = 0.5f; cc.center = Vector3.zero;
         player.AddComponent<NetworkObject>();
@@ -538,6 +545,7 @@ public static partial class ProjectSetup
         broom.SetActive(false);
         hammer.SetActive(false);
         var net = player.AddComponent<PlayerNet>();
+        net.spawnBase = spawnBase;
         net.carry = carry;
         net.broomVisual = broom;
         net.hammerVisual = hammer;
@@ -608,7 +616,7 @@ public static partial class ProjectSetup
         nmGo.AddComponent<DedicatedServer>();
 
         // The scene must exist on disk before NetworkObject can derive GlobalObjectIdHash: save, generate hashes, save again.
-        EditorSceneManager.SaveScene(scene, ScenePath);
+        EditorSceneManager.SaveScene(scene, scenePath);
         var validate = typeof(NetworkObject).GetMethod("OnValidate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
         var fixedCount = 0;
         foreach (var no in Object.FindObjectsByType<NetworkObject>(FindObjectsSortMode.None))
@@ -620,7 +628,7 @@ public static partial class ProjectSetup
         }
         Debug.Log("[WBI] NetworkObject hash uretilen: " + fixedCount);
         EditorSceneManager.MarkSceneDirty(scene);
-        EditorSceneManager.SaveScene(scene, ScenePath);
+        EditorSceneManager.SaveScene(scene, scenePath);
         AssetDatabase.SaveAssets();
     }
 }

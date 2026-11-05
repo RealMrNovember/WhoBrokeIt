@@ -194,9 +194,7 @@ namespace WhoBrokeIt.Net
 
             var crate = FindObjectsByType<Carryable>(FindObjectsSortMode.None).First(x => x.name == "Crate_0");
             var cp = crate.transform.position;
-            // route north of the parked skateboard and bicycle (they stand near the spawn area), then to the crate from the east
-            yield return WalkTo(player, cc, new Vector3(11f, 0f, -8.3f));
-            yield return WalkTo(player, cc, new Vector3(cp.x + 4f, 0f, -8.3f));
+            // the scene places Crate_0 in open ground near where the forklift ends up: walk straight to it from the east
             yield return WalkTo(player, cc, new Vector3(cp.x + 1.6f, 0f, cp.z));
             player.transform.rotation = Quaternion.LookRotation(Vector3.left);
             yield return new WaitForSeconds(1f);
