@@ -26,6 +26,7 @@ if [ "$PHASE" = "build" ]; then
   rm -rf rel-src && mkdir rel-src && tar xf rel-src.tar -C rel-src
   cp -r rel-src/unity/Assets/Scripts rel-src/unity/Assets/Editor "$W/Assets/"
   mkdir -p "$W/Assets/Resources" && cp -r rel-src/unity/Assets/Resources/Brand "$W/Assets/Resources/"
+  cp -r rel-src/unity/Assets/Art "$W/Assets/"   # Greenfield kit GLB (Blender)
   cp -r rel-src/unity/ProjectSettings/. "$W/ProjectSettings/"; cp rel-src/unity/Packages/manifest.json "$W/Packages/manifest.json"; cp rel-src/unity/VERSION "$W/VERSION"
   # dogrulama: Scripts + Editor, arsivle birebir ayni olmali (satir sonlari yok sayilir)
   h() { (cd "$1" && find Assets/Scripts Assets/Editor -name '*.cs' | sort | while read -r f; do echo "$(tr -d '\r' < "$f" | sha1sum | cut -c1-12) $f"; done); }
