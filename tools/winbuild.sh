@@ -1,7 +1,6 @@
 #!/bin/bash
 # Who Broke It? - Doku: Windows istemcisini SADECE derler (yayinlamaz, surum atlatmaz, dagitmaz).
 #   winbuild.sh [proje_klasoru]   varsayilan: ~/whobrokeit/project-g
-# Sonuc: ~/whobrokeit/logs/winbuild.txt ; cikti <proje>/WhoBrokeIt/Builds/Windows/ ; zip: <proje>/dist-rc/
 set -u
 cd ~/whobrokeit
 PROJDIR=${1:-$HOME/whobrokeit/project-g}
@@ -19,10 +18,6 @@ grep -a "error CS" logs/build-win.log | sed 's/([0-9,]*)//' | sort -u | head -8 
 fix
 if grep -aq "Build result: Succeeded" logs/build-win.log; then
   V=$(cat $PROJDIR/WhoBrokeIt/VERSION)
-  mkdir -p $PROJDIR/dist-rc
-  python3 -c "import shutil,sys;shutil.make_archive(sys.argv[1],'zip',sys.argv[2])" $PROJDIR/dist-rc/WhoBrokeIt-$V-rc-greenfield $PROJDIR/WhoBrokeIt/Builds/Windows
-  sha256sum $PROJDIR/dist-rc/*.zip | tee -a $RES
-  ls -l $PROJDIR/dist-rc | tee -a $RES
   du -sh $PROJDIR/WhoBrokeIt/Builds/Windows | tee -a $RES
 else
   echo "WINDOWS BUILD BASARISIZ" | tee -a $RES
