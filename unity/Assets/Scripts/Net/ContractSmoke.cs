@@ -200,6 +200,51 @@ namespace WhoBrokeIt.Net
             }
             else L("forklift/palet bulunamadi, palet adimi atlandi");
 
+            // 6) the hand cart: Space loads a crate onto the bed, it rides along, Space again tips it off
+            var cart = FindObjectsByType<WhoBrokeIt.Vehicles.RideableVehicle>(FindObjectsSortMode.None).FirstOrDefault(r => r.kind == WhoBrokeIt.Vehicles.RideKind.Cart);
+            var crate = FindObjectsByType<WhoBrokeIt.Interaction.Carryable>(FindObjectsSortMode.None).Where(c => c.GetComponent<Rigidbody>() != null && !c.GetComponent<Rigidbody>().isKinematic && c.GetComponent<Rigidbody>().mass <= 25f && c.GetComponent<Rigidbody>().mass >= 2f && (c.GetComponent<WhoBrokeIt.Props.Destructible>() == null || !c.GetComponent<WhoBrokeIt.Props.Destructible>().IsBroken)).OrderBy(c => c.GetComponent<Rigidbody>().mass).FirstOrDefault();
+            if (cart != null && crate != null)
+            {
+                Vector3? cspot = null;
+                foreach (var gx in new[] { 0f, -8f, 8f, 16f, -16f, 24f, -24f, 12f, -12f, 4f })
+                    foreach (var gz in new[] { -6f, 0f, 6f, 12f, -12f, 20f, 26f })
+                    {
+                        if (cspot != null) break;
+                        if (!Physics.CheckBox(new Vector3(gx, 0.9f, gz), new Vector3(1.3f, 0.8f, 2.2f), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore) && Physics.Raycast(new Vector3(gx, 4f, gz), Vector3.down, out var cg, 8f, ~0, QueryTriggerInteraction.Ignore) && Mathf.Abs(cg.point.y) < 0.05f) cspot = new Vector3(gx, 0.05f, gz);
+                    }
+                if (cspot == null) L("el arabasi testi: bos zemin yok, atlandi");
+                else
+                {
+                    var crb = crate.GetComponent<Rigidbody>();
+                    cart.ServerTeleport(cspot.Value, 0f);
+                    crb.linearVelocity = Vector3.zero; crb.angularVelocity = Vector3.zero;
+                    crb.position = cspot.Value + new Vector3(1.5f, 0.4f, 0.3f); crate.transform.position = crb.position; Physics.SyncTransforms();
+                    yield return new WaitForSeconds(1.0f);
+                    { var cq = cart.transform.position; cart.ServerTestInput(0.6f, 0f, 0f); yield return new WaitForSeconds(1.0f); cart.ServerTestInput(0f, 0f, 0f); yield return new WaitForSeconds(0.6f); L("el arabasi bos surus: gidilen=" + Vector3.Distance(cq, cart.transform.position).ToString("0.00") + " m ileride=" + (Physics.SphereCast(cq + Vector3.up * 0.5f, 0.4f, Vector3.forward, out var ah, 4f, ~0, QueryTriggerInteraction.Ignore) ? ah.collider.name + "@" + ah.distance.ToString("0.00") : "yok") + " altinda=" + (Physics.Raycast(cq + Vector3.up * 1f, Vector3.down, out var ad, 3f, ~0, QueryTriggerInteraction.Ignore) ? ad.collider.name + "@" + ad.point.y.ToString("0.00") : "yok")); cart.ServerTeleport(cspot.Value, 0f); crb.position = cspot.Value + new Vector3(1.5f, 0.4f, 0.3f); crate.transform.position = crb.position; crb.linearVelocity = Vector3.zero; Physics.SyncTransforms(); yield return new WaitForSeconds(1.0f); }
+                    cart.ServerTestLoad();
+                    yield return new WaitForSeconds(1.5f);
+                    var cartTop = cart.transform.position.y + cart.bedY;
+                    var loadedOk = Vector3.Distance(new Vector3(crb.position.x, 0f, crb.position.z), new Vector3(cart.transform.position.x, 0f, cart.transform.position.z)) < 1.0f && crb.position.y > cartTop - 0.05f;
+                    var p0 = crb.position; var c0p = cart.transform.position;
+                    cart.ServerTestInput(0.6f, 0f, 0f);
+                    yield return new WaitForSeconds(1.0f);
+                    { var crb2 = cart.GetComponent<Rigidbody>(); L("el arabasi surus: hiz=" + cart.Speed.ToString("0.00") + " govdeHiz=" + crb2.linearVelocity.ToString("0.00") + " kinematik=" + crb2.isKinematic + " yercekimi=" + crb2.useGravity + " pos=" + cart.transform.position.ToString("0.00")); }
+                    yield return new WaitForSeconds(1.0f);
+                    cart.ServerTestInput(0f, 0f, 0f);
+                    yield return new WaitForSeconds(0.5f);
+                    var follow = Vector3.Distance(new Vector3(crb.position.x, 0f, crb.position.z), new Vector3(cart.transform.position.x, 0f, cart.transform.position.z));
+                    var travelled = Vector3.Distance(p0, crb.position);
+                    cart.ServerTestLoad();
+                    yield return new WaitForSeconds(1.2f);
+                    var offDist = Vector3.Distance(new Vector3(crb.position.x, 0f, crb.position.z), new Vector3(cart.transform.position.x, 0f, cart.transform.position.z));
+                    L("el arabasi: araba_gidilen=" + Vector3.Distance(c0p, cart.transform.position).ToString("0.00") + " hiz=" + cart.Speed.ToString("0.00") + " yuklendi=" + loadedOk + " yukseklik=" + (crb.position.y - cartTop).ToString("0.00") + " gidilen=" + travelled.ToString("0.00") + " m takip=" + follow.ToString("0.00") + " m indirme=" + offDist.ToString("0.00") + " m");
+                    if (!loadedOk) { Quit(1, "el arabasi kutuyu yuklemedi"); yield break; }
+                    if (travelled < 1.0f || follow > 1.0f) { Quit(1, "el arabasinda kutu arabayla gitmedi (gidilen " + travelled.ToString("0.00") + ", takip " + follow.ToString("0.00") + ")"); yield break; }
+                    if (offDist < 0.9f) { Quit(1, "el arabasi kutuyu indirmedi (" + offDist.ToString("0.00") + " m)"); yield break; }
+                }
+            }
+            else L("el arabasi/kutu bulunamadi, el arabasi adimi atlandi");
+
             yield return new WaitForSeconds(0.5f);
             if (exceptions > 0) { Quit(1, "istisna sayisi " + exceptions); yield break; }
             Quit(0, "sozlesme sistemi: teklif, baslat, teslim, puan, sure, yeniden teklif, cift baslatma reddi (istisna 0)");

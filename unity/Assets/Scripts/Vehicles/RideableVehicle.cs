@@ -71,11 +71,10 @@ namespace WhoBrokeIt.Vehicles
 
         public override void OnNetworkSpawn()
         {
-            // a cart must hold its load: grippy bed; boards and bikes stay slick
-            var slick = kind == RideKind.Cart
-                ? new PhysicsMaterial("CartGrip") { dynamicFriction = 0.9f, staticFriction = 1.1f, frictionCombine = PhysicsMaterialCombine.Maximum, bounciness = 0f }
-                : new PhysicsMaterial("RideSlick") { dynamicFriction = 0.05f, staticFriction = 0.05f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
-            foreach (var c in GetComponentsInChildren<Collider>()) c.sharedMaterial = slick;
+            // a cart must hold its load: grippy bed and rails; the wheels and the foot (what touches the ground) stay slick, otherwise the ground drags the cart to a stop. Boards and bikes stay slick.
+            var slick = new PhysicsMaterial("RideSlick") { dynamicFriction = 0.05f, staticFriction = 0.05f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
+            var grip = new PhysicsMaterial("CartGrip") { dynamicFriction = 0.9f, staticFriction = 1.1f, frictionCombine = PhysicsMaterialCombine.Maximum, bounciness = 0f };
+            foreach (var c in GetComponentsInChildren<Collider>()) c.sharedMaterial = kind == RideKind.Cart && c is BoxCollider ? grip : slick;
             loopSound = Audio.GameAudio.AttachLoop(gameObject, kind == RideKind.Skateboard ? Audio.LoopKind.SkateRoll : Audio.LoopKind.BikeTick);
             lastVisualPos = transform.position;
             if (IsServer)
@@ -166,6 +165,7 @@ namespace WhoBrokeIt.Vehicles
         public void RequestExit() => ExitRpc();
 
         public void ServerTestInput(float t, float s, float j) { testInput = true; throttle = t; steer = s; jump = j; }
+        public void ServerTestLoad() => ServerLoadToggle();
 
         public void ServerTeleport(Vector3 pos, float yaw)
         {
@@ -201,7 +201,7 @@ namespace WhoBrokeIt.Vehicles
         {
             if (!IsServer) return;
             var dt = Time.fixedDeltaTime;
-            var driven = driverId.Value != ulong.MaxValue;
+            var driven = driverId.Value != ulong.MaxValue || testInput;   // testInput: automated tests drive the vehicle from the server without a seated player
             body.useGravity = !driven;
             if (!driven)
             {
