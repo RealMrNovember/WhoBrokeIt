@@ -288,7 +288,7 @@ public static partial class ProjectSetup
     {
         for (var i = 0; i < 6; i++)
         {
-            var a = i * Mathf.PI * 2f / 6f;
+            var a = (i * 60f + 30f) * Mathf.Deg2Rad;   // offset 30 degrees: the planters stand at (+-4, 7)
             BuildNpc("Npc_Plaza" + i, new Vector3(Mathf.Cos(a) * 8f, 0.02f, Mathf.Sin(a) * 8f), Vector3.zero, 5.5f, 11f);
         }
         BuildNpc("Npc_Yard0", new Vector3(26f, 0.02f, 14f), new Vector3(27f, 0f, 14f), 1f, 4f);

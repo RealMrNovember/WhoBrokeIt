@@ -247,11 +247,16 @@ namespace WhoBrokeIt.Net
             // 7) placement audit: NPCs, vendors and stalls must not stand inside walls, props or each other
             {
                 var bad = 0;
-                foreach (var npc0 in FindObjectsByType<WhoBrokeIt.World.Npc>(FindObjectsSortMode.None))
+                var seen = new System.Collections.Generic.HashSet<string>();
+                for (var sample = 0; sample < 60; sample++)       // 60 s of wandering: nobody may walk into anything
                 {
-                    var p = npc0.transform.position;
-                    var names = Physics.OverlapCapsule(p + Vector3.up * 0.45f, p + Vector3.up * 1.5f, 0.3f, ~0, QueryTriggerInteraction.Ignore).Where(h => !h.transform.IsChildOf(npc0.transform) && h.bounds.max.y > 0.3f).Select(h => h.name).Distinct().ToArray();
-                    if (names.Length > 0) { bad++; L("yerlesim: " + npc0.name + " " + p.ToString("0.0") + " engel=" + string.Join(",", names)); }
+                    foreach (var npc0 in FindObjectsByType<WhoBrokeIt.World.Npc>(FindObjectsSortMode.None))
+                    {
+                        var p = npc0.transform.position;
+                        var names = Physics.OverlapCapsule(p + Vector3.up * 0.45f, p + Vector3.up * 1.5f, 0.28f, ~0, QueryTriggerInteraction.Ignore).Where(h => !h.transform.IsChildOf(npc0.transform) && h.bounds.max.y > 0.3f).Select(h => h.name).Distinct().ToArray();
+                        if (names.Length > 0 && seen.Add(npc0.name + ">" + string.Join(",", names))) { bad++; L("yerlesim: " + npc0.name + " " + p.ToString("0.0") + " engel=" + string.Join(",", names) + " (t=" + sample + ")"); }
+                    }
+                    yield return new WaitForSeconds(1f);
                 }
                 foreach (var tr in FindObjectsByType<Transform>(FindObjectsSortMode.None).Where(t => t.name == "prop_stall_a"))
                 {

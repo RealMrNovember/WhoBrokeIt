@@ -43,9 +43,9 @@ namespace WhoBrokeIt.World
 
         bool Free(Vector3 from, Vector3 to)
         {
-            if (Physics.CheckSphere(to + Vector3.up * 0.95f, 0.45f, ~0, QueryTriggerInteraction.Ignore)) return false;
+            if (Physics.CheckCapsule(to + Vector3.up * 0.5f, to + Vector3.up * 1.5f, 0.5f, ~0, QueryTriggerInteraction.Ignore)) return false;   // low things (planters, benches) count too
             var d = to - from; var len = d.magnitude;
-            return len < 0.1f || !Physics.SphereCast(from + Vector3.up * 0.95f, 0.35f, d / len, out _, len, ~0, QueryTriggerInteraction.Ignore);
+            return len < 0.1f || !Physics.CapsuleCast(from + Vector3.up * 0.5f, from + Vector3.up * 1.5f, 0.38f, d / len, out _, len, ~0, QueryTriggerInteraction.Ignore);
         }
 
         void PickTarget()
@@ -72,7 +72,7 @@ namespace WhoBrokeIt.World
             var dir = to.normalized;
             var step = dir * speed * Time.deltaTime;
             // something stepped in the way (a player, a prop): stand still a moment and choose again
-            if (Physics.SphereCast(transform.position + Vector3.up * 0.95f, 0.3f, dir, out var hit, 0.6f, ~0, QueryTriggerInteraction.Ignore) && hit.collider.transform != transform && !hit.collider.transform.IsChildOf(transform))
+            if (Physics.CapsuleCast(transform.position + Vector3.up * 0.5f, transform.position + Vector3.up * 1.5f, 0.33f, dir, out var hit, 0.6f, ~0, QueryTriggerInteraction.Ignore) && hit.collider.transform != transform && !hit.collider.transform.IsChildOf(transform))
             { hasTarget = false; waitUntil = Time.time + Random.Range(0.6f, 1.6f); return; }
             transform.position += step;
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 1f - Mathf.Exp(-8f * Time.deltaTime));
