@@ -20,7 +20,8 @@ fix
 if grep -aq "Build result: Succeeded" logs/build-win.log; then
   V=$(cat $PROJDIR/WhoBrokeIt/VERSION)
   mkdir -p $PROJDIR/dist-rc
-  (cd $PROJDIR/WhoBrokeIt/Builds/Windows && zip -qr $PROJDIR/dist-rc/WhoBrokeIt-$V-rc-greenfield.zip .)
+  python3 -c "import shutil,sys;shutil.make_archive(sys.argv[1],'zip',sys.argv[2])" $PROJDIR/dist-rc/WhoBrokeIt-$V-rc-greenfield $PROJDIR/WhoBrokeIt/Builds/Windows
+  sha256sum $PROJDIR/dist-rc/*.zip | tee -a $RES
   ls -l $PROJDIR/dist-rc | tee -a $RES
   du -sh $PROJDIR/WhoBrokeIt/Builds/Windows | tee -a $RES
 else
