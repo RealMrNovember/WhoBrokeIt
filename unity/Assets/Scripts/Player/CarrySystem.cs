@@ -111,7 +111,36 @@ namespace WhoBrokeIt.Player
             if (!best.carry.ServerPickup(rb, best)) ServerPickup(rb, me);     // refused (too heavy...): the giver keeps it
         }
 
-        public override void OnNetworkDespawn() { if (IsServer) ServerDrop(); }
+        public override void OnNetworkSpawn()
+        {
+            heldId.OnValueChanged += OnHeldChanged;
+            if (heldId.Value != ulong.MaxValue) SetIgnoreEverywhere(heldId.Value, true);
+        }
+
+        public override void OnNetworkDespawn()
+        {
+            heldId.OnValueChanged -= OnHeldChanged;
+            if (IsServer) ServerDrop();
+        }
+
+        // The server ignores collisions between the held box and the bodies (see ServerPickup), but every OTHER machine runs its own character
+        // controller: it must ignore the replicated box too, or the carrier keeps bumping into what is in their own hands.
+        void OnHeldChanged(ulong previous, ulong current)
+        {
+            SetIgnoreEverywhere(previous, false);
+            SetIgnoreEverywhere(current, true);
+        }
+
+        static void SetIgnoreEverywhere(ulong objectId, bool ignore)
+        {
+            if (objectId == ulong.MaxValue || NetworkManager.Singleton == null) return;
+            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(objectId, out var no) || no == null) return;
+            var cols = no.GetComponentsInChildren<Collider>();
+            foreach (var p in FindObjectsByType<PlayerNet>(FindObjectsSortMode.None))
+                foreach (var b in p.BodyColliders())
+                    foreach (var h in cols)
+                        if (h != null && b != null) Physics.IgnoreCollision(h, b, ignore);
+        }
 
         void FixedUpdate()
         {

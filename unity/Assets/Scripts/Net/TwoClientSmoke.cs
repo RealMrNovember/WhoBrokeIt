@@ -212,8 +212,50 @@ namespace WhoBrokeIt.Net
             while (player.carry.IsCarrying && t < 8f) { t += Time.deltaTime; yield return null; }
             if (player.carry.IsCarrying) { Fail("sandik birakilamadi"); yield break; }
             yield return new WaitForSeconds(3f);
+            foreach (var rv in FindObjectsByType<RideableVehicle>(FindObjectsSortMode.None).OrderBy(r => r.kind))
+                yield return RideTest(player, cc, rv);
             L("A DONE exc=" + exceptions + (exceptions > 0 ? " " + excText : ""));
             Quit(exceptions == 0 ? 0 : 1);
+        }
+
+        /// <summary>Rides a skateboard/bicycle with scripted input and logs how it feels: delay until the vehicle moves, how far the shown (predicted) pose is from the replicated one, and the largest single-frame jump.</summary>
+        IEnumerator RideTest(PlayerNet player, CharacterController cc, RideableVehicle rv)
+        {
+            var nm = NetworkManager.Singleton;
+            Place(cc, player, rv.transform.position + rv.transform.right * -1.5f + Vector3.up * 0.3f);
+            yield return new WaitForSeconds(1f);
+            rv.RequestInteract();
+            var t = 0f;
+            while (rv.driverId.Value != nm.LocalClientId && t < 8f) { t += Time.deltaTime; yield return null; }
+            if (rv.driverId.Value != nm.LocalClientId) { L("RIDE " + rv.kind + " FAIL binilemedi"); yield break; }
+            yield return new WaitForSeconds(1.3f);            // hop (0.5 s) + prediction start
+            var start = rv.VisualPosition;
+            float react = -1f, maxErr = 0f, maxJump = 0f, maxSpeed = 0f, sumErr = 0f; int frames = 0;
+            var last = start;
+            var phases = new[] { new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(1f, -1f), new Vector2(0f, 0f) };
+            var clock = 0f;
+            foreach (var ph in phases)
+            {
+                rv.TestDrive(ph.x, ph.y);
+                var pt = 0f;
+                while (pt < 2.5f)
+                {
+                    var dt = Time.deltaTime; pt += dt; clock += dt;
+                    var v = rv.VisualPosition;
+                    if (react < 0f && Vector3.Distance(v, start) > 0.15f) react = clock;
+                    var err = Vector2.Distance(new Vector2(v.x, v.z), new Vector2(rv.transform.position.x, rv.transform.position.z));
+                    maxErr = Mathf.Max(maxErr, err); sumErr += err; frames++;
+                    maxJump = Mathf.Max(maxJump, Vector3.Distance(v, last)); last = v;
+                    maxSpeed = Mathf.Max(maxSpeed, rv.Speed);
+                    yield return null;
+                }
+            }
+            L("RIDE " + rv.kind + " react=" + react.ToString("0.00") + "s maxPredVsServer=" + maxErr.ToString("0.00") + "m avgErr=" + (sumErr / Mathf.Max(1, frames)).ToString("0.00") + "m maxFrameJump=" + maxJump.ToString("0.00") + "m srvSpeed=" + maxSpeed.ToString("0.0") + " frames=" + frames);
+            rv.TestDrive(0f, 0f);
+            rv.RequestExit();
+            t = 0f;
+            while (rv.driverId.Value != ulong.MaxValue && t < 8f) { t += Time.deltaTime; yield return null; }
+            yield return new WaitForSeconds(1f);
         }
 
         /// <summary>Walks the real character controller (like a player holding W) to a point on the ground; gives up after the timeout.</summary>

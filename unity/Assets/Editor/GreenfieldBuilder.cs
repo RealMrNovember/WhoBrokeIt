@@ -351,7 +351,7 @@ public static partial class ProjectSetup
         for (var i = 0; i < 6; i++) KitProp("prop_sack_a", new Vector3(30f + (i % 3) * 0.7f, 0.05f, 4f + (i / 3) * 0.9f), i * 25f, 2f);
         for (var i = 0; i < 3; i++) KitProp("prop_planks_a", new Vector3(22f + i * 1.2f, 0.05f, 12f), 90f, 3f);
         KitProp("prop_barrow_a", new Vector3(28f, 0.05f, 10f), 15f, 9f, false);
-        KitProp("prop_trolley_a", new Vector3(21f, 0.05f, 4f), 60f, 12f, false);
+        BuildHandCart(new Vector3(21f, 0.02f, 4f), 60f);   // pushable hand cart (RideKind.Cart); loads light props with Space
         for (var i = 0; i < 9; i++) Breakable(Kit("fnc_panel_a", new Vector3(19.5f + i * 2.5f, 0f, 20f), 0f), "fnc_panel_a", "wood", 0f, false);
 
         // ---- hill and ramp (south-east) ----
@@ -401,6 +401,8 @@ public static partial class ProjectSetup
         BuildForklift(new Vector3(-8f, 0.02f, 21f));
         BuildSkateboard(new Vector3(5f, 0.02f, -14f), 20f);
         BuildBicycle(new Vector3(9f, 0.02f, -14.5f), -15f);
+        BuildNpcs();
+        BuildVendors();
 
         // ---- case objects (first contract: clear the debris, repair the fuse box, deliver the cabinet) ----
         var zoneM = Mat("Zone", new Color(0.2f, 0.7f, 0.9f));

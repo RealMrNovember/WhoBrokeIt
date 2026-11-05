@@ -9,7 +9,7 @@ using WhoBrokeIt.Props;
 
 namespace WhoBrokeIt.Vehicles
 {
-    public enum RideKind : byte { Skateboard = 1, Bicycle = 2 }
+    public enum RideKind : byte { Skateboard = 1, Bicycle = 2, Cart = 3 }
 
     /// <summary>
     /// Skateboard and bicycle. Same arcade model as the forklift: the server controls heading and speed, the body follows the ground, wheels roll,
@@ -71,7 +71,10 @@ namespace WhoBrokeIt.Vehicles
 
         public override void OnNetworkSpawn()
         {
-            var slick = new PhysicsMaterial("RideSlick") { dynamicFriction = 0.05f, staticFriction = 0.05f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
+            // a cart must hold its load: grippy bed; boards and bikes stay slick
+            var slick = kind == RideKind.Cart
+                ? new PhysicsMaterial("CartGrip") { dynamicFriction = 0.9f, staticFriction = 1.1f, frictionCombine = PhysicsMaterialCombine.Maximum, bounciness = 0f }
+                : new PhysicsMaterial("RideSlick") { dynamicFriction = 0.05f, staticFriction = 0.05f, frictionCombine = PhysicsMaterialCombine.Minimum, bounciness = 0f };
             foreach (var c in GetComponentsInChildren<Collider>()) c.sharedMaterial = slick;
             loopSound = Audio.GameAudio.AttachLoop(gameObject, kind == RideKind.Skateboard ? Audio.LoopKind.SkateRoll : Audio.LoopKind.BikeTick);
             lastVisualPos = transform.position;
@@ -101,7 +104,55 @@ namespace WhoBrokeIt.Vehicles
             if (rpcParams.Receive.SenderClientId != driverId.Value || testInput) return;
             throttle = Mathf.Clamp(t, -1f, 1f);
             steer = Mathf.Clamp(s, -1f, 1f);
+            if (kind == RideKind.Cart && j > 0.5f && jump <= 0.5f) ServerLoadToggle();   // Space: load what is close / tip the load off
             jump = j;
+        }
+
+        // ---------- cart: load and unload ----------
+        public Vector3 bedSize = new Vector3(0.9f, 0.08f, 1.3f);   // bed box (local), centre height = bedY
+        public float bedY = 0.4f, maxLoadKg = 70f;
+
+        Vector3 BedCentre => transform.TransformPoint(new Vector3(0f, bedY + 0.05f, 0.15f));
+
+        /// <summary>Server: Space on the cart. Items lying on the bed are tipped off to the side; otherwise the closest light props are lifted onto the bed.</summary>
+        void ServerLoadToggle()
+        {
+            var onBed = new System.Collections.Generic.List<Rigidbody>();
+            foreach (var c in Physics.OverlapBox(BedCentre + Vector3.up * 0.3f, new Vector3(bedSize.x * 0.5f, 0.4f, bedSize.z * 0.5f), transform.rotation, ~0, QueryTriggerInteraction.Ignore))
+            {
+                var rb = c.attachedRigidbody;
+                if (rb == null || rb == body || rb.isKinematic || onBed.Contains(rb) || rb.GetComponent<Carryable>() == null) continue;
+                onBed.Add(rb);
+            }
+            if (onBed.Count > 0)
+            {
+                foreach (var rb in onBed) rb.linearVelocity = transform.right * 2.4f + Vector3.up * 2.6f;
+                return;
+            }
+            var near = new System.Collections.Generic.List<Rigidbody>();
+            foreach (var c in Physics.OverlapSphere(transform.TransformPoint(0f, 0.5f, 0.3f), 2.8f, ~0, QueryTriggerInteraction.Ignore))
+            {
+                var rb = c.attachedRigidbody;
+                if (rb == null || rb == body || rb.isKinematic || !rb.useGravity || near.Contains(rb) || rb.GetComponent<Carryable>() == null) continue;
+                near.Add(rb);
+            }
+            near.Sort((a, b) => (a.position - transform.position).sqrMagnitude.CompareTo((b.position - transform.position).sqrMagnitude));
+            var load = 0f; var n = 0;
+            foreach (var rb in near)
+            {
+                if (n >= 3 || load + rb.mass > maxLoadKg) continue;
+                var half = 0.3f;
+                var cs = rb.GetComponentsInChildren<Collider>();
+                if (cs.Length > 0) { var b = cs[0].bounds; foreach (var c in cs) b.Encapsulate(c.bounds); half = b.extents.y; }
+                var slotZ = new[] { 0.15f, -0.2f, 0.5f }[n];
+                var pos = transform.TransformPoint(new Vector3(0f, bedY + 0.05f + half + 0.03f + n * 0.01f, slotZ));
+                rb.linearVelocity = Vector3.zero; rb.angularVelocity = Vector3.zero;
+                rb.position = pos; rb.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+                rb.transform.SetPositionAndRotation(pos, rb.rotation);
+                load += rb.mass; n++;
+            }
+            if (n > 0) Physics.SyncTransforms();
+            else CaseManager.Toast("Yanında yüklenecek hafif bir şey yok (en çok " + maxLoadKg.ToString("0") + " kg).");
         }
 
         [Rpc(SendTo.Server, RequireOwnership = false)]
@@ -285,7 +336,7 @@ namespace WhoBrokeIt.Vehicles
             p.GetComponent<CharacterController>().enabled = false;
             if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.SetTarget(V, new Vector3(0f, 1.3f, 0f), 5f);
             hopRoutine = StartCoroutine(Hop(p));
-            CaseManager.Toast(label + ": W/S hız · A/D yön" + (kind == RideKind.Skateboard ? " · Boşluk zıpla" : "") + " · E in");
+            CaseManager.Toast(kind == RideKind.Cart ? label + ": W/S it-çek · A/D yön · Boşluk: yanındaki hafif şeyleri yükle / indir · E bırak" : label + ": W/S hız · A/D yön" + (kind == RideKind.Skateboard ? " · Boşluk zıpla" : "") + " · E in");
         }
 
         IEnumerator Hop(PlayerNet p)

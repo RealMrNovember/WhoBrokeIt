@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using WhoBrokeIt.Props;
 using WhoBrokeIt.Vehicles;
+using WhoBrokeIt.World;
 
 /// <summary>Builds the skateboard and the bicycle (original models made of primitives; both face +Z).</summary>
 public static partial class ProjectSetup
@@ -195,5 +196,132 @@ public static partial class ProjectSetup
         foreach (Transform c in hull.transform) if (c != v) kids.Add(c);
         foreach (var c in kids) c.SetParent(v, true);
         return v;
+    }
+}
+
+public static partial class ProjectSetup
+{
+    /// <summary>Hand cart: a flat bed with low rails, two wheels and a handle. The player holds the handle from behind and pushes (RideKind.Cart); Space loads the light props next to it.</summary>
+    static void BuildHandCart(Vector3 position, float yaw)
+    {
+        var bedMat = MatPro("CartBed", new Color(0.92f, 0.52f, 0.12f), 0.45f, 0.1f);
+        var steel = MatPro("FkSteel", new Color(0.72f, 0.74f, 0.78f), 0.65f, 0.85f);
+        var tire = MatPro("FkTire", new Color(0.045f, 0.045f, 0.05f), 0.12f, 0f);
+        var rim = MatPro("BikeRim", new Color(0.82f, 0.84f, 0.88f), 0.8f, 0.9f);
+        var grip = MatPro("SkateGrip", new Color(0.07f, 0.07f, 0.08f), 0.1f, 0f);
+
+        var hull = new GameObject("HandCart");
+        hull.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
+        var ht = hull.transform;
+
+        // bed + rails (colliders: one flat box and three low rails; the rear stays open for the handle)
+        var bed = hull.AddComponent<BoxCollider>();
+        bed.center = new Vector3(0f, 0.36f, 0.15f); bed.size = new Vector3(0.9f, 0.08f, 1.3f);
+        Prim(PrimitiveType.Cube, "Bed", new Vector3(0f, 0.36f, 0.15f), new Vector3(0.9f, 0.06f, 1.3f), bedMat, ht, false);
+        foreach (var sx in new[] { -1f, 1f })
+        {
+            Prim(PrimitiveType.Cube, "Rail", new Vector3(0.435f * sx, 0.45f, 0.15f), new Vector3(0.03f, 0.14f, 1.3f), bedMat, ht, false);
+            var rc = hull.AddComponent<BoxCollider>(); rc.center = new Vector3(0.435f * sx, 0.47f, 0.15f); rc.size = new Vector3(0.04f, 0.14f, 1.3f);
+        }
+        Prim(PrimitiveType.Cube, "FrontRail", new Vector3(0f, 0.45f, 0.785f), new Vector3(0.9f, 0.14f, 0.03f), bedMat, ht, false);
+        var fc = hull.AddComponent<BoxCollider>(); fc.center = new Vector3(0f, 0.47f, 0.785f); fc.size = new Vector3(0.9f, 0.14f, 0.04f);
+
+        // handle
+        foreach (var sx in new[] { -1f, 1f })
+            Tube("HandleBar", new Vector3(0.36f * sx, 0.40f, -0.45f), new Vector3(0.34f * sx, 0.98f, -0.95f), 0.022f, steel, ht);
+        Tube("HandleGrip", new Vector3(-0.38f, 0.98f, -0.95f), new Vector3(0.38f, 0.98f, -0.95f), 0.03f, grip, ht);
+        Prim(PrimitiveType.Cube, "FrontFoot", new Vector3(0f, 0.2f, 0.62f), new Vector3(0.06f, 0.34f, 0.06f), steel, ht, false);
+
+        // two big wheels at the rear third + a caster foot in front (sphere colliders so it rolls over edges)
+        var spinList = new System.Collections.Generic.List<Transform>();
+        var radii = new System.Collections.Generic.List<float>();
+        var pts = new System.Collections.Generic.List<Vector3>();
+        var idx = 0;
+        foreach (var sx in new[] { -1f, 1f })
+        {
+            var pos = new Vector3(0.50f * sx, 0.2f, -0.12f);
+            WheelAssembly(ht, "Wheel" + idx++, pos, 0.2f, 0.07f, tire, rim, steel, out _, out var spin, 0.6f, false, false);
+            spinList.Add(spin); radii.Add(0.2f);
+            pts.Add(new Vector3(pos.x, 0f, pos.z));
+            var sc = hull.AddComponent<SphereCollider>(); sc.center = pos; sc.radius = 0.2f;
+        }
+        pts.Add(new Vector3(0f, 0f, 0.62f));
+        var foot = hull.AddComponent<SphereCollider>(); foot.center = new Vector3(0f, 0.05f, 0.62f); foot.radius = 0.05f;
+
+        var body = hull.AddComponent<Rigidbody>();
+        body.mass = 18f;
+        body.centerOfMass = new Vector3(0f, 0.25f, 0.1f);
+        Net(hull, true);
+        hull.AddComponent<Resettable>();
+        var rv = hull.AddComponent<RideableVehicle>();
+        rv.kind = RideKind.Cart;
+        rv.label = "El Arabası";
+        rv.prompt = "El arabasını tut";
+        rv.maxSpeed = 3.6f; rv.accel = 3.2f; rv.brake = 9f; rv.steerMax = 30f; rv.wheelBase = 1.1f;
+        rv.spinPivots = spinList.ToArray();
+        rv.wheelRadius = radii.ToArray();
+        rv.wheelPoints = pts.ToArray();
+        rv.mountLocal = new Vector3(0f, 0f, -1.05f);
+        rv.sitting = false;
+        rv.bedY = 0.4f; rv.maxLoadKg = 70f;
+        rv.visual = GatherVisual(hull);
+    }
+}
+
+public static partial class ProjectSetup
+{
+    /// <summary>An ambient pedestrian (see Npc): a kinematic capsule on the ground, dressed as a character by every client.</summary>
+    static void BuildNpc(string name, Vector3 position, Vector3 areaCenter, float rMin, float rMax)
+    {
+        var go = new GameObject(name);
+        go.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+        var cap = go.AddComponent<CapsuleCollider>();
+        cap.center = new Vector3(0f, 0.9f, 0f); cap.height = 1.8f; cap.radius = 0.32f;
+        var rb = go.AddComponent<Rigidbody>();
+        rb.isKinematic = true; rb.useGravity = false;
+        Net(go, false);
+        var npc = go.AddComponent<Npc>();
+        npc.center = areaCenter; npc.radiusMin = rMin; npc.radiusMax = rMax;
+    }
+
+    static void BuildNpcs()
+    {
+        for (var i = 0; i < 6; i++)
+        {
+            var a = i * Mathf.PI * 2f / 6f;
+            BuildNpc("Npc_Plaza" + i, new Vector3(Mathf.Cos(a) * 8f, 0.02f, Mathf.Sin(a) * 8f), Vector3.zero, 5.5f, 11f);
+        }
+        BuildNpc("Npc_Yard0", new Vector3(26f, 0.02f, 14f), new Vector3(27f, 0f, 14f), 1f, 4f);
+        BuildNpc("Npc_Yard1", new Vector3(31f, 0.02f, 15f), new Vector3(27f, 0f, 14f), 1f, 4f);
+        BuildNpc("Npc_Dock0", new Vector3(-8f, 0.02f, 13f), new Vector3(-8f, 0f, 14f), 1f, 4f);
+    }
+}
+
+public static partial class ProjectSetup
+{
+    /// <summary>A vendor behind a stall on the pavement in front of a shop: stationary pedestrian with something to say.</summary>
+    static void BuildVendor(string name, string title, string[] lines, Vector3 stallPos, float yaw)
+    {
+        var stall = Kit("prop_stall_a", stallPos, yaw);
+        var back = Quaternion.Euler(0f, yaw, 0f) * new Vector3(0f, 0f, -1.1f);
+        var go = new GameObject(name);
+        go.transform.SetPositionAndRotation(new Vector3(stallPos.x + back.x, 0.02f, stallPos.z + back.z), Quaternion.Euler(0f, yaw, 0f));
+        var cap = go.AddComponent<CapsuleCollider>();
+        cap.center = new Vector3(0f, 0.9f, 0f); cap.height = 1.8f; cap.radius = 0.32f;
+        var rb = go.AddComponent<Rigidbody>();
+        rb.isKinematic = true; rb.useGravity = false;
+        Net(go, false);
+        var npc = go.AddComponent<Npc>();
+        npc.stationary = true;
+        var v = go.AddComponent<NpcVendor>();
+        v.title = title; v.lines = lines;
+    }
+
+    static void BuildVendors()
+    {
+        BuildVendor("Vendor_Fruit", "Manav", new[] { "Taze elma var, bugün sabah geldi!", "Kasaları taşıyan olursa çay benden.", "Meydandaki iş ilanlarına baktın mı?" }, new Vector3(-24f, 0f, -27.9f), 0f);
+        BuildVendor("Vendor_Tea", "Çaycı", new[] { "Sıcak çay, sıcak simit!", "Forklifti dikkatli kullan, geçen hafta bir kasa uçtu.", "Atölyede iş çok, uğra bir." }, new Vector3(-8f, 0f, -27.9f), 0f);
+        BuildVendor("Vendor_Tools", "Aletçi", new[] { "Çekiç, tornavida, her şey burada.", "Kırık bir şey mi var? Çekiçle onarırsın, [3] tuşu.", "Sağlam alet iş bitirir." }, new Vector3(8f, 0f, -27.9f), 0f);
+        BuildVendor("Vendor_Flowers", "Çiçekçi", new[] { "Meydana çiçek lazım, değil mi?", "Bu sokak sabah en güzel.", "Bisiklet kiralayan var mı, soran çok." }, new Vector3(24f, 0f, -27.9f), 0f);
     }
 }

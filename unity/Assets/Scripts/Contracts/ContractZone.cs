@@ -38,7 +38,7 @@ namespace WhoBrokeIt.Contracts
             }
         }
 
-        BoxCollider Area { get { if (area == null) area = GetComponent<BoxCollider>(); return area; } }
+        public BoxCollider Area { get { if (area == null) area = GetComponent<BoxCollider>(); return area; } }
 
         int Scan(string itemTag, bool spend)
         {

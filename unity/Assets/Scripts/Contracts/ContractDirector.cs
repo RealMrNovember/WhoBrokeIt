@@ -161,6 +161,7 @@ namespace WhoBrokeIt.Contracts
             UiKit.Fill(new Rect(bar.x, bar.y, Mathf.Max(16f, bar.width * f), bar.height), ok ? UiKit.Mint : UiKit.Sun, 8f);
             UiKit.Text(new Rect(bar.x, bar.y - 4, bar.width, 24), progress.Value + " / " + d.goal + "  →  " + d.zoneName, 16, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold, false);
             GUI.matrix = prevMatrix;
+            if (state.Value == Active && Event.current.type == EventType.Repaint) ContractMarkers.Draw(d, zones, progress.Value);
         }
     }
 }

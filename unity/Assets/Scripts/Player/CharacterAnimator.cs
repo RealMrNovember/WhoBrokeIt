@@ -60,6 +60,11 @@ namespace WhoBrokeIt.Player
         /// <summary>Stance for riding: kind 1 = skateboard (side-on, knees soft, pushes off the ground now and then), 2 = bicycle (sitting, legs follow the pedals).</summary>
         void RidePose(int kind, ref float tLL, ref float tLR, ref float tAL, ref float tAR, ref float tAZL, ref float tAZR, ref float tBob, ref float tLean, ref float tTwist, ref float tRoll, ref float tSink, float dt, float debugPush = -1f)
         {
+            if (kind == 3)                                                       // hand cart: walking behind it, both hands on the handle
+            {
+                tAL = -58f; tAR = -58f; tAZL = 6f; tAZR = -6f; tLean = 7f;
+                return;
+            }
             tRoll -= Mathf.Clamp(yawRateSm * 0.10f, -14f, 14f);               // lean into the turn
             if (kind == 1)
             {
