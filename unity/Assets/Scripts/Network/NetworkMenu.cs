@@ -172,6 +172,9 @@ namespace WhoBrokeIt.Net
             {
                 case "characters": Go(Page.Characters); break;
                 case "characters2": Go(Page.Characters); ChoosePreview(charIndex + 2); break;
+                case "characters3": Go(Page.Characters); ChoosePreview(charIndex + 1); break;
+                case "characters4": Go(Page.Characters); ChoosePreview(charIndex + 3); break;
+                case "characters5": Go(Page.Characters); ChoosePreview(charIndex + 4); break;
                 case "settings": Go(Page.Settings); break;
                 case "profile": Go(Page.Profile); break;
                 case "friends": Go(Page.Friends); break;

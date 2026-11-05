@@ -18,7 +18,7 @@ namespace WhoBrokeIt.Net
         {
             Directory.CreateDirectory(dir);
             yield return new WaitForSeconds(4f);
-            foreach (var page in new[] { "main", "characters", "characters2", "settings", "profile", "friends", "exit" })
+            foreach (var page in new[] { "main", "characters", "characters2", "characters3", "characters4", "characters5", "settings", "profile", "friends", "exit" })
             {
                 if (NetworkMenu.Instance != null) NetworkMenu.Instance.DebugGo(page);
                 yield return new WaitForSeconds(page.StartsWith("characters") ? 2.0f : 1.2f);
