@@ -27,7 +27,9 @@ namespace WhoBrokeIt.Vehicles
             speed = Mathf.MoveTowards(speed, target, (Mathf.Abs(target) > 0.01f ? accel : brake) * dt);
             steer = Mathf.MoveTowards(steer, steerInput * steerMax, 150f * dt);
             var turnSpeed = minTurnSpeed > 0f ? Mathf.Max(Mathf.Abs(speed), minTurnSpeed) * (speed < 0f ? -1f : 1f) : speed;
-            heading += Mathf.Rad2Deg * turnSpeed * Mathf.Tan(steer * Mathf.Deg2Rad) / wheelBase * dt;
+            var dYaw = Mathf.Rad2Deg * turnSpeed * Mathf.Tan(steer * Mathf.Deg2Rad) / wheelBase;
+            if (minTurnSpeed > 0f) { var lim = Mathf.Lerp(150f, 65f, Mathf.Clamp01(Mathf.Abs(speed) / Mathf.Max(1f, maxSpeed))); dYaw = Mathf.Clamp(dYaw, -lim, lim); }   // boards and bikes: no spinning at speed
+            heading += dYaw * dt;
             pos += Quaternion.Euler(0f, heading, 0f) * Vector3.forward * (speed * dt);
         }
 

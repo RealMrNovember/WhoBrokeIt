@@ -21,7 +21,7 @@ namespace WhoBrokeIt.Vehicles
         public RideKind kind = RideKind.Skateboard;
         public string label = "Kaykay";
         public float maxSpeed = 8f;
-        public float accel = 6f;
+        public float accel = 9f;
         public float brake = 9f;
         public float steerMax = 30f;
         public float wheelBase = 0.55f;
@@ -224,7 +224,9 @@ namespace WhoBrokeIt.Vehicles
             if (Mathf.Abs(steerAngle.Value - steerNow) > 0.2f) steerAngle.Value = steerNow;
             // a board/bike can turn on the spot a little: yaw rate has a floor so slow steering still works
             var turnSpeed = Mathf.Max(Mathf.Abs(driveSpeed), 1.2f) * Mathf.Sign(driveSpeed == 0f ? 1f : driveSpeed);
-            heading += Mathf.Rad2Deg * turnSpeed * Mathf.Tan(steerNow * Mathf.Deg2Rad) / wheelBase * dt;
+            var dYaw = Mathf.Rad2Deg * turnSpeed * Mathf.Tan(steerNow * Mathf.Deg2Rad) / wheelBase;
+            var yawLim = Mathf.Lerp(150f, 65f, Mathf.Clamp01(Mathf.Abs(driveSpeed) / Mathf.Max(1f, maxSpeed)));   // same limit as VehiclePrediction: no spinning at speed
+            heading += Mathf.Clamp(dYaw, -yawLim, yawLim) * dt;
 
             var rot = Quaternion.FromToRotation(Vector3.up, groundNormal) * Quaternion.Euler(0f, heading, 0f);
             body.MoveRotation(rot);
