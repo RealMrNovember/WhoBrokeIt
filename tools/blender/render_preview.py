@@ -9,7 +9,7 @@ from mathutils import Vector
 
 argv = sys.argv[sys.argv.index("--") + 1:]
 out = argv[0]
-files, W, H, S, ROW = [], 1600, 900, 24, 20.0
+files, W, H, S, ROW, SINGLE = [], 1600, 900, 24, 20.0, False
 i = 1
 while i < len(argv):
     if argv[i] == "--width":
@@ -20,6 +20,8 @@ while i < len(argv):
         S = int(argv[i + 1]); i += 2
     elif argv[i] == "--row":
         ROW = float(argv[i + 1]); i += 2
+    elif argv[i] == "--single":
+        SINGLE = True; i += 1
     else:
         files.append(argv[i]); i += 1
 
@@ -49,6 +51,7 @@ for f in sorted(files):
                 mn[k] = min(mn[k], w[k])
                 mx[k] = max(mx[k], w[k])
     wd, dp = mx.x - mn.x, mx.y - mn.y
+    last_dims = (wd, dp, mx.z - mn.z)
     if x + wd > ROW and x > 0:
         x = 0.0
         y -= rowh + GAP * 2
@@ -95,6 +98,11 @@ bpy.context.collection.objects.link(co)
 ctr = Vector((maxx / 2, y / 2 - 0.5, 0.9))
 span = max(maxx, abs(y) * 1.6 + 4)
 co.location = ctr + Vector((0, -span * 0.95, span * 0.55))
+if SINGLE:
+    wd1, dp1, h1 = last_dims
+    ctr = Vector((wd1 / 2, 0.0, h1 * 0.45))
+    dist = math.sqrt(wd1 ** 2 + dp1 ** 2 + h1 ** 2) * 1.05
+    co.location = ctr + Vector((-0.55 * dist, -0.95 * dist, 0.42 * dist))
 co.rotation_euler = (ctr - co.location).to_track_quat("-Z", "Y").to_euler()
 sc.camera = co
 sc.render.engine = "CYCLES"

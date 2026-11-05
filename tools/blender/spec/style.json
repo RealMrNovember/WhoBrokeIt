@@ -1,52 +1,321 @@
 {
   "_note": "Who Broke It? gorsel kimlik: TEK dogruluk kaynagi. Blender hatti, dogrulayicilar ve docs/SANAT_YONU.md bundan beslenir. Degisiklik = bu dosya + belge birlikte.",
-  "units": { "scale": "1 birim = 1 m", "blenderUp": "Z", "exportUp": "Y (glTF)", "forward": "+Z (Unity, karakter bakisi)", "originProps": "taban merkezi", "snapGrid": 0.5 },
+  "units": {
+    "scale": "1 birim = 1 m",
+    "blenderUp": "Z",
+    "exportUp": "Y (glTF)",
+    "forward": "+Z (Unity, karakter bakisi)",
+    "originProps": "taban merkezi",
+    "snapGrid": 0.5
+  },
   "palette": {
-    "brand": { "sun": "#FFC933", "sunDeep": "#F28F1A", "sky": "#52B8FA", "coral": "#FF6B61", "mint": "#5CDB9E", "cream": "#FFF5DB", "ink": "#1A1F38", "slate": "#383F70" },
-    "materials": {
-      "M_wood_warm":      { "color": "#C98B4F", "roughness": 0.75, "metallic": 0.0 },
-      "M_wood_dark":      { "color": "#7A4A2B", "roughness": 0.80, "metallic": 0.0 },
-      "M_wood_pale":      { "color": "#E3C593", "roughness": 0.80, "metallic": 0.0 },
-      "M_metal_steel":    { "color": "#8E9BAA", "roughness": 0.45, "metallic": 0.8 },
-      "M_metal_dark":     { "color": "#4A5260", "roughness": 0.50, "metallic": 0.7 },
-      "M_paint_red":      { "color": "#D9463E", "roughness": 0.50, "metallic": 0.1 },
-      "M_paint_yellow":   { "color": "#F2B91F", "roughness": 0.50, "metallic": 0.1 },
-      "M_paint_blue":     { "color": "#3E7BD6", "roughness": 0.50, "metallic": 0.1 },
-      "M_paint_green":    { "color": "#3FA66A", "roughness": 0.50, "metallic": 0.1 },
-      "M_paint_orange":   { "color": "#F08A24", "roughness": 0.50, "metallic": 0.1 },
-      "M_concrete":       { "color": "#B9B3A6", "roughness": 0.90, "metallic": 0.0 },
-      "M_asphalt":        { "color": "#5A5D66", "roughness": 0.95, "metallic": 0.0 },
-      "M_plaster_cream":  { "color": "#F4E6C8", "roughness": 0.90, "metallic": 0.0 },
-      "M_plaster_pink":   { "color": "#F3B8AE", "roughness": 0.90, "metallic": 0.0 },
-      "M_plaster_teal":   { "color": "#7CCBC0", "roughness": 0.90, "metallic": 0.0 },
-      "M_plaster_sand":   { "color": "#E8C99A", "roughness": 0.90, "metallic": 0.0 },
-      "M_brick":          { "color": "#C46A4A", "roughness": 0.85, "metallic": 0.0 },
-      "M_roof_tile":      { "color": "#B5533C", "roughness": 0.80, "metallic": 0.0 },
-      "M_glass":          { "color": "#A9DDF2", "roughness": 0.05, "metallic": 0.0, "alpha": 0.35 },
-      "M_rubber":         { "color": "#2B2D33", "roughness": 0.85, "metallic": 0.0 },
-      "M_canvas":         { "color": "#E8D8B0", "roughness": 0.95, "metallic": 0.0 },
-      "M_grass":          { "color": "#5FAE4B", "roughness": 0.95, "metallic": 0.0 },
-      "M_foliage":        { "color": "#3F9A55", "roughness": 0.90, "metallic": 0.0 },
-      "M_water":          { "color": "#4AB5D9", "roughness": 0.10, "metallic": 0.0, "alpha": 0.6 },
-      "M_hazard_yellow":  { "color": "#FFD21F", "roughness": 0.55, "metallic": 0.0 },
-      "M_light_warm":     { "color": "#FFE7A8", "roughness": 0.30, "metallic": 0.0, "emissive": 1.5 }
+    "brand": {
+      "sun": "#FFC933",
+      "sunDeep": "#F28F1A",
+      "sky": "#52B8FA",
+      "coral": "#FF6B61",
+      "mint": "#5CDB9E",
+      "cream": "#FFF5DB",
+      "ink": "#1A1F38",
+      "slate": "#383F70"
     },
-    "rules": { "albedoMin": 0.04, "albedoMax": 0.92, "note": "saf beyaz/siyah yok; ana 3 ton ailesi/kume; sicak isik + soguk golge" }
+    "materials": {
+      "M_wood_warm": {
+        "color": "#C98B4F",
+        "roughness": 0.75,
+        "metallic": 0.0
+      },
+      "M_wood_dark": {
+        "color": "#7A4A2B",
+        "roughness": 0.8,
+        "metallic": 0.0
+      },
+      "M_wood_pale": {
+        "color": "#E3C593",
+        "roughness": 0.8,
+        "metallic": 0.0
+      },
+      "M_metal_steel": {
+        "color": "#8E9BAA",
+        "roughness": 0.45,
+        "metallic": 0.8
+      },
+      "M_metal_dark": {
+        "color": "#4A5260",
+        "roughness": 0.5,
+        "metallic": 0.7
+      },
+      "M_paint_red": {
+        "color": "#D9463E",
+        "roughness": 0.5,
+        "metallic": 0.1
+      },
+      "M_paint_yellow": {
+        "color": "#F2B91F",
+        "roughness": 0.5,
+        "metallic": 0.1
+      },
+      "M_paint_blue": {
+        "color": "#3E7BD6",
+        "roughness": 0.5,
+        "metallic": 0.1
+      },
+      "M_paint_green": {
+        "color": "#3FA66A",
+        "roughness": 0.5,
+        "metallic": 0.1
+      },
+      "M_paint_orange": {
+        "color": "#F08A24",
+        "roughness": 0.5,
+        "metallic": 0.1
+      },
+      "M_concrete": {
+        "color": "#B9B3A6",
+        "roughness": 0.9,
+        "metallic": 0.0
+      },
+      "M_asphalt": {
+        "color": "#5A5D66",
+        "roughness": 0.95,
+        "metallic": 0.0
+      },
+      "M_plaster_cream": {
+        "color": "#F4E6C8",
+        "roughness": 0.9,
+        "metallic": 0.0
+      },
+      "M_plaster_pink": {
+        "color": "#F3B8AE",
+        "roughness": 0.9,
+        "metallic": 0.0
+      },
+      "M_plaster_teal": {
+        "color": "#7CCBC0",
+        "roughness": 0.9,
+        "metallic": 0.0
+      },
+      "M_plaster_sand": {
+        "color": "#E8C99A",
+        "roughness": 0.9,
+        "metallic": 0.0
+      },
+      "M_brick": {
+        "color": "#C46A4A",
+        "roughness": 0.85,
+        "metallic": 0.0
+      },
+      "M_roof_tile": {
+        "color": "#B5533C",
+        "roughness": 0.8,
+        "metallic": 0.0
+      },
+      "M_glass": {
+        "color": "#A9DDF2",
+        "roughness": 0.05,
+        "metallic": 0.0,
+        "alpha": 0.35
+      },
+      "M_rubber": {
+        "color": "#2B2D33",
+        "roughness": 0.85,
+        "metallic": 0.0
+      },
+      "M_canvas": {
+        "color": "#E8D8B0",
+        "roughness": 0.95,
+        "metallic": 0.0
+      },
+      "M_grass": {
+        "color": "#5FAE4B",
+        "roughness": 0.95,
+        "metallic": 0.0
+      },
+      "M_foliage": {
+        "color": "#3F9A55",
+        "roughness": 0.9,
+        "metallic": 0.0
+      },
+      "M_water": {
+        "color": "#4AB5D9",
+        "roughness": 0.1,
+        "metallic": 0.0,
+        "alpha": 0.6
+      },
+      "M_hazard_yellow": {
+        "color": "#FFD21F",
+        "roughness": 0.55,
+        "metallic": 0.0
+      },
+      "M_light_warm": {
+        "color": "#FFE7A8",
+        "roughness": 0.3,
+        "metallic": 0.0,
+        "emissive": 1.5
+      }
+    },
+    "rules": {
+      "albedoMin": 0.04,
+      "albedoMax": 0.92,
+      "note": "saf beyaz/siyah yok; ana 3 ton ailesi/kume; sicak isik + soguk golge"
+    }
   },
   "budgets": {
     "_unit": "ucgen (triangle) sayisi, LOD0",
-    "prop_small":   { "match": ["prop_crate", "prop_barrel", "prop_bucket", "prop_cone", "prop_box", "prop_lamp"], "maxTris": 800 },
-    "prop_medium":  { "match": ["prop_pallet", "prop_sawhorse", "prop_chair", "prop_barrow", "prop_bench", "prop_hydrant", "prop_bin"], "maxTris": 1500 },
-    "furniture":    { "match": ["prop_shelf", "prop_table", "prop_workbench", "prop_cabinet", "prop_rack"], "maxTris": 2500 },
-    "module":       { "match": ["bld_door", "bld_window", "bld_fence", "fnc_"], "maxTris": 1200 },
-    "wall":         { "match": ["bld_wall", "bld_floor", "bld_roof"], "maxTris": 800 },
-    "building":     { "match": ["bld_building"], "maxTris": 15000 },
-    "vehicle":      { "match": ["veh_"], "maxTris": 12000 },
-    "character":    { "match": ["char_"], "maxTris": 8000 },
-    "default":      { "match": [], "maxTris": 2500 }
+    "prop_small": {
+      "match": [
+        "prop_crate",
+        "prop_barrel",
+        "prop_bucket",
+        "prop_cone",
+        "prop_box",
+        "prop_lamp"
+      ],
+      "maxTris": 800
+    },
+    "prop_medium": {
+      "match": [
+        "prop_pallet",
+        "prop_sawhorse",
+        "prop_chair",
+        "prop_barrow",
+        "prop_bench",
+        "prop_hydrant",
+        "prop_bin"
+      ],
+      "maxTris": 1500
+    },
+    "furniture": {
+      "match": [
+        "prop_shelf",
+        "prop_table",
+        "prop_workbench",
+        "prop_cabinet",
+        "prop_rack"
+      ],
+      "maxTris": 2500
+    },
+    "module": {
+      "match": [
+        "bld_door",
+        "bld_window",
+        "bld_fence",
+        "fnc_"
+      ],
+      "maxTris": 1200
+    },
+    "wall": {
+      "match": [
+        "bld_wall",
+        "bld_floor",
+        "bld_roof"
+      ],
+      "maxTris": 800
+    },
+    "building": {
+      "match": [
+        "bld_building"
+      ],
+      "maxTris": 15000
+    },
+    "vehicle": {
+      "match": [
+        "veh_"
+      ],
+      "maxTris": 12000
+    },
+    "character": {
+      "match": [
+        "char_"
+      ],
+      "maxTris": 8000
+    },
+    "tall_prop": {
+      "match": [
+        "prop_lamp_a",
+        "prop_tree",
+        "prop_scaffold",
+        "prop_rack",
+        "prop_toolwall",
+        "prop_stall",
+        "prop_sign",
+        "prop_cementmixer",
+        "prop_planter",
+        "prop_rack_a",
+        "prop_cart",
+        "prop_clothesline"
+      ],
+      "maxTris": 2500,
+      "maxExtent": 6.5,
+      "materialSlots": 5
+    },
+    "facade": {
+      "match": [
+        "bld_shopfront",
+        "bld_house",
+        "bld_workshop",
+        "bld_warehouse",
+        "bld_shed"
+      ],
+      "maxTris": 9000,
+      "maxExtent": 32.0,
+      "materialSlots": 8
+    },
+    "landmark": {
+      "match": [
+        "bld_clocktower",
+        "bld_watertower",
+        "prop_fountain"
+      ],
+      "maxTris": 6000,
+      "maxExtent": 20.0,
+      "materialSlots": 8
+    },
+    "halfwall": {
+      "match": [
+        "bld_halfwall"
+      ],
+      "maxTris": 2500,
+      "maxExtent": 6.0,
+      "materialSlots": 3
+    },
+    "ground": {
+      "match": [
+        "env_"
+      ],
+      "maxTris": 9000,
+      "maxExtent": 40.0,
+      "materialSlots": 5
+    },
+    "prop_large": {
+      "match": [
+        "prop_crate_c"
+      ],
+      "maxTris": 1500,
+      "maxExtent": 2.6,
+      "materialSlots": 3
+    },
+    "default": {
+      "match": [],
+      "maxTris": 2500
+    }
   },
-  "materialSlotsMax": { "prop": 3, "module": 3, "building": 6, "vehicle": 6, "character": 2 },
-  "textures": { "paletteAtlas": 256, "trimAtlas": 1024, "heroProp": 512, "character": 1024, "ui": 256, "vramBudgetMB": 120, "compression": "BC7/ASTC 6x6, mip + aniso 4" },
+  "materialSlotsMax": {
+    "prop": 3,
+    "module": 3,
+    "building": 6,
+    "vehicle": 6,
+    "character": 2
+  },
+  "textures": {
+    "paletteAtlas": 256,
+    "trimAtlas": 1024,
+    "heroProp": 512,
+    "character": 1024,
+    "ui": 256,
+    "vramBudgetMB": 120,
+    "compression": "BC7/ASTC 6x6, mip + aniso 4"
+  },
   "lod": {
     "small": "LOD yok, uzaklik cull 40 m",
     "medium": "LOD0 %100 · LOD1 %50 (ekran boyu %25) · cull %2",
@@ -56,7 +325,15 @@
   },
   "naming": {
     "file": "<kategori>_<ad>[_<varyant>][_LODn].glb   (kucuk harf, ASCII, alt cizgi)",
-    "categories": ["char", "prop", "bld", "fnc", "veh", "fx", "env"],
+    "categories": [
+      "char",
+      "prop",
+      "bld",
+      "fnc",
+      "veh",
+      "fx",
+      "env"
+    ],
     "material": "M_<ad> (palet adlarindan)",
     "collider": "COL_<ad>_<n>",
     "socket": "SOCK_<ad>",
@@ -64,13 +341,57 @@
     "unityPath": "Assets/Art/Kit/<kategori>/",
     "prefab": "P_<ad>"
   },
-  "modularKit": { "wallW": 3.0, "wallH": 3.0, "wallT": 0.3, "doorOpening": [1.0, 2.2], "windowOpening": [1.2, 1.2], "windowSill": 0.9, "storyHeight": 3.0, "fenceSpan": 2.0, "fenceHeight": 1.1 },
-  "character": { "height": 1.8, "headFraction": 0.30, "proportions": "kisa, tombul govde, buyuk bas ve eller (el 1.3x)", "maxTris": 8000 },
+  "modularKit": {
+    "wallW": 3.0,
+    "wallH": 3.0,
+    "wallT": 0.3,
+    "doorOpening": [
+      1.0,
+      2.2
+    ],
+    "windowOpening": [
+      1.2,
+      1.2
+    ],
+    "windowSill": 0.9,
+    "storyHeight": 3.0,
+    "fenceSpan": 2.0,
+    "fenceHeight": 1.1
+  },
+  "character": {
+    "height": 1.8,
+    "headFraction": 0.3,
+    "proportions": "kisa, tombul govde, buyuk bas ve eller (el 1.3x)",
+    "maxTris": 8000
+  },
   "validation": {
-    "meshes": ["manifold olmayan kenar yok (kasitli acik yuzeyler istisna listesi)", "gevsek kose/kenar yok", "sifir alanli yuz yok", "ngon yok (ucgen/dortgen)"],
-    "normals": ["tutarli yon (dis)", "ters yuz yok", "uygulanmis olcek 1,1,1"],
-    "uv": ["UV katmani var", "0..1 icinde (trim malzemeler istisna)", "sifir alanli UV yuzu yok", "ust uste binme yalnizca palet malzemelerde serbest"],
-    "materials": ["yalnizca palet adlari (M_*)", "slot sayisi butce icinde", "bos slot yok"],
-    "scale": ["1 birim = 1 m", "boyutlar beklenen aralikta", "taban orijinde (alt sinir y=0)"]
-  }
+    "meshes": [
+      "manifold olmayan kenar yok (kasitli acik yuzeyler istisna listesi)",
+      "gevsek kose/kenar yok",
+      "sifir alanli yuz yok",
+      "ngon yok (ucgen/dortgen)"
+    ],
+    "normals": [
+      "tutarli yon (dis)",
+      "ters yuz yok",
+      "uygulanmis olcek 1,1,1"
+    ],
+    "uv": [
+      "UV katmani var",
+      "0..1 icinde (trim malzemeler istisna)",
+      "sifir alanli UV yuzu yok",
+      "ust uste binme yalnizca palet malzemelerde serbest"
+    ],
+    "materials": [
+      "yalnizca palet adlari (M_*)",
+      "slot sayisi butce icinde",
+      "bos slot yok"
+    ],
+    "scale": [
+      "1 birim = 1 m",
+      "boyutlar beklenen aralikta",
+      "taban orijinde (alt sinir y=0)"
+    ]
+  },
+  "_greenfield_note": "tall_prop/facade/landmark/halfwall/ground kategorileri Greenfield Meydani icin eklendi (mevcut degerler degismedi). maxExtent (m) ve materialSlots istege bagli alanlardir."
 }

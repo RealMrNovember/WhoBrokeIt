@@ -20,14 +20,7 @@ from mathutils import Euler, Vector  # noqa: E402
 import kit_lib as K  # noqa: E402
 from kit_lib import Asset  # noqa: E402
 
-REG = {}
-
-
-def asset(name, seed):
-    def deco(fn):
-        REG[name] = (fn, seed)
-        return fn
-    return deco
+from kit_registry import REG, asset, meta_for  # noqa: E402
 
 
 OPEN_H = 2.92      # duvar govdesi ust kotu (ustunde 0.08 sut)
@@ -371,6 +364,24 @@ def build_selftest(out):
     return made
 
 
+def bbox_dims(objs):
+    mn = Vector((1e9, 1e9, 1e9))
+    mx = Vector((-1e9, -1e9, -1e9))
+    for o in objs:
+        if o.type != "MESH" or o.name.startswith("COL_"):
+            continue
+        for v in o.data.vertices:
+            w = v.co + o.location
+            for i in range(3):
+                mn[i] = min(mn[i], w[i])
+                mx[i] = max(mx[i], w[i])
+    d = mx - mn
+    return (d.x, d.y, d.z)
+
+
+import kit_greenfield  # noqa: E402,F401  (Greenfield Meydani varliklari; kayit defterine eklenir)
+
+
 # ---------------------------------------------------------------- calistir
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
@@ -404,8 +415,11 @@ def main():
         path = os.path.join(out, name + ".glb")
         K.export_glb(objs, path)
         tris = K.triangle_count(objs)
-        manifest.append({"name": name, "tris": tris, "ngons": ng, "objects": [o.name for o in objs],
-                         "bytes": os.path.getsize(path)})
+        dims = bbox_dims(objs)
+        entry = {"name": name, "category": name.split("_")[0], "tris": tris, "ngons": ng, "objects": [o.name for o in objs],
+                 "bytes": os.path.getsize(path), "dims": [round(d, 3) for d in dims]}
+        entry.update(meta_for(name))
+        manifest.append(entry)
         print("[KIT] %-24s tris=%-5d ngons=%d nesne=%d %d bayt" % (name, tris, ng, len(objs), os.path.getsize(path)))
     K.reset_scene()
     K.write_palette_png(os.path.join(out, "WBI_Palette.png"))

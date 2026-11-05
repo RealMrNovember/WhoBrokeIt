@@ -100,6 +100,7 @@ class Part:
         self.bm = bmesh.new()
         self.mats = []
         self.loc = Vector((0, 0, 0))
+        self.pivot = False       # True: nesne orijini parca merkezi olur (kirik parcalar, ayri kopan tahtalar)
 
     def mi(self, mat):
         if mat not in PALETTE:
@@ -119,8 +120,9 @@ class Asset:
         self.chunk_mode = False
 
     # -- parca yonetimi
-    def new_part(self, name):
+    def new_part(self, name, pivot=False):
         p = Part(name)
+        p.pivot = pivot
         self.parts.append(p)
         self.cur = p
         return p
@@ -182,8 +184,123 @@ class Asset:
             f.material_index = mi
         bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
 
+
+    # -- ek geometri (hepsi KAPALI kabuk; kose titresimi komsu kabuklarla kaynamayi onler)
+    def _vtx(self, p):
+        return self.cur.bm.verts.new((p[0] + self.jit(0.0015), p[1] + self.jit(0.0015), p[2] + self.jit(0.0015)))
+
+    def _face(self, vs, mi):
+        f = self.cur.bm.faces.new(vs)
+        f.material_index = mi
+        return f
+
+    def hexa(self, pts, mat):
+        """Alt 4 + ust 4 kose (alt: saat yonunun tersi, ust: ayni sira) -> kama, kesik piramit, egimli kutu."""
+        mi = self.cur.mi(mat)
+        v = [self._vtx(p) for p in pts]
+        for q in ((0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)):
+            self._face([v[i] for i in q], mi)
+
+    def wedge(self, x0, x1, y0, y1, z0, h0, h1, mat):
+        """Y boyunca yukseklik h0 (y0'da) -> h1 (y1'de) degisen rampa kutusu (en az 2 cm: dejenere yuz olmasin)."""
+        h0, h1 = max(h0, 0.02), max(h1, 0.02)
+        self.hexa([(x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0),
+                   (x0, y0, z0 + h0), (x1, y0, z0 + h0), (x1, y1, z0 + h1), (x0, y1, z0 + h1)], mat)
+
+    def pyramid(self, cx, cy, z0, w, d, h, mat, apex=None):
+        mi = self.cur.mi(mat)
+        ax, ay = (apex if apex else (cx, cy))
+        b = [self._vtx((cx - w / 2, cy - d / 2, z0)), self._vtx((cx + w / 2, cy - d / 2, z0)),
+             self._vtx((cx + w / 2, cy + d / 2, z0)), self._vtx((cx - w / 2, cy + d / 2, z0))]
+        t = self._vtx((ax, ay, z0 + h))
+        self._face([b[0], b[3], b[2], b[1]], mi)
+        for i in range(4):
+            self._face([b[i], b[(i + 1) % 4], t], mi)
+
+    def prism(self, cx, cy, z0, w, d, h, mat):
+        """Ucgen kesitli cati: sirt X boyunca, genislik w (X), derinlik d (Y), yukseklik h."""
+        mi = self.cur.mi(mat)
+        x0, x1, y0, y1 = cx - w / 2, cx + w / 2, cy - d / 2, cy + d / 2
+        ym = cy
+        v = [self._vtx((x0, y0, z0)), self._vtx((x1, y0, z0)), self._vtx((x1, y1, z0)), self._vtx((x0, y1, z0)),
+             self._vtx((x0, ym, z0 + h)), self._vtx((x1, ym, z0 + h))]
+        self._face([v[0], v[3], v[2], v[1]], mi)
+        self._face([v[0], v[1], v[5], v[4]], mi)
+        self._face([v[3], v[4], v[5], v[2]], mi)
+        self._face([v[0], v[4], v[3]], mi)
+        self._face([v[1], v[2], v[5]], mi)
+
+    def ball(self, center, r, mat, sub=2, scale=(1, 1, 1)):
+        c = Vector(center) + Vector((self.jit(0.0015), self.jit(0.0015), self.jit(0.0015)))
+        m = Matrix.Translation(c) @ Matrix.Diagonal((scale[0], scale[1], scale[2], 1.0))
+        res = bmesh.ops.create_icosphere(self.cur.bm, subdivisions=sub, radius=r, matrix=m)
+        mi = self.cur.mi(mat)
+        for f in {f for v in res["verts"] for f in v.link_faces}:
+            f.material_index = mi
+
+    def frustum(self, c, rx0, ry0, rx1, ry1, h, mat, seg=16):
+        """Eliptik kesik koni (kapali, kapaklar ucgen yelpazesi). Taban z=c.z, tepe z=c.z+h."""
+        mi = self.cur.mi(mat)
+        cx, cy, cz = c
+        b = [self._vtx((cx + math.cos(2 * math.pi * i / seg) * rx0, cy + math.sin(2 * math.pi * i / seg) * ry0, cz)) for i in range(seg)]
+        t = [self._vtx((cx + math.cos(2 * math.pi * i / seg) * rx1, cy + math.sin(2 * math.pi * i / seg) * ry1, cz + h)) for i in range(seg)]
+        cb, ct = self._vtx((cx, cy, cz)), self._vtx((cx, cy, cz + h))
+        for i in range(seg):
+            j = (i + 1) % seg
+            self._face([b[i], b[j], t[j], t[i]], mi)
+            self._face([cb, b[j], b[i]], mi)
+            self._face([ct, t[i], t[j]], mi)
+
+    def annulus(self, c, r_in, r_out, z0, z1, mat, seg=48):
+        """Halka (ortasi delik), kapali."""
+        mi = self.cur.mi(mat)
+        cx, cy = c
+
+        def ring(r, z):
+            return [self._vtx((cx + math.cos(2 * math.pi * i / seg) * r, cy + math.sin(2 * math.pi * i / seg) * r, z)) for i in range(seg)]
+        ob, ot, ib, it = ring(r_out, z0), ring(r_out, z1), ring(r_in, z0), ring(r_in, z1)
+        for i in range(seg):
+            j = (i + 1) % seg
+            self._face([ob[i], ob[j], ot[j], ot[i]], mi)
+            self._face([ib[j], ib[i], it[i], it[j]], mi)
+            self._face([ot[i], ot[j], it[j], it[i]], mi)
+            self._face([ob[j], ob[i], ib[i], ib[j]], mi)
+
+    def strut(self, p0, p1, t, mat, bevel=0.0):
+        """p0 -> p1 arasinda kalinligi t olan cubuk/kiris (egik olabilir)."""
+        a0, a1 = Vector(p0), Vector(p1)
+        d = a1 - a0
+        L = d.length
+        q = Vector((0, 0, 1)).rotation_difference(d.normalized())
+        e = q.to_euler("XYZ")
+        self.box((a0 + a1) / 2, (t, t, L), mat, bevel=bevel, rot=(math.degrees(e.x), math.degrees(e.y), math.degrees(e.z)))
+
+    def solid_box(self, x0, x1, y0, y1, z0, z1, mat, bevel=0.0):
+        self.box(((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), (x1 - x0, y1 - y0, z1 - z0), mat, bevel=bevel)
+
+    def wall_open(self, x0, x1, y, th, z0, z1, mat, openings=(), bevel=0.0):
+        """Duvar x0..x1 / z0..z1; openings = (xa, xb, za, zb) dikdortgen bosluklar (cakismaz)."""
+        xs = sorted(openings, key=lambda o: o[0])
+        cur = x0
+        for (xa, xb, za, zb) in xs:
+            if xa > cur + 1e-4:
+                self.solid_box(cur, xa, y - th / 2, y + th / 2, z0, z1, mat, bevel)
+            if za > z0 + 1e-4:
+                self.solid_box(xa, xb, y - th / 2, y + th / 2, z0, za, mat, bevel)
+            if zb < z1 - 1e-4:
+                self.solid_box(xa, xb, y - th / 2, y + th / 2, zb, z1, mat, bevel)
+            cur = xb
+        if x1 > cur + 1e-4:
+            self.solid_box(cur, x1, y - th / 2, y + th / 2, z0, z1, mat, bevel)
+
+    def col_rot(self, center, size, rot):
+        self.cols.append((Vector(center), Vector(size), tuple(rot)))
+
+    def col_frustum(self, c, rx0, ry0, rx1, ry1, h, seg=12):
+        self.cols.append(("frustum", Vector(c), rx0, ry0, rx1, ry1, h, seg))
+
     def col(self, center, size):
-        self.cols.append((Vector(center), Vector(size)))
+        self.cols.append((Vector(center), Vector(size), (0, 0, 0)))
 
     # -- bitirme
     def _transform_part(self, p, offset, pivot):
@@ -211,7 +328,7 @@ class Asset:
         total_tris = 0
         for p in self.parts:
             bmesh.ops.recalc_face_normals(p.bm, faces=list(p.bm.faces))
-            self._transform_part(p, off, pivot_chunks)
+            self._transform_part(p, off, pivot_chunks or p.pivot)
             swatch_uvs(p)
             total_tris += sum(len(f.verts) - 2 for f in p.bm.faces)
             me = bpy.data.meshes.new(p.name)
@@ -225,8 +342,13 @@ class Asset:
             ob.location = p.loc
             bpy.context.collection.objects.link(ob)
             objs.append(ob)
-        for i, (c, s) in enumerate(self.cols, 1):
-            objs.append(make_collider("COL_%s_%d" % (self.name, i), c + off, s))
+        for i, ent in enumerate(self.cols, 1):
+            if ent[0] == "frustum":
+                _, c, rx0, ry0, rx1, ry1, h, seg = ent
+                objs.append(make_frustum_collider("COL_%s_%d" % (self.name, i), c + off, rx0, ry0, rx1, ry1, h, seg))
+            else:
+                c, s, rot = ent
+                objs.append(make_collider("COL_%s_%d" % (self.name, i), c + off, s, rot))
         self.tris = total_tris
         return objs
 
@@ -259,9 +381,31 @@ def swatch_uvs(part):
             l[uv].uv = (cx + d.dot(t) * k, cy + d.dot(b) * k)
 
 
-def make_collider(name, center, size):
+def make_frustum_collider(name, center, rx0, ry0, rx1, ry1, h, seg):
+    """Disbukey kesik koni collider (kapali, <=32 kose)."""
     bm = bmesh.new()
-    bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(center) @ Matrix.Diagonal((size[0], size[1], size[2], 1.0)))
+    cx, cy, cz = center
+    b = [bm.verts.new((cx + math.cos(2 * math.pi * i / seg) * rx0, cy + math.sin(2 * math.pi * i / seg) * ry0, cz)) for i in range(seg)]
+    t = [bm.verts.new((cx + math.cos(2 * math.pi * i / seg) * rx1, cy + math.sin(2 * math.pi * i / seg) * ry1, cz + h)) for i in range(seg)]
+    for i in range(seg):
+        j = (i + 1) % seg
+        bm.faces.new((b[i], b[j], t[j], t[i]))
+    bm.faces.new(list(reversed(b)))
+    bm.faces.new(t)
+    bmesh.ops.triangulate(bm, faces=list(bm.faces))
+    bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.collection.objects.link(ob)
+    return ob
+
+
+def make_collider(name, center, size, rot=(0, 0, 0)):
+    bm = bmesh.new()
+    r = Euler([math.radians(a) for a in rot], "XYZ").to_matrix().to_4x4()
+    bmesh.ops.create_cube(bm, size=1.0, matrix=Matrix.Translation(center) @ r @ Matrix.Diagonal((size[0], size[1], size[2], 1.0)))
     me = bpy.data.meshes.new(name)
     bm.to_mesh(me)
     bm.free()

@@ -1,0 +1,72 @@
+# Kit raporu 20261104-212006
+
+Sonuc: **GECTI** - 66/66 varlik gecti - OZSINAV: GECTI
+
+| Varlik | Ucgen | Boyut (x,y,z m) | Sonuc | Not |
+|---|---|---|---|---|
+| bld_clocktower_a | 3674 | 3.90, 3.90, 14.04 | GECTI |  |
+| bld_door_a | 176 | 0.92, 0.12, 2.10 | GECTI |  |
+| bld_door_b | 144 | 0.92, 0.11, 2.10 | GECTI |  |
+| bld_halfwall_a | 1704 | 3.98, 0.30, 1.78 | GECTI |  |
+| bld_halfwall_a_broken | 2160 | 4.87, 1.86, 1.06 | GECTI |  |
+| bld_house_a | 1924 | 6.40, 6.68, 6.90 | GECTI |  |
+| bld_shed_a | 1008 | 4.50, 3.82, 3.18 | GECTI |  |
+| bld_shopfront_a | 3396 | 8.50, 6.62, 7.44 | GECTI |  |
+| bld_shopfront_b | 3704 | 8.50, 6.58, 7.44 | GECTI |  |
+| bld_shopfront_c | 3932 | 8.50, 6.92, 7.44 | GECTI |  |
+| bld_wall_door_a | 396 | 3.04, 0.36, 3.00 | GECTI |  |
+| bld_wall_plain_a | 132 | 3.04, 0.36, 3.00 | GECTI |  |
+| bld_wall_window_a | 528 | 3.04, 0.37, 3.00 | GECTI |  |
+| bld_warehouse_a | 2520 | 25.20, 24.98, 8.03 | GECTI |  |
+| bld_watertower_a | 1364 | 5.20, 5.20, 12.02 | GECTI |  |
+| bld_window_a | 276 | 1.20, 0.10, 1.20 | GECTI |  |
+| bld_workshop_a | 2068 | 14.80, 10.94, 6.65 | GECTI |  |
+| env_asphalt_strip_a | 300 | 10.00, 8.00, 0.20 | GECTI |  |
+| env_cobble_disc_a | 7992 | 28.00, 28.00, 0.12 | GECTI |  |
+| env_curb_a | 132 | 2.00, 1.70, 0.17 | GECTI |  |
+| env_hill_a | 900 | 14.00, 10.00, 2.62 | GECTI |  |
+| env_ramp_a | 96 | 4.00, 4.50, 0.98 | GECTI |  |
+| fnc_panel_a | 616 | 2.00, 0.10, 1.10 | GECTI |  |
+| fnc_panel_a_broken | 616 | 2.06, 1.25, 1.22 | GECTI |  |
+| prop_awning_a | 880 | 2.99, 1.50, 2.92 | GECTI |  |
+| prop_barrel_a | 416 | 0.61, 0.61, 0.94 | GECTI |  |
+| prop_barrel_a_broken | 224 | 1.04, 1.07, 1.00 | GECTI |  |
+| prop_barrier_a | 752 | 2.05, 0.56, 0.97 | GECTI |  |
+| prop_barrow_a | 208 | 0.82, 1.70, 0.67 | GECTI |  |
+| prop_bench_a | 748 | 1.80, 0.76, 0.99 | GECTI |  |
+| prop_bin_a | 324 | 0.64, 0.66, 0.95 | GECTI |  |
+| prop_cart_a | 568 | 1.93, 1.10, 0.98 | GECTI |  |
+| prop_cementmixer_a | 520 | 1.25, 1.82, 1.77 | GECTI |  |
+| prop_clothesline_a | 340 | 3.50, 0.30, 2.20 | GECTI |  |
+| prop_cone_a | 140 | 0.36, 0.36, 0.60 | GECTI |  |
+| prop_crate_a | 572 | 0.80, 0.80, 0.80 | GECTI |  |
+| prop_crate_a_broken | 440 | 1.46, 1.50, 0.67 | GECTI |  |
+| prop_crate_b | 572 | 0.50, 0.50, 0.50 | GECTI |  |
+| prop_crate_b_broken | 440 | 0.91, 0.94, 0.42 | GECTI |  |
+| prop_crate_c | 620 | 1.20, 1.26, 1.20 | GECTI |  |
+| prop_crate_c_broken | 440 | 2.19, 2.24, 1.01 | GECTI |  |
+| prop_fence_post_a | 50 | 0.16, 0.16, 1.28 | GECTI |  |
+| prop_fountain_a | 1380 | 6.00, 6.00, 3.00 | GECTI |  |
+| prop_fusebox_a | 180 | 0.50, 0.24, 0.70 | GECTI |  |
+| prop_hydrant_a | 344 | 0.64, 0.52, 1.02 | GECTI |  |
+| prop_lamp_a | 660 | 1.64, 0.60, 4.04 | GECTI |  |
+| prop_pallet_a | 484 | 1.20, 0.81, 0.13 | GECTI |  |
+| prop_pipe_a | 432 | 3.00, 0.44, 1.07 | GECTI |  |
+| prop_planks_a | 276 | 0.50, 1.20, 0.12 | GECTI |  |
+| prop_planks_a_broken | 528 | 0.85, 1.63, 0.05 | GECTI |  |
+| prop_planter_a | 300 | 1.08, 0.58, 0.83 | GECTI |  |
+| prop_rack_a | 1168 | 2.70, 1.21, 4.00 | GECTI |  |
+| prop_sack_a | 232 | 0.51, 0.35, 0.37 | GECTI |  |
+| prop_sawhorse_a | 352 | 1.20, 0.55, 0.84 | GECTI |  |
+| prop_scaffold_a | 1128 | 3.20, 3.20, 3.00 | GECTI |  |
+| prop_shelf_a | 396 | 1.20, 0.40, 2.00 | GECTI |  |
+| prop_sign_a | 300 | 2.34, 0.36, 3.12 | GECTI |  |
+| prop_stall_a | 1644 | 2.50, 1.85, 2.55 | GECTI |  |
+| prop_stall_a_broken | 528 | 4.09, 3.25, 1.05 | GECTI |  |
+| prop_table_a | 308 | 1.40, 0.80, 0.80 | GECTI |  |
+| prop_toolbox_a | 308 | 0.52, 0.25, 0.44 | GECTI |  |
+| prop_toolwall_a | 988 | 3.02, 0.57, 2.27 | GECTI |  |
+| prop_tree_a | 704 | 3.41, 3.27, 4.78 | GECTI |  |
+| prop_tree_b | 864 | 3.22, 3.31, 6.03 | GECTI |  |
+| prop_trolley_a | 344 | 1.15, 0.76, 0.97 | GECTI |  |
+| prop_workbench_a | 396 | 1.80, 0.72, 1.09 | GECTI |  |

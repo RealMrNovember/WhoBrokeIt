@@ -6,3 +6,4 @@ cd "$(dirname "$0")/../.."
 ssh doku 'mkdir -p ~/whobrokeit/blender/tools'
 tar czf - -C tools/blender --exclude='__pycache__' . | ssh doku 'cd ~/whobrokeit/blender/tools && tar xzf - && chmod +x *.sh'
 echo "kopyalandi: doku:~/whobrokeit/blender/tools"
+scp -q "unity/Assets/Editor/KitImportValidator.cs" doku:~/whobrokeit/blender/tools/KitImportValidator.cs

@@ -65,14 +65,54 @@ for extra in ("WBI_Palette.png", "manifest.json"):
 print("[STAGING] %d varlik -> %s" % (n, stg))
 PY
 
-# 5) onizleme
+# 5) onizleme (gruplara bolunmus sayfalar: kucuk proplar ile 24 m'lik binalar ayni sayfada okunmaz)
 if [ $PREVIEW -eq 1 ]; then
-  PASSED=$(python3 -c "import json;print(' '.join(f['path'] for f in json.load(open('$OUT/report.json'))['files'] if f['passed']))")
-  if [ -n "$PASSED" ] && $BL -b -P "$TOOLS/render_preview.py" -- "$OUT/preview_kit.png" $PASSED > "$OUT/preview.log" 2>&1; then
-    say "[PREVIEW] $OUT/preview_kit.png"
-  else
-    say "onizleme cizilemedi (bkz. preview.log)"
-  fi
+  python3 - "$OUT" > "$OUT/preview-groups.txt" <<'PY'
+import json, re, sys
+out = sys.argv[1]
+d = json.load(open(out + "/report.json"))
+groups = {"props": [], "modules": [], "buildings": [], "landmarks": [], "env": []}
+for f in d["files"]:
+    if not f["passed"]:
+        continue
+    n = f["name"]
+    if n.startswith("env_"):
+        g = "env"
+    elif re.match(r"^(bld_clocktower|bld_watertower|prop_fountain)", n):
+        g = "landmarks"
+    elif re.match(r"^(bld_shopfront|bld_workshop|bld_warehouse|bld_shed|bld_house)", n):
+        g = "buildings"
+    elif n.startswith(("bld_", "fnc_")):
+        g = "modules"
+    else:
+        g = "props"
+    groups[g].append(f["path"])
+for g, files in groups.items():
+    if files:
+        print(g + " " + " ".join(files))
+PY
+  while read -r G FILES; do
+    if [ "$G" = "buildings" ] || [ "$G" = "landmarks" ]; then
+      for F in $FILES; do
+        N=$(basename "$F" .glb)
+        if $BL -b -P "$TOOLS/render_preview.py" -- "$OUT/preview_one_$N.png" "$F" --single --samples 16 --width 1000 --height 640 > "$OUT/preview-$N.log" 2>&1; then
+          say "[PREVIEW] $OUT/preview_one_$N.png"
+        else
+          say "onizleme cizilemedi: $N (bkz. preview-$N.log)"
+        fi
+      done
+      continue
+    fi
+    ROW=20; W=1600; H=900
+    [ "$G" = "buildings" ] && ROW=52
+    [ "$G" = "landmarks" ] && ROW=34
+    [ "$G" = "env" ] && ROW=60
+    if $BL -b -P "$TOOLS/render_preview.py" -- "$OUT/preview_$G.png" $FILES --row $ROW --samples 16 --width $W --height $H > "$OUT/preview-$G.log" 2>&1; then
+      say "[PREVIEW] $OUT/preview_$G.png"
+    else
+      say "onizleme cizilemedi: $G (bkz. preview-$G.log)"
+    fi
+  done < "$OUT/preview-groups.txt"
 fi
 
 # 6) Unity'ye kur + Unity'de dogrula

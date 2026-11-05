@@ -1,0 +1,1492 @@
+{
+ "assets": [
+  {
+   "name": "bld_wall_plain_a",
+   "category": "bld",
+   "tris": 132,
+   "ngons": 0,
+   "objects": [
+    "bld_wall_plain_a",
+    "COL_bld_wall_plain_a_1"
+   ],
+   "bytes": 13488,
+   "dims": [
+    3.04,
+    0.36,
+    2.999
+   ],
+   "materialTag": "concrete",
+   "massKg": 2000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_wall_door_a",
+   "category": "bld",
+   "tris": 396,
+   "ngons": 0,
+   "objects": [
+    "bld_wall_door_a",
+    "COL_bld_wall_door_a_1",
+    "COL_bld_wall_door_a_2",
+    "COL_bld_wall_door_a_3"
+   ],
+   "bytes": 36316,
+   "dims": [
+    3.04,
+    0.36,
+    3.002
+   ],
+   "materialTag": "concrete",
+   "massKg": 2000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_wall_window_a",
+   "category": "bld",
+   "tris": 528,
+   "ngons": 0,
+   "objects": [
+    "bld_wall_window_a",
+    "COL_bld_wall_window_a_1",
+    "COL_bld_wall_window_a_2",
+    "COL_bld_wall_window_a_3",
+    "COL_bld_wall_window_a_4"
+   ],
+   "bytes": 47812,
+   "dims": [
+    3.04,
+    0.37,
+    3.0
+   ],
+   "materialTag": "concrete",
+   "massKg": 2000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_door_a",
+   "category": "bld",
+   "tris": 176,
+   "ngons": 0,
+   "objects": [
+    "bld_door_a",
+    "COL_bld_door_a_1"
+   ],
+   "bytes": 17756,
+   "dims": [
+    0.92,
+    0.117,
+    2.1
+   ],
+   "materialTag": "wood",
+   "massKg": 25,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_door_b",
+   "category": "bld",
+   "tris": 144,
+   "ngons": 0,
+   "objects": [
+    "bld_door_b",
+    "COL_bld_door_b_1"
+   ],
+   "bytes": 15304,
+   "dims": [
+    0.92,
+    0.113,
+    2.1
+   ],
+   "materialTag": "wood",
+   "massKg": 25,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_window_a",
+   "category": "bld",
+   "tris": 276,
+   "ngons": 0,
+   "objects": [
+    "bld_window_a"
+   ],
+   "bytes": 23056,
+   "dims": [
+    1.197,
+    0.102,
+    1.202
+   ],
+   "materialTag": "glass",
+   "massKg": 15,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "fnc_panel_a",
+   "category": "fnc",
+   "tris": 616,
+   "ngons": 0,
+   "objects": [
+    "fnc_panel_a",
+    "COL_fnc_panel_a_1"
+   ],
+   "bytes": 50176,
+   "dims": [
+    2.002,
+    0.102,
+    1.101
+   ],
+   "materialTag": "wood",
+   "massKg": 30,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "fnc_panel_a_broken",
+   "category": "fnc",
+   "tris": 616,
+   "ngons": 0,
+   "objects": [
+    "fnc_panel_a_chunk_01",
+    "fnc_panel_a_chunk_02",
+    "fnc_panel_a_chunk_03",
+    "fnc_panel_a_chunk_04",
+    "fnc_panel_a_chunk_05",
+    "fnc_panel_a_chunk_06",
+    "fnc_panel_a_chunk_07",
+    "fnc_panel_a_chunk_08"
+   ],
+   "bytes": 54564,
+   "dims": [
+    2.055,
+    1.25,
+    1.219
+   ],
+   "materialTag": "wood",
+   "massKg": 30,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "prop_table_a",
+   "category": "prop",
+   "tris": 308,
+   "ngons": 0,
+   "objects": [
+    "prop_table_a",
+    "COL_prop_table_a_1"
+   ],
+   "bytes": 26792,
+   "dims": [
+    1.4,
+    0.8,
+    0.8
+   ],
+   "materialTag": "wood",
+   "massKg": 22,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_workbench_a",
+   "category": "prop",
+   "tris": 396,
+   "ngons": 0,
+   "objects": [
+    "prop_workbench_a",
+    "COL_prop_workbench_a_1"
+   ],
+   "bytes": 34436,
+   "dims": [
+    1.8,
+    0.719,
+    1.089
+   ],
+   "materialTag": "wood",
+   "massKg": 70,
+   "massClass": "heavy",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_shelf_a",
+   "category": "prop",
+   "tris": 396,
+   "ngons": 0,
+   "objects": [
+    "prop_shelf_a",
+    "COL_prop_shelf_a_1"
+   ],
+   "bytes": 33508,
+   "dims": [
+    1.201,
+    0.402,
+    2.002
+   ],
+   "materialTag": "metal",
+   "massKg": 35,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_pallet_a",
+   "category": "prop",
+   "tris": 484,
+   "ngons": 0,
+   "objects": [
+    "prop_pallet_a",
+    "COL_prop_pallet_a_1"
+   ],
+   "bytes": 40148,
+   "dims": [
+    1.203,
+    0.809,
+    0.134
+   ],
+   "materialTag": "wood",
+   "massKg": 18,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_barrel_a",
+   "category": "prop",
+   "tris": 416,
+   "ngons": 0,
+   "objects": [
+    "prop_barrel_a",
+    "COL_prop_barrel_a_1"
+   ],
+   "bytes": 34020,
+   "dims": [
+    0.612,
+    0.612,
+    0.943
+   ],
+   "materialTag": "metal",
+   "massKg": 20,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_barrel_a_broken",
+   "category": "prop",
+   "tris": 224,
+   "ngons": 0,
+   "objects": [
+    "prop_barrel_a_chunk_01",
+    "prop_barrel_a_chunk_02",
+    "prop_barrel_a_chunk_03",
+    "prop_barrel_a_chunk_04",
+    "prop_barrel_a_chunk_05",
+    "prop_barrel_a_chunk_06",
+    "prop_barrel_a_chunk_07",
+    "prop_barrel_a_chunk_08"
+   ],
+   "bytes": 29164,
+   "dims": [
+    1.038,
+    1.073,
+    0.995
+   ],
+   "materialTag": "metal",
+   "massKg": 20,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "prop_crate_a",
+   "category": "prop",
+   "tris": 572,
+   "ngons": 0,
+   "objects": [
+    "prop_crate_a",
+    "COL_prop_crate_a_1"
+   ],
+   "bytes": 46828,
+   "dims": [
+    0.803,
+    0.802,
+    0.803
+   ],
+   "materialTag": "wood",
+   "massKg": 14,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_crate_a_broken",
+   "category": "prop",
+   "tris": 440,
+   "ngons": 0,
+   "objects": [
+    "prop_crate_a_chunk_01",
+    "prop_crate_a_chunk_02",
+    "prop_crate_a_chunk_03",
+    "prop_crate_a_chunk_04",
+    "prop_crate_a_chunk_05",
+    "prop_crate_a_chunk_06",
+    "prop_crate_a_chunk_07",
+    "prop_crate_a_chunk_08"
+   ],
+   "bytes": 41228,
+   "dims": [
+    1.458,
+    1.496,
+    0.675
+   ],
+   "materialTag": "wood",
+   "massKg": 14,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "prop_sawhorse_a",
+   "category": "prop",
+   "tris": 352,
+   "ngons": 0,
+   "objects": [
+    "prop_sawhorse_a",
+    "COL_prop_sawhorse_a_1"
+   ],
+   "bytes": 30184,
+   "dims": [
+    1.2,
+    0.55,
+    0.844
+   ],
+   "materialTag": "wood",
+   "massKg": 10,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_cone_a",
+   "category": "prop",
+   "tris": 140,
+   "ngons": 0,
+   "objects": [
+    "prop_cone_a",
+    "COL_prop_cone_a_1"
+   ],
+   "bytes": 14592,
+   "dims": [
+    0.36,
+    0.36,
+    0.601
+   ],
+   "materialTag": "plastic",
+   "massKg": 1.5,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_fusebox_a",
+   "category": "prop",
+   "tris": 180,
+   "ngons": 0,
+   "objects": [
+    "prop_fusebox_a",
+    "COL_prop_fusebox_a_1"
+   ],
+   "bytes": 18208,
+   "dims": [
+    0.5,
+    0.244,
+    0.7
+   ],
+   "materialTag": "metal",
+   "massKg": 25,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_toolbox_a",
+   "category": "prop",
+   "tris": 308,
+   "ngons": 0,
+   "objects": [
+    "prop_toolbox_a",
+    "COL_prop_toolbox_a_1"
+   ],
+   "bytes": 27808,
+   "dims": [
+    0.52,
+    0.246,
+    0.439
+   ],
+   "materialTag": "metal",
+   "massKg": 6,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_shopfront_a",
+   "category": "bld",
+   "tris": 3396,
+   "ngons": 0,
+   "objects": [
+    "bld_shopfront_a",
+    "COL_bld_shopfront_a_1"
+   ],
+   "bytes": 272032,
+   "dims": [
+    8.501,
+    6.622,
+    7.441
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_shopfront_b",
+   "category": "bld",
+   "tris": 3704,
+   "ngons": 0,
+   "objects": [
+    "bld_shopfront_b",
+    "COL_bld_shopfront_b_1",
+    "COL_bld_shopfront_b_2",
+    "COL_bld_shopfront_b_3",
+    "COL_bld_shopfront_b_4",
+    "COL_bld_shopfront_b_5",
+    "COL_bld_shopfront_b_6",
+    "COL_bld_shopfront_b_7",
+    "COL_bld_shopfront_b_8"
+   ],
+   "bytes": 296288,
+   "dims": [
+    8.503,
+    6.58,
+    7.44
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_shopfront_c",
+   "category": "bld",
+   "tris": 3932,
+   "ngons": 0,
+   "objects": [
+    "bld_shopfront_c",
+    "COL_bld_shopfront_c_1"
+   ],
+   "bytes": 319056,
+   "dims": [
+    8.501,
+    6.922,
+    7.442
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_workshop_a",
+   "category": "bld",
+   "tris": 2068,
+   "ngons": 0,
+   "objects": [
+    "bld_workshop_a",
+    "COL_bld_workshop_a_1",
+    "COL_bld_workshop_a_2",
+    "COL_bld_workshop_a_3",
+    "COL_bld_workshop_a_4",
+    "COL_bld_workshop_a_5",
+    "COL_bld_workshop_a_6"
+   ],
+   "bytes": 168480,
+   "dims": [
+    14.802,
+    10.935,
+    6.652
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_warehouse_a",
+   "category": "bld",
+   "tris": 2520,
+   "ngons": 0,
+   "objects": [
+    "bld_warehouse_a",
+    "COL_bld_warehouse_a_1",
+    "COL_bld_warehouse_a_2",
+    "COL_bld_warehouse_a_3",
+    "COL_bld_warehouse_a_4",
+    "COL_bld_warehouse_a_5",
+    "COL_bld_warehouse_a_6",
+    "COL_bld_warehouse_a_7",
+    "COL_bld_warehouse_a_8",
+    "COL_bld_warehouse_a_9"
+   ],
+   "bytes": 205796,
+   "dims": [
+    25.203,
+    24.978,
+    8.028
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_halfwall_a",
+   "category": "bld",
+   "tris": 1704,
+   "ngons": 0,
+   "objects": [
+    "bld_halfwall_a",
+    "COL_bld_halfwall_a_1"
+   ],
+   "bytes": 123504,
+   "dims": [
+    3.983,
+    0.303,
+    1.782
+   ],
+   "materialTag": "stone",
+   "massKg": 900,
+   "massClass": "heavy",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_halfwall_a_broken",
+   "category": "bld",
+   "tris": 2160,
+   "ngons": 0,
+   "objects": [
+    "bld_halfwall_a_chunk_01",
+    "bld_halfwall_a_chunk_02",
+    "bld_halfwall_a_chunk_03",
+    "bld_halfwall_a_chunk_04",
+    "bld_halfwall_a_chunk_05",
+    "bld_halfwall_a_chunk_06",
+    "bld_halfwall_a_chunk_07",
+    "bld_halfwall_a_chunk_08",
+    "bld_halfwall_a_chunk_09",
+    "bld_halfwall_a_chunk_10",
+    "bld_halfwall_a_chunk_11",
+    "bld_halfwall_a_chunk_12"
+   ],
+   "bytes": 173324,
+   "dims": [
+    4.873,
+    1.86,
+    1.064
+   ],
+   "materialTag": "stone",
+   "massKg": 900,
+   "massClass": "heavy",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "bld_shed_a",
+   "category": "bld",
+   "tris": 1008,
+   "ngons": 0,
+   "objects": [
+    "bld_shed_a",
+    "COL_bld_shed_a_1"
+   ],
+   "bytes": 80700,
+   "dims": [
+    4.501,
+    3.821,
+    3.177
+   ],
+   "materialTag": "metal",
+   "massKg": 600,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_clocktower_a",
+   "category": "bld",
+   "tris": 3674,
+   "ngons": 0,
+   "objects": [
+    "bld_clocktower_a",
+    "COL_bld_clocktower_a_1"
+   ],
+   "bytes": 281044,
+   "dims": [
+    3.9,
+    3.9,
+    14.041
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_fountain_a",
+   "category": "prop",
+   "tris": 1380,
+   "ngons": 0,
+   "objects": [
+    "prop_fountain_a",
+    "COL_prop_fountain_a_1",
+    "COL_prop_fountain_a_2"
+   ],
+   "bytes": 111528,
+   "dims": [
+    6.0,
+    6.0,
+    3.002
+   ],
+   "materialTag": "stone",
+   "massKg": 5000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_watertower_a",
+   "category": "bld",
+   "tris": 1364,
+   "ngons": 0,
+   "objects": [
+    "bld_watertower_a",
+    "COL_bld_watertower_a_1",
+    "COL_bld_watertower_a_2",
+    "COL_bld_watertower_a_3",
+    "COL_bld_watertower_a_4",
+    "COL_bld_watertower_a_5"
+   ],
+   "bytes": 108804,
+   "dims": [
+    5.2,
+    5.2,
+    12.022
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_lamp_a",
+   "category": "prop",
+   "tris": 660,
+   "ngons": 0,
+   "objects": [
+    "prop_lamp_a",
+    "COL_prop_lamp_a_1"
+   ],
+   "bytes": 53752,
+   "dims": [
+    1.641,
+    0.6,
+    4.04
+   ],
+   "materialTag": "metal",
+   "massKg": 120,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_bench_a",
+   "category": "prop",
+   "tris": 748,
+   "ngons": 0,
+   "objects": [
+    "prop_bench_a",
+    "COL_prop_bench_a_1"
+   ],
+   "bytes": 60172,
+   "dims": [
+    1.802,
+    0.756,
+    0.993
+   ],
+   "materialTag": "wood",
+   "massKg": 45,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_tree_a",
+   "category": "prop",
+   "tris": 704,
+   "ngons": 0,
+   "objects": [
+    "prop_tree_a",
+    "COL_prop_tree_a_1"
+   ],
+   "bytes": 72244,
+   "dims": [
+    3.411,
+    3.273,
+    4.779
+   ],
+   "materialTag": "foliage",
+   "massKg": 400,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_tree_b",
+   "category": "prop",
+   "tris": 864,
+   "ngons": 0,
+   "objects": [
+    "prop_tree_b",
+    "COL_prop_tree_b_1"
+   ],
+   "bytes": 88084,
+   "dims": [
+    3.222,
+    3.314,
+    6.032
+   ],
+   "materialTag": "foliage",
+   "massKg": 400,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_planter_a",
+   "category": "prop",
+   "tris": 300,
+   "ngons": 0,
+   "objects": [
+    "prop_planter_a",
+    "COL_prop_planter_a_1"
+   ],
+   "bytes": 33740,
+   "dims": [
+    1.08,
+    0.58,
+    0.829
+   ],
+   "materialTag": "ceramic",
+   "massKg": 55,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_stall_a",
+   "category": "prop",
+   "tris": 1644,
+   "ngons": 0,
+   "objects": [
+    "prop_stall_a",
+    "COL_prop_stall_a_1"
+   ],
+   "bytes": 139788,
+   "dims": [
+    2.5,
+    1.846,
+    2.55
+   ],
+   "materialTag": "wood",
+   "massKg": 60,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_stall_a_broken",
+   "category": "prop",
+   "tris": 528,
+   "ngons": 0,
+   "objects": [
+    "prop_stall_a_chunk_01",
+    "prop_stall_a_chunk_02",
+    "prop_stall_a_chunk_03",
+    "prop_stall_a_chunk_04",
+    "prop_stall_a_chunk_05",
+    "prop_stall_a_chunk_06",
+    "prop_stall_a_chunk_07",
+    "prop_stall_a_chunk_08"
+   ],
+   "bytes": 49540,
+   "dims": [
+    4.088,
+    3.254,
+    1.053
+   ],
+   "materialTag": "wood",
+   "massKg": 60,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "prop_bin_a",
+   "category": "prop",
+   "tris": 324,
+   "ngons": 0,
+   "objects": [
+    "prop_bin_a",
+    "COL_prop_bin_a_1"
+   ],
+   "bytes": 26588,
+   "dims": [
+    0.643,
+    0.66,
+    0.949
+   ],
+   "materialTag": "metal",
+   "massKg": 8,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_hydrant_a",
+   "category": "prop",
+   "tris": 344,
+   "ngons": 0,
+   "objects": [
+    "prop_hydrant_a",
+    "COL_prop_hydrant_a_1"
+   ],
+   "bytes": 30728,
+   "dims": [
+    0.641,
+    0.521,
+    1.021
+   ],
+   "materialTag": "metal",
+   "massKg": 60,
+   "massClass": "medium",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_sign_a",
+   "category": "prop",
+   "tris": 300,
+   "ngons": 0,
+   "objects": [
+    "prop_sign_a",
+    "COL_prop_sign_a_1"
+   ],
+   "bytes": 27372,
+   "dims": [
+    2.342,
+    0.36,
+    3.118
+   ],
+   "materialTag": "metal",
+   "massKg": 25,
+   "massClass": "medium",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_sack_a",
+   "category": "prop",
+   "tris": 232,
+   "ngons": 0,
+   "objects": [
+    "prop_sack_a",
+    "COL_prop_sack_a_1"
+   ],
+   "bytes": 21924,
+   "dims": [
+    0.507,
+    0.35,
+    0.367
+   ],
+   "materialTag": "canvas",
+   "massKg": 6,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_cementmixer_a",
+   "category": "prop",
+   "tris": 520,
+   "ngons": 0,
+   "objects": [
+    "prop_cementmixer_a",
+    "COL_prop_cementmixer_a_1"
+   ],
+   "bytes": 42736,
+   "dims": [
+    1.251,
+    1.82,
+    1.769
+   ],
+   "materialTag": "metal",
+   "massKg": 90,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_barrow_a",
+   "category": "prop",
+   "tris": 208,
+   "ngons": 0,
+   "objects": [
+    "prop_barrow_a",
+    "COL_prop_barrow_a_1"
+   ],
+   "bytes": 19164,
+   "dims": [
+    0.82,
+    1.701,
+    0.669
+   ],
+   "materialTag": "metal",
+   "massKg": 15,
+   "massClass": "medium",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_trolley_a",
+   "category": "prop",
+   "tris": 344,
+   "ngons": 0,
+   "objects": [
+    "prop_trolley_a",
+    "COL_prop_trolley_a_1"
+   ],
+   "bytes": 29272,
+   "dims": [
+    1.151,
+    0.762,
+    0.967
+   ],
+   "materialTag": "metal",
+   "massKg": 28,
+   "massClass": "medium",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_planks_a",
+   "category": "prop",
+   "tris": 276,
+   "ngons": 0,
+   "objects": [
+    "prop_planks_a",
+    "COL_prop_planks_a_1"
+   ],
+   "bytes": 24288,
+   "dims": [
+    0.5,
+    1.203,
+    0.124
+   ],
+   "materialTag": "wood",
+   "massKg": 9,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_planks_a_broken",
+   "category": "prop",
+   "tris": 528,
+   "ngons": 0,
+   "objects": [
+    "prop_planks_a_chunk_01",
+    "prop_planks_a_chunk_02",
+    "prop_planks_a_chunk_03",
+    "prop_planks_a_chunk_04",
+    "prop_planks_a_chunk_05",
+    "prop_planks_a_chunk_06"
+   ],
+   "bytes": 46116,
+   "dims": [
+    0.853,
+    1.634,
+    0.048
+   ],
+   "materialTag": "wood",
+   "massKg": 9,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "prop_crate_b",
+   "category": "prop",
+   "tris": 572,
+   "ngons": 0,
+   "objects": [
+    "prop_crate_b",
+    "COL_prop_crate_b_1"
+   ],
+   "bytes": 46820,
+   "dims": [
+    0.5,
+    0.503,
+    0.502
+   ],
+   "materialTag": "wood",
+   "massKg": 4,
+   "massClass": "light",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_crate_b_broken",
+   "category": "prop",
+   "tris": 440,
+   "ngons": 0,
+   "objects": [
+    "prop_crate_b_chunk_01",
+    "prop_crate_b_chunk_02",
+    "prop_crate_b_chunk_03",
+    "prop_crate_b_chunk_04",
+    "prop_crate_b_chunk_05",
+    "prop_crate_b_chunk_06",
+    "prop_crate_b_chunk_07",
+    "prop_crate_b_chunk_08"
+   ],
+   "bytes": 41248,
+   "dims": [
+    0.912,
+    0.936,
+    0.421
+   ],
+   "materialTag": "wood",
+   "massKg": 4,
+   "massClass": "light",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "prop_crate_c",
+   "category": "prop",
+   "tris": 620,
+   "ngons": 0,
+   "objects": [
+    "prop_crate_c",
+    "COL_prop_crate_c_1"
+   ],
+   "bytes": 50176,
+   "dims": [
+    1.202,
+    1.259,
+    1.203
+   ],
+   "materialTag": "wood",
+   "massKg": 38,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_crate_c_broken",
+   "category": "prop",
+   "tris": 440,
+   "ngons": 0,
+   "objects": [
+    "prop_crate_c_chunk_01",
+    "prop_crate_c_chunk_02",
+    "prop_crate_c_chunk_03",
+    "prop_crate_c_chunk_04",
+    "prop_crate_c_chunk_05",
+    "prop_crate_c_chunk_06",
+    "prop_crate_c_chunk_07",
+    "prop_crate_c_chunk_08"
+   ],
+   "bytes": 41212,
+   "dims": [
+    2.186,
+    2.244,
+    1.01
+   ],
+   "materialTag": "wood",
+   "massKg": 38,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": true
+  },
+  {
+   "name": "prop_toolwall_a",
+   "category": "prop",
+   "tris": 988,
+   "ngons": 0,
+   "objects": [
+    "prop_toolwall_a",
+    "COL_prop_toolwall_a_1"
+   ],
+   "bytes": 80024,
+   "dims": [
+    3.02,
+    0.571,
+    2.271
+   ],
+   "materialTag": "wood",
+   "massKg": 40,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_scaffold_a",
+   "category": "prop",
+   "tris": 1128,
+   "ngons": 0,
+   "objects": [
+    "prop_scaffold_a",
+    "prop_scaffold_a_plank_01",
+    "prop_scaffold_a_plank_02",
+    "prop_scaffold_a_plank_03",
+    "prop_scaffold_a_plank_04",
+    "COL_prop_scaffold_a_1",
+    "COL_prop_scaffold_a_2",
+    "COL_prop_scaffold_a_3"
+   ],
+   "bytes": 94672,
+   "dims": [
+    3.202,
+    3.201,
+    3.003
+   ],
+   "materialTag": "metal",
+   "massKg": 80,
+   "massClass": "heavy",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_rack_a",
+   "category": "prop",
+   "tris": 1168,
+   "ngons": 0,
+   "objects": [
+    "prop_rack_a",
+    "COL_prop_rack_a_1"
+   ],
+   "bytes": 93780,
+   "dims": [
+    2.703,
+    1.212,
+    4.002
+   ],
+   "materialTag": "metal",
+   "massKg": 120,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "env_curb_a",
+   "category": "env",
+   "tris": 132,
+   "ngons": 0,
+   "objects": [
+    "env_curb_a",
+    "COL_env_curb_a_1"
+   ],
+   "bytes": 13436,
+   "dims": [
+    2.0,
+    1.701,
+    0.171
+   ],
+   "materialTag": "stone",
+   "massKg": 0,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "env_ramp_a",
+   "category": "env",
+   "tris": 96,
+   "ngons": 0,
+   "objects": [
+    "env_ramp_a",
+    "COL_env_ramp_a_1",
+    "COL_env_ramp_a_2"
+   ],
+   "bytes": 11452,
+   "dims": [
+    4.002,
+    4.503,
+    0.983
+   ],
+   "materialTag": "stone",
+   "massKg": 0,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "env_hill_a",
+   "category": "env",
+   "tris": 900,
+   "ngons": 0,
+   "objects": [
+    "env_hill_a",
+    "COL_env_hill_a_1"
+   ],
+   "bytes": 85416,
+   "dims": [
+    13.999,
+    10.001,
+    2.621
+   ],
+   "materialTag": "stone",
+   "massKg": 0,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "env_cobble_disc_a",
+   "category": "env",
+   "tris": 7992,
+   "ngons": 0,
+   "objects": [
+    "env_cobble_disc_a",
+    "COL_env_cobble_disc_a_1",
+    "COL_env_cobble_disc_a_2",
+    "COL_env_cobble_disc_a_3",
+    "COL_env_cobble_disc_a_4",
+    "COL_env_cobble_disc_a_5",
+    "COL_env_cobble_disc_a_6",
+    "COL_env_cobble_disc_a_7",
+    "COL_env_cobble_disc_a_8",
+    "COL_env_cobble_disc_a_9",
+    "COL_env_cobble_disc_a_10",
+    "COL_env_cobble_disc_a_11",
+    "COL_env_cobble_disc_a_12",
+    "COL_env_cobble_disc_a_13",
+    "COL_env_cobble_disc_a_14",
+    "COL_env_cobble_disc_a_15",
+    "COL_env_cobble_disc_a_16"
+   ],
+   "bytes": 584060,
+   "dims": [
+    28.003,
+    28.004,
+    0.118
+   ],
+   "materialTag": "stone",
+   "massKg": 0,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "env_asphalt_strip_a",
+   "category": "env",
+   "tris": 300,
+   "ngons": 0,
+   "objects": [
+    "env_asphalt_strip_a",
+    "COL_env_asphalt_strip_a_1"
+   ],
+   "bytes": 28096,
+   "dims": [
+    10.001,
+    8.001,
+    0.201
+   ],
+   "materialTag": "stone",
+   "massKg": 0,
+   "massClass": "light",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "bld_house_a",
+   "category": "bld",
+   "tris": 1924,
+   "ngons": 0,
+   "objects": [
+    "bld_house_a",
+    "COL_bld_house_a_1"
+   ],
+   "bytes": 152256,
+   "dims": [
+    6.403,
+    6.682,
+    6.903
+   ],
+   "materialTag": "concrete",
+   "massKg": 20000,
+   "massClass": "heavy",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_barrier_a",
+   "category": "prop",
+   "tris": 752,
+   "ngons": 0,
+   "objects": [
+    "prop_barrier_a",
+    "COL_prop_barrier_a_1"
+   ],
+   "bytes": 61164,
+   "dims": [
+    2.051,
+    0.559,
+    0.968
+   ],
+   "materialTag": "metal",
+   "massKg": 15,
+   "massClass": "medium",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_awning_a",
+   "category": "prop",
+   "tris": 880,
+   "ngons": 0,
+   "objects": [
+    "prop_awning_a",
+    "COL_prop_awning_a_1"
+   ],
+   "bytes": 70432,
+   "dims": [
+    2.99,
+    1.502,
+    2.922
+   ],
+   "materialTag": "canvas",
+   "massKg": 25,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_pipe_a",
+   "category": "prop",
+   "tris": 432,
+   "ngons": 0,
+   "objects": [
+    "prop_pipe_a",
+    "COL_prop_pipe_a_1"
+   ],
+   "bytes": 36552,
+   "dims": [
+    3.0,
+    0.441,
+    1.065
+   ],
+   "materialTag": "metal",
+   "massKg": 40,
+   "massClass": "medium",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_cart_a",
+   "category": "prop",
+   "tris": 568,
+   "ngons": 0,
+   "objects": [
+    "prop_cart_a",
+    "COL_prop_cart_a_1"
+   ],
+   "bytes": 53444,
+   "dims": [
+    1.927,
+    1.101,
+    0.975
+   ],
+   "materialTag": "wood",
+   "massKg": 30,
+   "massClass": "medium",
+   "breakable": true,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_clothesline_a",
+   "category": "prop",
+   "tris": 340,
+   "ngons": 0,
+   "objects": [
+    "prop_clothesline_a",
+    "COL_prop_clothesline_a_1",
+    "COL_prop_clothesline_a_2"
+   ],
+   "bytes": 33016,
+   "dims": [
+    3.502,
+    0.301,
+    2.201
+   ],
+   "materialTag": "metal",
+   "massKg": 12,
+   "massClass": "medium",
+   "breakable": false,
+   "isBrokenVariant": false
+  },
+  {
+   "name": "prop_fence_post_a",
+   "category": "prop",
+   "tris": 50,
+   "ngons": 0,
+   "objects": [
+    "prop_fence_post_a",
+    "COL_prop_fence_post_a_1"
+   ],
+   "bytes": 6444,
+   "dims": [
+    0.161,
+    0.162,
+    1.28
+   ],
+   "materialTag": "wood",
+   "massKg": 6,
+   "massClass": "light",
+   "breakable": true,
+   "isBrokenVariant": false
+  }
+ ]
+}

@@ -36,6 +36,18 @@ EXPECT = [
     (r"^prop_pallet_", {"x": (1.2, 0.08), "y": (0.8, 0.08), "z": (0.13, 0.05)}),
     (r"^prop_barrel_a$", {"z": (0.9, 0.06)}),
     (r"^prop_crate_a$", {"x": (0.8, 0.06), "y": (0.8, 0.06), "z": (0.8, 0.06)}),
+    (r"^prop_crate_b$", {"x": (0.5, 0.05), "z": (0.5, 0.05)}),
+    (r"^prop_crate_c$", {"x": (1.2, 0.06), "z": (1.2, 0.06)}),
+    (r"^bld_clocktower_a$", {"z": (14.0, 0.4)}),
+    (r"^bld_watertower_a$", {"z": (12.0, 0.4)}),
+    (r"^prop_lamp_a$", {"z": (4.0, 0.15)}),
+    (r"^prop_fountain_a$", {"x": (6.1, 0.2), "y": (6.1, 0.2)}),
+    (r"^bld_halfwall_a$", {"x": (4.0, 0.15), "z": (1.8, 0.2)}),
+    (r"^bld_workshop_a$", {"x": (14.8, 0.5), "y": (10.8, 0.5)}),   # 14x10 zemin + 0.4 m saçak
+    (r"^env_cobble_disc_a$", {"x": (28.0, 0.3), "y": (28.0, 0.3)}),
+    (r"^env_hill_a$", {"x": (14.0, 0.3), "y": (10.0, 0.3), "z": (2.5, 0.15)}),
+    (r"^env_asphalt_strip_a$", {"x": (10.0, 0.2), "y": (8.0, 0.2)}),
+    (r"^prop_planks_a$", {"y": (1.2, 0.1)}),
 ]
 
 
@@ -67,17 +79,24 @@ class Report:
 
 
 def category_of(stem, style):
+    """En uzun eslesen onek kazanir (ozel kategori eski genel kategoriyi gecer). Dondurur: (anahtar, maxTris, spec)."""
+    best = None
     for key, spec in style["budgets"].items():
         if key.startswith("_"):
             continue
         for m in spec.get("match", []):
-            if stem.startswith(m):
-                return key, spec["maxTris"]
+            if stem.startswith(m) and (best is None or len(m) > best[0]):
+                best = (len(m), key, spec)
+    if best:
+        return best[1], best[2]["maxTris"], best[2]
     d = style["budgets"]["default"]
-    return "default", d["maxTris"]
+    return "default", d["maxTris"], d
 
 
 def slot_limit(stem, style):
+    spec = category_of(stem, style)[2]
+    if "materialSlots" in spec:
+        return spec["materialSlots"]
     lim = style["materialSlotsMax"]
     if stem.startswith("bld_building"):
         return lim["building"]
@@ -197,13 +216,16 @@ def validate_scene(stem, is_glb, style, rep):
         if stem.endswith("_broken"):
             if not re.match(r"^%s_chunk_\d\d$" % re.escape(base), re.sub(r"\.\d+$", "", o.name)):
                 probs.append("parca adi '%s' != %s_chunk_NN" % (o.name, base))
-        elif re.sub(r"\.\d+$", "", o.name) != stem:
+        elif re.sub(r"\.\d+$", "", o.name) != stem and not re.match(r"^%s_(plank|part)_\d\d$" % re.escape(stem), re.sub(r"\.\d+$", "", o.name)):
             probs.append("nesne adi '%s' != %s" % (o.name, stem))
     for o in cols:
         if not re.match(r"^COL_%s_\d+$" % re.escape(stem), re.sub(r"\.\d+$", "", o.name)):
             probs.append("collider adi '%s'" % o.name)
-    if stem.endswith("_broken") and len(body) > 8:
-        probs.append("%d parca (en fazla 8)" % len(body))
+    max_chunks = 12 if base.startswith("bld_halfwall") else 8
+    if stem.endswith("_broken") and len(body) > max_chunks:
+        probs.append("%d parca (en fazla %d)" % (len(body), max_chunks))
+    if not stem.endswith("_broken") and len(body) > 5:
+        probs.append("%d govde nesnesi (en fazla 5: ana + ayri kopan parcalar)" % len(body))
     rep.add("isim", "FAIL" if probs else "PASS", "; ".join(probs[:4]) or "%d govde, %d collider" % (len(body), len(cols)))
     if not body:
         return
@@ -275,7 +297,7 @@ def validate_scene(stem, is_glb, style, rep):
     for o in body:
         o.data.calc_loop_triangles()
         tris += len(o.data.loop_triangles)
-    cat, budget = category_of(stem, style)
+    cat, budget, cspec = category_of(stem, style)
     rep.add("butce", "FAIL" if tris > budget else "PASS", "%d ucgen / %d (%s)" % (tris, budget, cat))
 
     # ---- olcek
@@ -287,7 +309,7 @@ def validate_scene(stem, is_glb, style, rep):
         sp.append("taban z=%.3f (0 olmali)" % mn.z)
     if abs(ctr.x) > 0.15 or abs(ctr.y) > 0.15:
         sp.append("xy merkezi (%.2f, %.2f)" % (ctr.x, ctr.y))
-    mext = MAX_EXTENT.get(cat, 10.0)
+    mext = cspec.get("maxExtent", MAX_EXTENT.get(cat, 10.0))
     if max(dim) > mext:
         sp.append("en buyuk boyut %.2f > %.1f" % (max(dim), mext))
     if max(dim) < 0.15:
