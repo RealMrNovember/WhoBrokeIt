@@ -71,7 +71,7 @@ namespace WhoBrokeIt.Net
             for (var k = 0; k < d.goal; k++)
             {
                 var rb = items[k].Body;
-                var p = new Vector3(c.x + (k % 3 - 1) * 1.1f, 0.12f, c.z + (k / 3 - 0.5f) * 1.1f);
+                var p = new Vector3(c.x + (k % 3 - 1) * 1.45f, 0.12f, c.z + (k / 3 - 0.5f) * 1.5f);   // wide enough that even the 1.2 m crates do not shove each other out of the zone
                 if (rb != null) { rb.linearVelocity = Vector3.zero; rb.angularVelocity = Vector3.zero; rb.position = p; }
                 items[k].transform.position = p;
             }
@@ -80,6 +80,21 @@ namespace WhoBrokeIt.Net
             L("durum=" + dir.state.Value + " ilerleme=" + dir.progress.Value + "/" + d.goal + " puan=" + dir.score.Value + " tamam=" + dir.completed.Value);
             if (dir.state.Value != ContractDirector.Success) { Quit(1, "sozlesme tamamlanmadi (ilerleme " + dir.progress.Value + "/" + d.goal + ")"); yield break; }
             if (dir.score.Value < d.points || dir.completed.Value != 1) { Quit(1, "puan/sayac yanlis"); yield break; }
+
+            // 1b) the delivered pile is spent: it must not count for the next contract until it left the zone and came back
+            if (zone.Count(d.itemTag) != 0) { Quit(1, "teslim edilen esyalar harcanmadi (bolgede hala " + zone.Count(d.itemTag) + " sayiliyor)"); yield break; }
+            var spentItem = items[0];
+            var away = spentItem.transform.position + new Vector3(0f, 0f, 30f);
+            spentItem.Body.position = away; spentItem.transform.position = away;
+            Physics.SyncTransforms();
+            yield return new WaitForSeconds(1.2f);
+            // back into the zone, onto the free centre spot and from a little height (the other items still lie around it)
+            var back = new Vector3(c.x, 0.6f, c.z - 2.2f * 0f);
+            spentItem.Body.linearVelocity = Vector3.zero; spentItem.Body.angularVelocity = Vector3.zero; spentItem.Body.position = back; spentItem.transform.position = back;
+            Physics.SyncTransforms();
+            yield return WaitFor(() => zone.Count(d.itemTag) >= 1, 4f);
+            if (zone.Count(d.itemTag) < 1) { Quit(1, "bolgeden cikip geri konan esya tekrar sayilmadi (sayilan " + zone.Count(d.itemTag) + ") esya=" + spentItem.name + " tag=" + spentItem.itemTag + " konum=" + spentItem.transform.position + " bolge=" + zone.GetComponent<BoxCollider>().bounds + " hiz=" + spentItem.Body.linearVelocity.magnitude.ToString("0.0") + " yercekimi=" + spentItem.Body.useGravity + " harcanan=" + spentItem.spentZone + " aktif=" + spentItem.gameObject.activeInHierarchy); yield break; }
+            L("harcanan esya kurali: bolgede 0 sayildi; cikarilip geri konunca sayildi");
 
             // 2) result screen resets to idle and offers are re-rolled
             var oldOffers = dir.offers.Value;
@@ -93,6 +108,8 @@ namespace WhoBrokeIt.Net
             boards[0].RequestInteract();
             yield return WaitFor(() => dir.state.Value == ContractDirector.Active, 5f);
             if (dir.state.Value != ContractDirector.Active) { Quit(1, "ikinci sozlesme baslamadi"); yield break; }
+            yield return new WaitForSeconds(1f);
+            if (dir.state.Value != ContractDirector.Active) { Quit(1, "ikinci sozlesme hemen bitti (durum " + dir.state.Value + "): onceki esyalar tekrar sayildi"); yield break; }
             dir.timeLeft.Value = 1.5f;
             yield return WaitFor(() => dir.state.Value == ContractDirector.Failed, 8f);
             if (dir.state.Value != ContractDirector.Failed) { Quit(1, "sure dolunca basarisiz olmadi"); yield break; }

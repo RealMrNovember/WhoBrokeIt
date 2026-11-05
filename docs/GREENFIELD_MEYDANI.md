@@ -102,6 +102,7 @@ Bulunan ve düzeltilen hatalar:
 1. **Sahne bozulması ("level0 is corrupted")**: derlemede rastgele (aynı girdiyle bazen çöküyor). Zaman aşımlı, tekrarlı bisect (aynı varyant 6'şar kez) ile bulundu: `RepairPrompt` sınıfı `Repairable.cs` içinde duruyordu. Sahnede kayıtlı her bileşenin kendi adını taşıyan dosyası olmalıdır. `RepairPrompt.cs` ve `RepairMaterial.cs` ayrıldı → tam sahne 0/6 çökme (önceden 8/8). Onarım tetikleyicisi artık alt nesne değil, köke eklenen devre dışı bir `BoxCollider`; istemi `Carryable` (kırıkken onarım ipucu) ya da kökteki `RepairPrompt` verir.
 2. **Başlangıçta kırılan sandıklar**: rastgele yerleşen sandıklar çakışıp 51 m/s'lik itmeyle oyun başlamadan kırılıyordu. Gevşek ızgara yerleşimi + doğuşta 4 sn / onarım sonrası 1,5 sn hasar koruması.
 3. Yıkım testi Workshop'un eski sunucu derlemesini kullanıyordu: `BUILD_DIR`/`TOOLS_DIR` parametreleri eklendi.
+4. **Bedava sözleşme açığı**: teslim edilen eşyalar bölgede kalıyor, aynı eşya/bölgeyi isteyen sonraki sözleşme başlar başlamaz bitiyordu (testte "ikinci sözleşme başlamadı" dalgalanması olarak göründü). Teslim edilen eşyalar "harcanır" (`ContractItem.spentZone`); eşya bölgeden çıkıp geri konunca yeniden sayılır. Test bunu doğrular; 24/24 koşu geçti.
 
-Bilinen sınırlar: Windows istemcisi gerçek pencerede test edilmedi; 4 oyuncu sınırı (MaxPlayers=4) değişmedi; karakter GLB üçgen bütçesi >8000; sözleşme testi bazen "ikinci sözleşme başlamadı" ile dalgalanıyor (araştırılacak).
+Bilinen sınırlar: Windows istemcisi gerçek pencerede test edilmedi; 4 oyuncu sınırı (MaxPlayers=4) değişmedi; karakter GLB üçgen bütçesi >8000.
 

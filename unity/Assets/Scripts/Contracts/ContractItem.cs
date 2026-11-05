@@ -6,6 +6,8 @@ namespace WhoBrokeIt.Contracts
     public class ContractItem : MonoBehaviour
     {
         public string itemTag = "";
+        /// <summary>Server only: id of the zone this item was already delivered to. It counts again only after it has left that zone (see ContractZone).</summary>
+        [System.NonSerialized] public string spentZone = "";
         Rigidbody rb;
         public Rigidbody Body => rb != null ? rb : (rb = GetComponent<Rigidbody>());
 

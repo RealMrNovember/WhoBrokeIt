@@ -44,7 +44,7 @@ namespace WhoBrokeIt.Contracts
         public NetworkVariable<int> completed = new NetworkVariable<int>(0);
 
         ContractZone[] zones;
-        float resultAt, nextCount;
+        float resultAt, nextCount, nextClear;
         System.Random rng;
 
         void Awake() { I = this; }
@@ -97,14 +97,20 @@ namespace WhoBrokeIt.Contracts
         void Update()
         {
             if (!IsServer || !IsSpawned) return;
+            if (Time.time >= nextClear)
+            {
+                nextClear = Time.time + 0.5f;
+                if (zones == null || zones.Length == 0) zones = FindObjectsByType<ContractZone>(FindObjectsSortMode.None);
+                ContractZone.ClearSpent(zones);
+            }
             if (state.Value == Active)
             {
                 var d = Def(activeId.Value);
                 timeLeft.Value = Mathf.Max(0f, timeLeft.Value - Time.deltaTime);
+                var z = ZoneOf(d.zoneId);
                 if (Time.time >= nextCount)
                 {
                     nextCount = Time.time + 0.25f;
-                    var z = ZoneOf(d.zoneId);
                     var n = z != null ? z.Count(d.itemTag) : 0;
                     if (n != progress.Value) progress.Value = n;
                 }
@@ -113,6 +119,7 @@ namespace WhoBrokeIt.Contracts
                     var bonus = Mathf.RoundToInt(timeLeft.Value);
                     score.Value += d.points + bonus;
                     completed.Value++;
+                    if (z != null) z.Spend(d.itemTag);       // this pile is used up
                     state.Value = Success;
                     resultAt = Time.time;
                     CaseManager.Toast("Sözleşme tamam: " + d.title + "  +" + (d.points + bonus) + " puan", 5f);
