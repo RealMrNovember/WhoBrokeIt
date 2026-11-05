@@ -11,7 +11,7 @@ using WhoBrokeIt.Player;
 namespace WhoBrokeIt.Net
 {
     /// <summary>
-    /// Main menu: quick play, play with friends (room code), single player, character selection, settings, profile, credits, exit.
+    /// Main menu: quick play, play with friends (room code), single player, character selection, settings, profile, exit.
     /// A live 3D lobby (a stylised yard at golden hour with your character on a podium) is rendered behind the interface by a private camera;
     /// the interface itself comes from UiKit (palette, rounded buttons with hover/pressed/focus states, sounds, keyboard and mouse navigation).
     /// </summary>
@@ -20,7 +20,7 @@ namespace WhoBrokeIt.Net
         public ushort lanPort = 7777;
         public static NetworkMenu Instance;
 
-        enum Page { Main, Friends, Characters, Settings, Profile, Credits, Advanced }
+        enum Page { Main, Friends, Characters, Settings, Profile, Advanced }
         Page page = Page.Main;
         float pageT = 1f;
         bool confirmExit;
@@ -174,7 +174,6 @@ namespace WhoBrokeIt.Net
                 case "characters2": Go(Page.Characters); ChoosePreview(charIndex + 2); break;
                 case "settings": Go(Page.Settings); break;
                 case "profile": Go(Page.Profile); break;
-                case "credits": Go(Page.Credits); break;
                 case "friends": Go(Page.Friends); break;
                 case "exit": Go(Page.Main); confirmExit = true; UiKit.Focus = 0; break;
                 default: Go(Page.Main); break;
@@ -582,7 +581,6 @@ namespace WhoBrokeIt.Net
                 case Page.Characters: DrawCharacters(W, H, slide); break;
                 case Page.Settings: DrawSettings(W, H, slide); break;
                 case Page.Profile: DrawProfile(W, H, slide); break;
-                case Page.Credits: DrawCredits(W, H, slide); break;
                 default: DrawAdvanced(W, H, slide); break;
             }
             GUI.color = prevColor;
@@ -641,7 +639,6 @@ namespace WhoBrokeIt.Net
             if (UiKit.Button(new Rect(x, y, w, h), "Karakter Seçimi")) Go(Page.Characters); y += h + gap;
             if (UiKit.Button(new Rect(x, y, w, h), "Ayarlar")) Go(Page.Settings); y += h + gap;
             if (UiKit.Button(new Rect(x, y, w, h), "Oyuncu Profili")) Go(Page.Profile); y += h + gap;
-            if (UiKit.Button(new Rect(x, y, w, h), "Emeği Geçenler")) Go(Page.Credits); y += h + gap;
             if (UiKit.Button(new Rect(x, y, w, h), "Oyundan Çık", UiKit.Kind.Danger)) { confirmExit = true; UiKit.Focus = 0; }
 
             // little name tag for the hero on the right
@@ -751,24 +748,6 @@ namespace WhoBrokeIt.Net
             y += 170;
             if (UiKit.Button(new Rect(x, y, w, 76), "Karakteri Değiştir")) Go(Page.Characters);
             if (UiKit.Button(new Rect(x, c.yMax - 150, w, 76), "← Geri", UiKit.Kind.Ghost)) { PlayerPrefs.Save(); Go(Page.Main); }
-        }
-
-        void DrawCredits(float W, float H, float slide)
-        {
-            var c = LeftCard(H, "Emeği Geçenler", null, slide);
-            var x = c.x + 40; var w = 560f; var y = c.y + 130;
-            void Block(string head, string body, float height)
-            {
-                UiKit.Text(new Rect(x, y, w, 32), head, 20, UiKit.Sky, TextAnchor.MiddleLeft, FontStyle.Bold, false);
-                UiKit.Text(new Rect(x, y + 34, w, height), body, 22, UiKit.Cream, TextAnchor.UpperLeft, FontStyle.Normal, false);
-                y += 34 + height + 16;
-            }
-            Block("YAPIM", "CiciByte", 34);
-            Block("OYUN MOTORU VE ÇEVRİMİÇİ", "Unity 6 · Universal Render Pipeline\nNetcode for GameObjects · Unity Transport\nglTFast (Apache 2.0)", 100);
-            Block("KARAKTER MODELLERİ", "Yapay zekâ destekli üretim: Stable Diffusion XL, rembg ve TRELLIS (MIT). Ekibin kendi modellerinin yerini alacak ilk sürüm.", 130);
-            Block("SES VE MÜZİK", "Efektler ve menü müziği oyunun içinde kodla üretilir.", 70);
-            Block("SÜRÜM", Application.version, 34);
-            if (UiKit.Button(new Rect(c.x + 30, c.yMax - 150, 580, 76), "← Geri", UiKit.Kind.Ghost)) Go(Page.Main);
         }
 
         void DrawCharacters(float W, float H, float slide)

@@ -147,6 +147,8 @@ namespace WhoBrokeIt.Audio
         {
             if (Silent) return;
             Build();
+            EnsureUi();
+            EnsureListener();
             EnsurePool();
             var s = pool[next++ % pool.Count];
             s.transform.position = position;
@@ -186,7 +188,23 @@ namespace WhoBrokeIt.Audio
             musicSource.spatialBlend = 0f;
             musicSource.loop = true;
             musicSource.playOnAwake = false;
+            uiListener = root.AddComponent<AudioListener>();
+            uiListener.enabled = false;
             Apply();
+        }
+
+        static AudioListener uiListener;
+        static float listenerCheckAt;
+
+        /// <summary>Unity plays nothing without an enabled AudioListener, and the menu has no camera with one (the player camera only exists in a match). Keep exactly one alive: ours while no other is enabled.</summary>
+        static void EnsureListener()
+        {
+            if (uiListener == null || Time.unscaledTime < listenerCheckAt) return;
+            listenerCheckAt = Time.unscaledTime + 0.5f;
+            var other = false;
+            foreach (var l in Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None))
+                if (l != uiListener && l.enabled && l.gameObject.activeInHierarchy) { other = true; break; }
+            if (uiListener.enabled == other) uiListener.enabled = !other;
         }
 
         /// <summary>Non-positional menu sound.</summary>
@@ -195,6 +213,7 @@ namespace WhoBrokeIt.Audio
             if (Silent) return;
             Build();
             EnsureUi();
+            EnsureListener();
             uiSource.pitch = 1f;
             uiSource.PlayOneShot(clips[(int)sfx], Mathf.Clamp01(volume * Effects));
         }
@@ -204,6 +223,7 @@ namespace WhoBrokeIt.Audio
         {
             if (Silent) return;
             EnsureUi();
+            EnsureListener();
             if (on)
             {
                 if (menuMusic == null) menuMusic = BuildMusic();
@@ -250,7 +270,9 @@ namespace WhoBrokeIt.Audio
         {
             if (Silent) return null;
             Build();
-            var s = host.AddComponent<AudioSource>();
+            EnsureUi();
+            EnsureListener();
+            var s =host.AddComponent<AudioSource>();
             s.clip = loops[(int)kind];
             s.loop = true;
             s.playOnAwake = false;
