@@ -41,6 +41,7 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 30 | Kırılan şeyler çekiçle tamir edilebilmeli | Repairable zaten çalışıyor (DestructSmoke ile doğrulanıyor); oyunda denenmedi |
 | 31 | Doku'daki Claude oturumuna sunucu işleri verilsin; skill/plugin'ler orada sıfırdan kurulsun | oturum izin denetimi `plugin marketplace add`'i engelledi, kullanıcı izni bekliyor |
 | 32 | "Oyun tamamlanana kadar onay bekleme, durma" | kalıcı: onay sormadan devam edilir (kalıcı kurallar ve güvenlik sınırları hariç) |
+| 33 | El arabası gerçekten kullanılabilsin (hareket + yük) | 0.4.9: kök neden bulundu (tekerleklere de tutucu sürtünme verilmişti, araba duruyordu); sadece kasa tutucu; test: yükle, 3,9 m sür, indir geçiyor |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 
