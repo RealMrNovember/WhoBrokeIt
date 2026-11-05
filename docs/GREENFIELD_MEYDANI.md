@@ -106,3 +106,10 @@ Bulunan ve düzeltilen hatalar:
 
 Bilinen sınırlar: Windows istemcisi gerçek pencerede test edilmedi; 4 oyuncu sınırı (MaxPlayers=4) değişmedi; karakter GLB üçgen bütçesi >8000.
 
+
+## 13. Windows yayın adayı (derlendi, yayınlanmadı)
+
+- `tools/winbuild.sh` (Doku): yalnızca Windows istemcisini derler; yayınlamaz, sürüm artırmaz, dağıtmaz.
+- Derleme: `Build result: Succeeded`, 128 MB, 87 NetworkObject, kit varlığı 44 / eksik 0. Paket: `project-g/dist-rc/WhoBrokeIt-0.4.5-rc-greenfield.zip` (53 MB), SHA-256 `8bdb40b4c91a5fffdb3c4d51d9b99260494017cd49fee230d496a8ae6cfe3c7e`.
+- İlk derleme geçişinde Bee artımlı önbelleği iki geçici CS hatası verdi (Audio/Destructible bulunamadı), ikinci geçişte kendini düzeltti; kaynaklar HEAD ile aynı. Temiz önbellekle tekrar derleme önerilir.
+- Doğrulanmadı: exe gerçek Windows penceresinde çalıştırılmadı; sürüm numarası 0.4.5 (artırılmadı).
