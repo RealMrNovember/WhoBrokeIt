@@ -34,6 +34,13 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 23 | Windows istemcisi zip değil çıplak exe olarak, bu laptopta derlenebilir; yeni sürüm yayını ve Kale güncellemesi (0.4.6). | yayınlandı (0.4.6) |
 | 24 | Oyun yeniden kontrol: karakterlerin kolları yok / Mühendis gözü sorunlu; oyunda ses ve müzik yok; Emeği Geçenler tamamen kaldırılsın; bisiklet ve kaykaya binişte gecikme ve saçma hareket. | ses (AudioListener) ve Emeği Geçenler yapıldı; sürüş gecikmesi ölçüldü (ağda belirgin hata yok, nedeni araştırılıyor); kollar/göz açık |
 | 25 | El arabası kullanılamıyor (tutma ve hareket yok); görevlerde yukarıda ok: alınacak şeyler ve bırakılacak yer gösterilsin; elde kutu varken karakter takılıyor; ekran ortasında nişan noktası (ne alınacağı/tutulacağı hedeflenebilsin); dışarıda NPCler olsun. | kodlandı, Dokuda derleme/test bekliyor |
+| 26 | Forklift paletleri kaldıramıyor: çatal yeterince alçalmalı ya da paletler büyümeli; çatal çok alçakken engellere takılmamalı | palet 3 ayak + tabla şeklinde, 1,45x yükseltildi, dayanıklılığı 400, forkMin 0,04; Doku testi hâlâ geçmiyor (forklift yana kayıyor, araştırılıyor) |
+| 27 | Karakter kolları hâlâ gövdeye yapışık ve modellerin iki yanı birbirini tutmuyor; bir yanı üretip aynalamak daha mantıklı | AiAssets.Rig: mesh sol yarıdan aynalanıyor, kollar 14° açılıyor; kodlandı, derlenmedi/görülmedi |
+| 28 | Çevrimiçi oyunda arkadaşların isimleri başlarının üstünde görünmeli | PlayerNet.playerName + OnGUI etiketi; kodlandı, iki istemci testi bekliyor |
+| 29 | Binaların önünde NPC satıcılar (fikir) | 0.4.7'de NpcVendor ile eklendi; oyunda elle denenmedi |
+| 30 | Kırılan şeyler çekiçle tamir edilebilmeli | Repairable zaten çalışıyor (DestructSmoke ile doğrulanıyor); oyunda denenmedi |
+| 31 | Doku'daki Claude oturumuna sunucu işleri verilsin; skill/plugin'ler orada sıfırdan kurulsun | oturum izin denetimi `plugin marketplace add`'i engelledi, kullanıcı izni bekliyor |
+| 32 | "Oyun tamamlanana kadar onay bekleme, durma" | kalıcı: onay sormadan devam edilir (kalıcı kurallar ve güvenlik sınırları hariç) |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 

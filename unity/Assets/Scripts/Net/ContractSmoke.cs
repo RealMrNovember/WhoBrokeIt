@@ -124,6 +124,82 @@ namespace WhoBrokeIt.Net
             yield return new WaitForSeconds(1f);
             if (dir.activeId.Value != idBefore) { Quit(1, "sozlesme sirasinda ikinci baslatma kabul edildi"); yield break; }
 
+            // 5) the forklift must be able to lift a pallet: slide the forks in, raise, back away, lower
+            var fk = FindFirstObjectByType<WhoBrokeIt.Vehicles.Forklift>();
+            var pallet = FindObjectsByType<ContractItem>(FindObjectsSortMode.None).Where(i => i.itemTag == "pallet" && i.Body != null && (i.GetComponent<WhoBrokeIt.Props.Destructible>() == null || !i.GetComponent<WhoBrokeIt.Props.Destructible>().IsBroken)).Where(i => { var q = i.transform.position; return Physics.Raycast(new Vector3(q.x, 4f, q.z - 4f), Vector3.down, out var g0, 8f, ~0, QueryTriggerInteraction.Ignore) && g0.point.y < 0.3f; }).OrderBy(i => i.transform.position.z).ThenBy(i => i.transform.position.x).FirstOrDefault();
+            if (fk != null && pallet != null)
+            {
+                fk.RequestInteract();
+                yield return WaitFor(() => fk.driverId.Value == nm.LocalClientId, 5f);
+                if (fk.driverId.Value != nm.LocalClientId) { Quit(1, "forklift'e binilemedi"); yield break; }
+                yield return new WaitForSeconds(1f);
+                // the test pallets stand inside the warehouse among other props: move this one to a clear, level patch of ground so only the fork geometry is under test
+                Vector3? spot = null;
+                foreach (var gx in new[] { 0f, -8f, 8f, -16f, 16f, 0f, -8f, 8f })
+                    foreach (var gz in new[] { -6f, 0f, 6f, -12f, 12f })
+                    {
+                        if (spot != null) break;
+                        var cb = new Vector3(gx, 0.9f, gz);
+                        if (!Physics.CheckBox(cb, new Vector3(1.8f, 0.8f, 6f), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore) && Physics.Raycast(new Vector3(gx, 4f, gz), Vector3.down, out var sg, 8f, ~0, QueryTriggerInteraction.Ignore) && Mathf.Abs(sg.point.y) < 0.05f) spot = new Vector3(gx, 0.02f, gz + 1.5f);
+                    }
+                if (spot == null) { Quit(1, "palet testi icin bos zemin bulunamadi"); yield break; }
+                pallet.Body.linearVelocity = Vector3.zero; pallet.Body.angularVelocity = Vector3.zero;
+                pallet.transform.SetPositionAndRotation(spot.Value, Quaternion.identity); pallet.Body.position = spot.Value; pallet.Body.rotation = Quaternion.identity;
+                Physics.SyncTransforms();
+                yield return new WaitForSeconds(0.5f);
+                L("palet tasindi: " + spot.Value.ToString("0.00"));
+                var pp = pallet.transform.position;
+                var groundY = pp.y;
+                float Ground(float zz) { return Physics.Raycast(new Vector3(pp.x, 4f, zz), Vector3.down, out var gg, 8f, ~0, QueryTriggerInteraction.Ignore) ? gg.point.y : 0f; }
+                var sgn = (Ground(pp.z - 4f) > 0.3f && Ground(pp.z + 4f) <= 0.3f) ? -1f : 1f;      // approach from the side whose ground is level with the pallet
+                L("palet zemin: guney=" + Ground(pp.z - 4f).ToString("0.00") + " kuzey=" + Ground(pp.z + 4f).ToString("0.00") + " yon=" + sgn);
+                var d0 = 4f;
+                fk.ServerTeleport(new Vector3(pp.x, 0.1f, pp.z - sgn * d0), sgn > 0f ? 0f : 180f);
+                yield return new WaitForSeconds(0.5f); L("palet teleport sonrasi: x=" + fk.transform.position.x.ToString("0.00") + " istenen=" + pp.x.ToString("0.00") + " z=" + fk.transform.position.z.ToString("0.00"));
+                fk.ServerTestInput(0.35f, 0f, 0f);   // forward along the forklift heading
+                var tt = 0f;
+                var nx = 0f; var dumped = false;
+                while (tt < 10f && sgn * (pp.z - fk.transform.position.z) > 1.75f)
+                {
+                    tt += Time.deltaTime;
+                    if (tt > nx) { nx += 0.3f; L("palet gidis: t=" + tt.ToString("0.0") + " x=" + fk.transform.position.x.ToString("0.00") + " z=" + fk.transform.position.z.ToString("0.00")); }
+                    if (!dumped && Vector3.Distance(pallet.transform.position, pp) > 0.03f)
+                    {
+                        dumped = true;
+                        var sb = new System.Text.StringBuilder("palet ilk temas: forkY=" + fk.ForkHeight.ToString("0.00") + " hullY=" + fk.transform.position.y.ToString("0.00"));
+                        foreach (var c0 in fk.forks.GetComponentsInChildren<Collider>()) sb.Append(" | F:" + c0.name + " " + c0.bounds.min.ToString("0.00") + ".." + c0.bounds.max.ToString("0.00"));
+                        foreach (var c0 in pallet.GetComponentsInChildren<Collider>()) sb.Append(" | P:" + c0.name + " " + c0.bounds.min.ToString("0.00") + ".." + c0.bounds.max.ToString("0.00"));
+                        L(sb.ToString());
+                    }
+                    yield return null;
+                }
+                fk.ServerTestInput(0f, 0f, 0f);
+                var gap = sgn * (pp.z - fk.transform.position.z); L("palet yaklasma: govdeY=" + fk.transform.position.y.ToString("0.00") + " paletY=" + pp.y.ToString("0.00") + " paletZ=" + pp.z.ToString("0.00") + " paletX=" + pp.x.ToString("0.00") + " govdeX=" + fk.transform.position.x.ToString("0.00") + " yaw=" + fk.transform.eulerAngles.y.ToString("0") + " govdeZ=" + fk.transform.position.z.ToString("0.00") + " alt=" + (Physics.Raycast(fk.transform.position + Vector3.up * 3f, Vector3.down, out var gh, 6f, ~0, QueryTriggerInteraction.Ignore) ? gh.collider.name + "@" + gh.point.y.ToString("0.00") : "yok") + " kirik=" + (pallet.GetComponent<WhoBrokeIt.Props.Destructible>() != null && pallet.GetComponent<WhoBrokeIt.Props.Destructible>().IsBroken));
+                yield return new WaitForSeconds(0.6f);
+                var movedByForks = Vector3.Distance(pallet.transform.position, pp);
+                fk.ServerTestInput(0f, 0f, 1f);
+                yield return new WaitForSeconds(1.6f);
+                fk.ServerTestInput(0f, 0f, 0f);
+                yield return new WaitForSeconds(0.5f);
+                var lifted = pallet.transform.position.y - groundY;
+                fk.ServerTestInput(-0.4f, 0f, 0f);
+                yield return new WaitForSeconds(1.0f);
+                fk.ServerTestInput(0f, 0f, 0f);
+                var stillOn = pallet.transform.position.y - groundY;
+                var pb = new Bounds(pallet.transform.position, Vector3.zero); var pcn = 0;
+                foreach (var c0 in pallet.GetComponentsInChildren<Collider>()) { pb.Encapsulate(c0.bounds); pcn++; }
+                var fb = new Bounds(fk.forks.position, Vector3.zero); var fcn = 0; var fcs = "";
+                foreach (var c0 in fk.forks.GetComponentsInChildren<Collider>()) { fb.Encapsulate(c0.bounds); fcn++; fcs += c0.name + (c0.isTrigger ? "(T)" : "") + " "; }
+                L("palet tani: kirik=" + (pallet.GetComponent<WhoBrokeIt.Props.Destructible>() != null && pallet.GetComponent<WhoBrokeIt.Props.Destructible>().IsBroken) + " kinematik=" + pallet.Body.isKinematic + " kutle=" + pallet.Body.mass + " collider=" + pcn + " sinir=" + pb.min.ToString("0.00") + ".." + pb.max.ToString("0.00") + " | catal collider=" + fcn + " [" + fcs + "] sinir=" + fb.min.ToString("0.00") + ".." + fb.max.ToString("0.00") + " | ust=" + (pallet.transform.localScale.y).ToString("0.00") + " katman=" + pallet.gameObject.layer);
+                L("palet kaldirma: yaklasma=" + gap.ToString("0.00") + " itilme=" + movedByForks.ToString("0.00") + " m kalkis=" + lifted.ToString("0.00") + " m geri giderken=" + stillOn.ToString("0.00") + " m catal=" + fk.ForkHeight.ToString("0.00"));
+                fk.ServerTestInput(0f, 0f, -1f);
+                yield return new WaitForSeconds(2.5f);
+                fk.ServerTestInput(0f, 0f, 0f);
+                if (lifted < 0.5f) { Quit(1, "forklift paleti kaldiramadi (kalkis " + lifted.ToString("0.00") + " m, itilme " + movedByForks.ToString("0.00") + " m)"); yield break; }
+                if (stillOn < 0.4f) { Quit(1, "palet geri giderken catalda kalmadi (" + stillOn.ToString("0.00") + " m)"); yield break; }
+            }
+            else L("forklift/palet bulunamadi, palet adimi atlandi");
+
             yield return new WaitForSeconds(0.5f);
             if (exceptions > 0) { Quit(1, "istisna sayisi " + exceptions); yield break; }
             Quit(0, "sozlesme sistemi: teklif, baslat, teslim, puan, sure, yeniden teklif, cift baslatma reddi (istisna 0)");

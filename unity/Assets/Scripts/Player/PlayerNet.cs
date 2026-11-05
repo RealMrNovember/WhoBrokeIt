@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using WhoBrokeIt.Case;
@@ -14,6 +15,8 @@ namespace WhoBrokeIt.Player
     {
         public static PlayerNet Local { get; private set; }
 
+        /// <summary>The name shown above the player to everybody (from the profile; "Oyuncu N" when empty).</summary>
+        public NetworkVariable<FixedString32Bytes> playerName = new NetworkVariable<FixedString32Bytes>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         public NetworkVariable<byte> toolId = new NetworkVariable<byte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         public NetworkVariable<bool> hidden = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
@@ -121,7 +124,12 @@ namespace WhoBrokeIt.Player
             }
 
             characterId.OnValueChanged += OnCharacterChanged;
-            if (owner) characterId.Value = CharacterCatalog.SavedChoice();
+            if (owner)
+            {
+                characterId.Value = CharacterCatalog.SavedChoice();
+                var nm = PlayerPrefs.GetString("wbi_name", "").Trim();
+                playerName.Value = nm.Length > 0 ? nm : "Oyuncu " + (OwnerClientId + 1);
+            }
             RebuildVisual(characterId.Value);
 
             if (owner)
@@ -264,6 +272,40 @@ namespace WhoBrokeIt.Player
         void BonkRpc(Vector3 impulse, float stunSeconds)
         {
             if (pc != null) pc.ApplyBonk(impulse, stunSeconds);
+        }
+
+        // ---------- name tag above the other players' heads ----------
+        static GUIStyle tagStyle;
+        static Texture2D tagBg;
+
+        void OnGUI()
+        {
+            if (IsOwner || !IsSpawned || hidden.Value || Event.current.type != EventType.Repaint || Net.DedicatedServer.IsDedicated) return;
+            var cam = Camera.main;
+            if (cam == null || !cam.enabled) return;
+            var feet = visualAnchor != null ? visualAnchor.position : transform.position - Vector3.up;
+            var world = feet + Vector3.up * 2.15f;
+            var dist = Vector3.Distance(cam.transform.position, world);
+            if (dist > 60f) return;
+            var sp = cam.WorldToScreenPoint(world);
+            if (sp.z <= 0f) return;
+            var s = Mathf.Clamp(Mathf.Min(Screen.width / 1920f, Screen.height / 1080f) * Mathf.Lerp(1.15f, 0.7f, dist / 60f), 0.5f, 1.3f);
+            if (tagStyle == null) tagStyle = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontStyle = FontStyle.Bold, clipping = TextClipping.Overflow };
+            if (tagBg == null) { tagBg = new Texture2D(1, 1); tagBg.SetPixel(0, 0, Color.white); tagBg.Apply(); }
+            var label = playerName.Value.ToString();
+            if (label.Length == 0) label = "Oyuncu " + (OwnerClientId + 1);
+            tagStyle.fontSize = Mathf.RoundToInt(24f * s);
+            var w = Mathf.Max(80f * s, label.Length * 13.5f * s + 28f * s); var h = 34f * s;
+            var r = new Rect(sp.x - w / 2f, Screen.height - sp.y - h, w, h);
+            var old = GUI.color;
+            GUI.color = new Color(0.05f, 0.07f, 0.16f, 0.62f);
+            GUI.DrawTexture(r, tagBg);
+            GUI.color = Color.white;
+            tagStyle.normal.textColor = new Color(0f, 0f, 0f, 0.6f);
+            GUI.Label(new Rect(r.x + 1.5f, r.y + 1.5f, r.width, r.height), label, tagStyle);
+            tagStyle.normal.textColor = new Color(1f, 0.93f, 0.55f);
+            GUI.Label(r, label, tagStyle);
+            GUI.color = old;
         }
     }
 }

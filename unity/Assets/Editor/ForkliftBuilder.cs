@@ -212,6 +212,7 @@ public static partial class ProjectSetup
         fk.forks = forkRb;
         fk.forkOrigin = Vector3.zero;
         fk.forkMax = 1.6f;
+        fk.forkMin = 0.04f;                // low enough to slide under a pallet, high enough not to scrape the ground
         fk.prompt = "Forklifte bin";
         fk.steerPivots = steerList.ToArray();
         fk.spinPivots = spinList.ToArray();

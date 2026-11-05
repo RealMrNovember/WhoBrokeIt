@@ -79,6 +79,8 @@ public static class AiAssets
         }
     }
 
+    const float ArmSpreadDegrees = 22f;
+
     static float Smooth(float a, float b, float x)
     {
         var t = Mathf.Clamp01((x - a) / Mathf.Max(b - a, 0.0001f));
@@ -123,16 +125,53 @@ public static class AiAssets
             var r = f.GetComponent<MeshRenderer>();
             if (r == null) continue;
             var src = f.sharedMesh;
-            var m = Object.Instantiate(src);
+            // The generated meshes are not symmetric (the two sides do not match). Keep the right half (x >= 0) and mirror it onto the left,
+            // so the character is exactly symmetric and both arms/legs are the same.
+            var m = new Mesh();
             m.name = key + "_skin" + n;
-            var v = src.vertices;
-            var nrm = src.normals;
+            var srcV = src.vertices; var srcN = src.normals; var srcUv = src.uv; var srcCol = src.colors;
+            var vc = srcV.Length;
+            var P = new Vector3[vc];
+            for (var i = 0; i < vc; i++)
+            {
+                P[i] = wrap.transform.InverseTransformPoint(f.transform.TransformPoint(srcV[i]));
+                if (Mathf.Abs(P[i].x) < 0.012f) P[i].x = 0f;                      // clean seam down the middle
+            }
+            var v = new Vector3[vc * 2];
+            var nrm = new Vector3[vc * 2];
+            var uvs = srcUv.Length == vc ? new Vector2[vc * 2] : null;
+            var cols = srcCol.Length == vc ? new Color[vc * 2] : null;
+            for (var i = 0; i < vc; i++)
+            {
+                v[i] = P[i]; v[i + vc] = new Vector3(-P[i].x, P[i].y, P[i].z);
+                var nn = srcN.Length == vc ? wrap.transform.InverseTransformDirection(f.transform.TransformDirection(srcN[i])).normalized : Vector3.up;
+                nrm[i] = nn; nrm[i + vc] = new Vector3(-nn.x, nn.y, nn.z);
+                if (uvs != null) { uvs[i] = srcUv[i]; uvs[i + vc] = srcUv[i]; }
+                if (cols != null) { cols[i] = srcCol[i]; cols[i + vc] = srcCol[i]; }
+            }
+            m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            m.vertices = v; m.normals = nrm;
+            if (uvs != null) m.uv = uvs;
+            if (cols != null) m.colors = cols;
+            m.subMeshCount = src.subMeshCount;
+            for (var s = 0; s < src.subMeshCount; s++)
+            {
+                var tris = src.GetTriangles(s);
+                var outTris = new System.Collections.Generic.List<int>();
+                for (var t = 0; t + 2 < tris.Length; t += 3)
+                {
+                    int a = tris[t], b = tris[t + 1], c = tris[t + 2];
+                    if ((P[a].y + P[b].y + P[c].y) / 3f < spec.hipY) { outTris.Add(a); outTris.Add(b); outTris.Add(c); continue; }   // legs stay as modelled (the stride pose is not symmetric)
+                    if ((P[a].x + P[b].x + P[c].x) / 3f < 0f) continue;            // upper body: the left half is dropped and replaced by the mirrored right half
+                    outTris.Add(a); outTris.Add(b); outTris.Add(c);
+                    outTris.Add(a + vc); outTris.Add(c + vc); outTris.Add(b + vc);  // mirrored copy (reversed winding)
+                }
+                m.SetTriangles(outTris, s);
+            }
             var w = new BoneWeight[v.Length];
             for (var i = 0; i < v.Length; i++)
             {
-                var p = wrap.transform.InverseTransformPoint(f.transform.TransformPoint(v[i]));
-                v[i] = p;
-                if (nrm.Length == v.Length) nrm[i] = wrap.transform.InverseTransformDirection(f.transform.TransformDirection(nrm[i])).normalized;
+                var p = v[i];
 
                 var wLeg = 1f - Smooth(spec.hipY - 0.07f, spec.hipY + 0.07f, p.y);
                 var sideR = Smooth(-0.035f, 0.035f, p.x);
@@ -149,6 +188,14 @@ public static class AiAssets
                 bw.boneIndex2 = p.x >= 0f ? 1 : 2; bw.weight2 = legOther;
                 bw.boneIndex3 = armIdx; bw.weight3 = wArm;
                 w[i] = bw;
+                // the arms were modelled pressed against the torso: swing them a little outward (blended by the arm weight) so they read as arms
+                if (wArm > 0.001f)
+                {
+                    var rot = Quaternion.Euler(0f, 0f, ArmSpreadDegrees * wArm * (p.x >= 0f ? 1f : -1f));
+                    var sh = new Vector3(p.x >= 0f ? spec.shoulderX : -spec.shoulderX, spec.shoulderY, 0f);
+                    v[i] = sh + rot * (p - sh);
+                    nrm[i] = rot * nrm[i];
+                }
             }
             m.vertices = v;
             if (nrm.Length == v.Length) m.normals = nrm;

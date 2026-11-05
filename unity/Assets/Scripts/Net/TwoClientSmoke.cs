@@ -169,6 +169,7 @@ namespace WhoBrokeIt.Net
             var t = 0f;
             while (FindObjectsByType<PlayerNet>(FindObjectsSortMode.None).Length < 2 && t < 30f) { t += Time.deltaTime; yield return null; }
             L("A sees " + FindObjectsByType<PlayerNet>(FindObjectsSortMode.None).Length + " players");
+            { var oth = FindObjectsByType<PlayerNet>(FindObjectsSortMode.None).FirstOrDefault(p => !p.IsOwner); var tw = 0f; while (oth != null && oth.playerName.Value.Length == 0 && tw < 5f) { tw += Time.deltaTime; yield return null; } L("NAME other=\"" + (oth != null ? oth.playerName.Value.ToString() : "?") + "\""); }
             yield return new WaitForSeconds(3f);              // let B settle before the show starts
 
             var cc = player.GetComponent<CharacterController>();

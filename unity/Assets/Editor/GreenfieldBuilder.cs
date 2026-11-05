@@ -51,6 +51,7 @@ public static partial class ProjectSetup
             go = Object.Instantiate(asset);
             go.name = name;
             KitColliders(go, dynamic);
+            if (name == "prop_pallet_a") PalletShape(go);
             if (!kitUsed.Contains(name)) kitUsed.Add(name);
         }
         else
@@ -172,7 +173,7 @@ public static partial class ProjectSetup
     /// <summary>Makes a kit object breakable (Destructible + impact sounds + repair prompt); uses the kit's pre-fractured "_broken" model when it exists.</summary>
     static Destructible Breakable(GameObject go, string kitName, string materialTag, float massKg, bool carry, bool breakable = true)
     {
-        return Destructibles.Make(go, materialTag, massKg, BrokenPrefab(kitName), carry, true, 0f, breakable);
+        return Destructibles.Make(go, materialTag, massKg, BrokenPrefab(kitName), carry, true, kitName == "prop_pallet_a" ? 400f : 0f, breakable);
     }
 
     /// <summary>Physics prop from the kit: Rigidbody + network sync + carry/reset (as the existing crates).</summary>
@@ -500,5 +501,25 @@ public static partial class ProjectSetup
         var report = BuildPipeline.BuildPlayer(opts);
         Debug.Log("[WBI] Greenfield Linux build: " + report.summary.result + ", " + (report.summary.totalSize / (1024 * 1024)) + " MB");
         if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded) EditorApplication.Exit(1);
+    }
+}
+
+public static partial class ProjectSetup
+{
+    /// <summary>
+    /// A pallet must be liftable: the kit's single solid box left no room for the forks. Three runners and a deck (with real openings between them)
+    /// replace it, and the model is made 1.45x taller so the openings (about 15 cm) clear the fork tines (7 cm, lowest position 4 cm).
+    /// </summary>
+    static void PalletShape(GameObject go)
+    {
+        foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+        foreach (var x in new[] { -0.54f, 0f, 0.54f })
+        {
+            var bc = go.AddComponent<BoxCollider>();
+            bc.center = new Vector3(x, 0.055f, 0f); bc.size = new Vector3(0.12f, 0.10f, 0.8f);
+        }
+        var deck = go.AddComponent<BoxCollider>();
+        deck.center = new Vector3(0f, 0.117f, 0f); deck.size = new Vector3(1.2f, 0.024f, 0.8f);
+        go.transform.localScale = new Vector3(1f, 1.45f, 1f);
     }
 }
