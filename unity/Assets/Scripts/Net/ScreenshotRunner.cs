@@ -102,6 +102,30 @@ namespace WhoBrokeIt.Net
                 }
                 CharacterAnimator.DebugPose = 0;
             }
+            // the NPC models (NpcCatalog) with the same poses plus standing (p0): one at a time on a stand on the ground, 1.5 m to the player's
+            // left and 2.5 m behind (so the player stays out of the middle of the frame), seen from the side at the usual height
+            var stand = new GameObject("NpcPoseStand").transform;
+            var sp = p.transform.position - p.transform.right * 1.5f - p.transform.forward * 2.5f;
+            if (Physics.Raycast(sp + Vector3.up * 3f, Vector3.down, out var ground, 8f, ~0, QueryTriggerInteraction.Ignore)) sp.y = ground.point.y;
+            stand.SetPositionAndRotation(sp, p.transform.rotation);
+            var cam = Camera.main;
+            for (var n = 0; n < WhoBrokeIt.World.NpcCatalog.Count; n++)
+            {
+                var vis = WhoBrokeIt.World.NpcCatalog.Build(n, stand);
+                foreach (var pose in new[] { 0, 9, 6, 4 })
+                {
+                    CharacterAnimator.DebugPose = pose; yield return new WaitForSeconds(0.6f);
+                    if (cam != null)
+                    {
+                        var c = stand.position - stand.right * 3.2f + Vector3.up * 1.05f;
+                        cam.transform.SetPositionAndRotation(c, Quaternion.LookRotation(stand.position + stand.forward * 0.3f + Vector3.up * 1.0f - c));
+                    }
+                    yield return HudShot(dir, "npc_n" + n + "_" + WhoBrokeIt.World.NpcCatalog.All[n].key + "_p" + pose);
+                }
+                CharacterAnimator.DebugPose = 0;
+                if (vis != null) Destroy(vis);
+                yield return null;
+            }
             Application.Quit(0);
         }
 
