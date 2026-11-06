@@ -278,13 +278,15 @@ namespace WhoBrokeIt.Player
         static GUIStyle tagStyle;
         static Texture2D tagBg;
 
+        public static bool DebugTagSelf;        // screenshot tour only: draw the tag over our own head too
+
         void OnGUI()
         {
-            if (IsOwner || !IsSpawned || hidden.Value || Event.current.type != EventType.Repaint || Net.DedicatedServer.IsDedicated) return;
+            if ((IsOwner && !DebugTagSelf) || !IsSpawned || hidden.Value || Event.current.type != EventType.Repaint || Net.DedicatedServer.IsDedicated) return;
             var cam = Camera.main;
             if (cam == null || !cam.enabled) return;
             var feet = visualAnchor != null ? visualAnchor.position : transform.position - Vector3.up;
-            var world = feet + Vector3.up * 2.15f;
+            var world = feet + Vector3.up * 2.0f;
             var dist = Vector3.Distance(cam.transform.position, world);
             if (dist > 60f) return;
             var sp = cam.WorldToScreenPoint(world);

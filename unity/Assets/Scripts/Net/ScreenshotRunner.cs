@@ -47,6 +47,7 @@ namespace WhoBrokeIt.Net
             if (cd != null) cd.ServerStart(0);
             yield return new WaitForSeconds(3f);
             var p = PlayerNet.Local; var cc = p.GetComponent<CharacterController>();
+            PlayerNet.DebugTagSelf = true;
             var yaws = new[] { 0f, 90f, 180f, 270f };
             for (var i = 0; i < yaws.Length; i++)
             {
