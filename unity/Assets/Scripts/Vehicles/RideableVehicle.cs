@@ -377,6 +377,8 @@ namespace WhoBrokeIt.Vehicles
             if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.SetTarget(p.transform, new Vector3(0f, 1.6f, 0f), ThirdPersonCamera.DistancePref);
         }
 
+        Vector3 prevPredPos;
+
         void Update()
         {
             if (!localRiding) return;
@@ -395,8 +397,24 @@ namespace WhoBrokeIt.Vehicles
             }
             // predicted motion on the driver's machine (the server runs the same rules)
             if (predicting)
+            {
+                prevPredPos = pred.pos;
                 pred.Step(Time.deltaTime, t, s, maxSpeed, accel, brake * 0.45f, 0.35f, steerMax, wheelBase, 1.2f);
+            }
             // send the input at 30 Hz (and at once when it changes), not once per rendered frame
+            // the predicted vehicle must not drive through walls and props the server will stop it at (it would rubber-band back otherwise)
+            if (predicting && Mathf.Abs(pred.speed) > 0.05f)
+            {
+                var probe = pred.pos + Vector3.up * 0.55f + Quaternion.Euler(0f, pred.heading, 0f) * Vector3.forward * (Mathf.Sign(pred.speed) * 0.45f);
+                foreach (var h in Physics.OverlapSphere(probe, 0.3f, ~0, QueryTriggerInteraction.Ignore))
+                {
+                    if (h.transform.IsChildOf(transform) || h.bounds.max.y < 0.25f) continue;
+                    if (h.attachedRigidbody != null && !h.attachedRigidbody.isKinematic) continue;         // loose props get pushed, not walls
+                    if (PlayerNet.Local != null && h.transform.IsChildOf(PlayerNet.Local.transform)) continue;
+                    pred.pos = prevPredPos; pred.speed = 0f;
+                    break;
+                }
+            }
             sendTimer += Time.deltaTime;
             var changed = !Mathf.Approximately(t, inT) || !Mathf.Approximately(s, inS) || !Mathf.Approximately(j, inJ);
             if (changed || sendTimer >= 1f / 30f)
