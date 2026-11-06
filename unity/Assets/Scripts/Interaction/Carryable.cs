@@ -15,7 +15,20 @@ namespace WhoBrokeIt.Interaction
         bool IsBroken { get { if (destructible == null) destructible = GetComponent<Destructible>(); return destructible != null && destructible.IsBroken; } }
 
         /// <summary>A Broken breakable cannot be picked up: the prompt explains the repair instead (see Repairable).</summary>
-        public override string Prompt => IsBroken ? "Kırık! Çekiç: [3] seç, sol tık basılı tut" : prompt;
+        public override string Prompt
+        {
+            get
+            {
+                if (IsBroken) return "Kırık! Çekiç: [3] seç, sol tık basılı tut";
+                var rb = GetComponent<Rigidbody>();
+                if (rb != null && rb.mass > 6f && rb.mass <= CarrySystem.PairMaxMass)         // heavy: two people lift it together
+                {
+                    var no = GetComponent<Unity.Netcode.NetworkObject>();
+                    return no != null && CarrySystem.HoldersOf(no.NetworkObjectId).Count == 1 ? "Taşımaya yardım et" : "Birlikte taşı (2 kişi)";
+                }
+                return prompt;
+            }
+        }
 
         protected override void ServerInteract(ulong clientId)
         {

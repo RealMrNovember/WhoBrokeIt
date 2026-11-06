@@ -24,7 +24,9 @@ namespace WhoBrokeIt.Player
 
         public bool Stunned => Time.time < stunUntil;
 
-        void Awake() => controller = GetComponent<CharacterController>();
+        CarrySystem carry;
+
+        void Awake() { controller = GetComponent<CharacterController>(); carry = GetComponent<CarrySystem>(); }
 
         /// <summary>Called on the owning client when something hits this player: knock back and lose control for a moment.</summary>
         public void ApplyBonk(Vector3 impulse, float stunSeconds)
@@ -70,7 +72,7 @@ namespace WhoBrokeIt.Player
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             verticalVelocity += gravity * Time.deltaTime;
 
-            var speed = kb.leftShiftKey.isPressed ? runSpeed : walkSpeed;
+            var speed = (kb.leftShiftKey.isPressed ? runSpeed : walkSpeed) * (carry != null ? carry.SpeedScale : 1f);
             controller.Move((move * speed + knock + Vector3.up * verticalVelocity) * Time.deltaTime);
             knock = Vector3.MoveTowards(knock, Vector3.zero, 16f * Time.deltaTime);
 

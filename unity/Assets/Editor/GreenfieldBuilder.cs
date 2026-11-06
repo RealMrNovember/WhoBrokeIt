@@ -332,7 +332,7 @@ public static partial class ProjectSetup
             if (i == 0) { c.name = "Crate_0"; c.transform.position = new Vector3(-14f, 0.05f, 35.5f); }   // the two-client test looks for this crate (open ground where its forklift run ends)
             if (i == 1) { c.name = "Crate_1"; c.transform.position = new Vector3(-17f, 0.05f, 35.5f); }   // the destruction test throws this one until it breaks (open ground, nothing behind it)
         }
-        for (var i = 0; i < 6; i++) KitProp("prop_pallet_a", new Vector3(-20f + (i % 3) * 1.6f, 0.05f, 12f + (i / 3) * 1.2f), 0f, 14f, false);
+        for (var i = 0; i < 6; i++) KitProp("prop_pallet_a", new Vector3(-20f + (i % 3) * 1.6f, 0.05f, 12f + (i / 3) * 1.2f), 0f, 14f, true);   // heavy: two people can carry it, or the forklift
         for (var i = 0; i < 4; i++) KitProp("prop_barrel_a", new Vector3(-10f + i * 1.1f, 0.05f, 28f), i * 40f, 5f);
 
         // ---- workshop (north) ----

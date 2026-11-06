@@ -16,7 +16,7 @@ namespace WhoBrokeIt.Net
     /// A joins, enters the forklift, drives it, lifts the forks, gets off, picks up a crate, carries and drops it.
     /// B only watches and judges what it sees. Both write one "[MP]" line every 0.25 s (wall-clock ms) so tools/mp/analyze.py can compare their views.
     /// </summary>
-    public class TwoClientSmoke : MonoBehaviour
+    public partial class TwoClientSmoke : MonoBehaviour
     {
         const int ExpectedWorldObjects = 45;     // in-scene network objects (without player objects)
         string who;
@@ -36,12 +36,13 @@ namespace WhoBrokeIt.Net
             var i = System.Array.IndexOf(a, "-smoke");
             if (i < 0 || i + 1 >= a.Length) { enabled = false; return; }
             var mode = a[i + 1];
-            if (mode != "twoA" && mode != "twoB") { enabled = false; return; }
-            who = mode == "twoA" ? "A" : "B";
+            var pair = mode == "twoPairA" || mode == "twoPairB";
+            if (mode != "twoA" && mode != "twoB" && !pair) { enabled = false; return; }
+            who = mode.EndsWith("A") ? "A" : "B";
             ip = i + 2 < a.Length ? a[i + 2] : "127.0.0.1";
             port = i + 3 < a.Length && ushort.TryParse(a[i + 3], out var p) ? p : (ushort)7790;
             Application.logMessageReceived += OnLog;
-            StartCoroutine(who == "A" ? RunA() : RunB());
+            StartCoroutine(pair ? RunPair() : who == "A" ? RunA() : RunB());
         }
 
         void OnDestroy() { Application.logMessageReceived -= OnLog; }
