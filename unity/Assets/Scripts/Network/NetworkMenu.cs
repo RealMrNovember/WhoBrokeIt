@@ -752,6 +752,10 @@ namespace WhoBrokeIt.Net
             UiKit.Text(new Rect(box.x + 32, box.y + 60, 530, 80), "Oyun sayısı: " + PlayerPrefs.GetInt("wbi_games", 0) + "\n" + e.blurb, 22, new Color(1, 1, 1, 0.78f), TextAnchor.UpperLeft, FontStyle.Normal, false);
             y += 170;
             if (UiKit.Button(new Rect(x, y, w, 76), "Karakteri Değiştir")) Go(Page.Characters);
+            y += 88;
+            var hs = Hats.Selected;
+            if (UiKit.Button(new Rect(x, y, w, 76), "Şapka: " + Hats.All[hs].name + "  (" + Hats.UnlockedCount + "/" + Hats.Count + ")")) Hats.Selected = Hats.NextUnlocked(hs);
+            UiKit.Text(new Rect(x, y + 80, w, 30), "Sözleşme bitirerek yeni şapkalar aç.", 18, new Color(1, 1, 1, 0.55f), TextAnchor.MiddleLeft, FontStyle.Normal, false);
             if (UiKit.Button(new Rect(x, c.yMax - 150, w, 76), "← Geri", UiKit.Kind.Ghost)) { PlayerPrefs.Save(); Go(Page.Main); }
         }
 

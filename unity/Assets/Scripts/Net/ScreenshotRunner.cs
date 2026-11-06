@@ -91,6 +91,14 @@ namespace WhoBrokeIt.Net
                 if (!rbx.isKinematic && rbx.mass <= 6f && rbx.GetComponent<NetworkObject>() != null && Vector3.Distance(rbx.position, p.transform.position) < nd) { nd = Vector3.Distance(rbx.position, p.transform.position); nearest = rbx; }
             if (nearest != null && p.carry.ServerPickup(nearest, p)) { yield return new WaitForSeconds(1.2f); SideView(p); yield return HudShot(dir, "carry"); }
             else Debug.Log("[SHOT] tasinacak nesne yok");
+            // every hat, from the side
+            p.characterId.Value = 0; yield return new WaitForSeconds(0.5f);
+            for (var hi = 1; hi < Hats.Count; hi++)
+            {
+                p.hat.Value = (byte)hi; yield return new WaitForSeconds(0.6f);
+                SideView(p); yield return HudShot(dir, "hat_" + hi);
+            }
+            p.hat.Value = 0;
             // limb poses on every character, from the side: bicycle hands, carrying arms, climbing arms
             for (var ch = 0; ch < CharacterCatalog.Count; ch++)
             {

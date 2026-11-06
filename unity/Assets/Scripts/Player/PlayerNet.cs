@@ -129,6 +129,7 @@ namespace WhoBrokeIt.Player
                 characterId.Value = CharacterCatalog.SavedChoice();
                 var nm = PlayerPrefs.GetString("wbi_name", "").Trim();
                 playerName.Value = nm.Length > 0 ? nm : "Oyuncu " + (OwnerClientId + 1);
+                hat.Value = (byte)Hats.Selected;
             }
             RebuildVisual(characterId.Value);
 
@@ -284,11 +285,13 @@ namespace WhoBrokeIt.Player
         static Texture2D tagBg;
 
         // ---------- chat and emotes ----------
+        public NetworkVariable<byte> hat = new NetworkVariable<byte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         public NetworkVariable<bool> usingTool = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         public NetworkVariable<byte> emote = new NetworkVariable<byte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         float lastChatAt, lastToolAt, toolDt;
 
         /// <summary>Owner: show an emote (1 wave, 2 point, 3 cheer, 4 dance); 0 stops it.</summary>
+        public void SetHat(int id) { if (IsOwner && Hats.Unlocked(id)) { hat.Value = (byte)id; Hats.Selected = id; } }
         public void SetEmote(byte e) { if (IsOwner && emote.Value != e) emote.Value = e; }
 
         public void SendChat(string text)

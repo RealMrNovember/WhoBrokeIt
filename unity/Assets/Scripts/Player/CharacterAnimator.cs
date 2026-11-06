@@ -42,6 +42,30 @@ namespace WhoBrokeIt.Player
 
         Transform Body => hips != null ? hips : transform;
         Transform handR;
+        // ---- hat on the head (replicated as one byte; built from primitives, see Hats) ----
+        GameObject hatObj; int hatShown; float headTop = -1f;
+
+        void UpdateHat()
+        {
+            if (net == null || Net.DedicatedServer.IsDedicated) return;
+            var want = net.hat.Value;
+            if (want == hatShown && (hatObj != null || want == 0)) return;
+            hatShown = want;
+            if (hatObj != null) Destroy(hatObj);
+            hatObj = Hats.Build(want);
+            if (hatObj == null) return;
+            if (headTop < 0f)
+            {
+                headTop = 1.7f;
+                var top = 0f;
+                foreach (var smr in GetComponentsInChildren<SkinnedMeshRenderer>()) if (smr.sharedMesh != null) top = Mathf.Max(top, smr.sharedMesh.bounds.max.y);
+                if (top > 1f) headTop = top;
+            }
+            hatObj.transform.SetParent(Body, false);
+            hatObj.transform.localPosition = new Vector3(0f, headTop - hipHeight - 0.03f, 0f);   // base a little inside the top of the head
+            hatObj.transform.localRotation = Quaternion.identity;
+        }
+
 
         /// <summary>Tools live in the right hand: placed after the arm pose, tilted relative to the body so the broom and hammer point forward whatever the arm angle is.</summary>
         void PlaceTools()
@@ -273,6 +297,7 @@ namespace WhoBrokeIt.Player
             if (armL != null) armL.localRotation = Quaternion.Euler(aLx, 0f, aLz);
             if (armR != null) armR.localRotation = Quaternion.Euler(aRx, 0f, aRz);
             PlaceTools();
+            UpdateHat();
         }
     }
 }

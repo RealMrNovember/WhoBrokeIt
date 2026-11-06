@@ -55,6 +55,7 @@ namespace WhoBrokeIt.Contracts
         public override void OnNetworkSpawn()
         {
             I = this;
+            completed.OnValueChanged += (a, b) => { if (b > a) Player.Hats.NoteContractDone(); };    // every finished contract counts toward the hats
             zones = FindObjectsByType<ContractZone>(FindObjectsSortMode.None);
             if (IsServer) { rng = new System.Random(System.Environment.TickCount); Reroll(); }
             state.OnValueChanged += (a, b) =>

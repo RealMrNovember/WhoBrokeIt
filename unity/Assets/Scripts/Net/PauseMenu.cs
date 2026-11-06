@@ -127,7 +127,8 @@ namespace WhoBrokeIt.Net
             {
                 var qlv = GraphicsQuality.Level < 0 ? GraphicsQuality.Detect() : GraphicsQuality.Level;
                 if (Button(new Rect(x, 728, 640, 48), "Grafik kalitesi: " + GraphicsQuality.Names[qlv] + "  (değiştir)")) GraphicsQuality.Cycle();
-                LocGui.Label(new Rect(x, 786, 640, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
+                LocGui.Label(new Rect(x, 786, 320, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
+                if (Button(new Rect(x + 330, 782, 310, 40), "Şapka: " + Hats.All[Mathf.Clamp(p.hat.Value, 0, Hats.Count - 1)].name)) p.SetHat(Hats.NextUnlocked(p.hat.Value));
                 if (Button(new Rect(x, 822, 310, 48), "◀ Önceki")) ChangeCharacter(p, -1);
                 if (Button(new Rect(x + 330, 822, 310, 48), "Sonraki ▶")) ChangeCharacter(p, 1);
             }
