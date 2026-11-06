@@ -21,7 +21,7 @@ namespace WhoBrokeIt.Player
 
         public static readonly Entry[] All =
         {
-            new Entry { key = "isci",     name = "Reclaimer İşçisi", blurb = "Turuncu baret, sarı yelek. İşi sağlam yapmaya meraklı.", accent = new Color(1f,0.62f,0.15f), tag = "İNSAN" },
+            new Entry { key = "isci",     name = "Reclaimer İşçisi", blurb = "Sarı baret, sarı yelek. İşi sağlam yapmaya meraklı.", accent = new Color(1f,0.62f,0.15f), tag = "İNSAN" },
             new Entry { key = "muhendis", name = "Mühendis",         blurb = "Beyaz baret ve gözlük. Önce ölçer, sonra düşünür.", accent = new Color(0.35f,0.65f,1f), tag = "İNSAN" },
             new Entry { key = "asci",     name = "Aşçı",             blurb = "Beyaz önlük, uzun şapka. Her işe bir tarif bulur.", accent = new Color(1f,0.45f,0.42f), tag = "İNSAN" },
             new Entry { key = "robot",    name = "Robot",            blurb = "Antenli, köşeli ve inatçı. Pili hiç bitmez.", accent = new Color(0.55f,0.85f,0.9f), tag = "ROBOT" },

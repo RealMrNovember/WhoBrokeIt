@@ -42,7 +42,7 @@ namespace WhoBrokeIt.Net
             { "Oda sahibi yeniden başlatabilir.", "The host can restart." },
             // ---- characters
             { "Reclaimer İşçisi", "Reclaimer Worker" }, { "Mühendis", "Engineer" }, { "Aşçı", "Chef" }, { "Kedi", "Cat" }, { "Kurbağa", "Frog" }, { "Satıcı", "Vendor" },
-            { "Turuncu baret, sarı yelek. İşi sağlam yapmaya meraklı.", "Orange hard hat, yellow vest. Loves doing the job properly." },
+            { "Sarı baret, sarı yelek. İşi sağlam yapmaya meraklı.", "Yellow hard hat, yellow vest. Loves doing the job properly." },
             { "Beyaz baret ve gözlük. Önce ölçer, sonra düşünür.", "White hard hat and goggles. Measures first, thinks later." },
             { "Beyaz önlük, uzun şapka. Her işe bir tarif bulur.", "White apron, tall hat. Finds a recipe for every job." },
             { "Antenli, köşeli ve inatçı. Pili hiç bitmez.", "Antennas, corners and stubborn. The battery never runs out." },
