@@ -73,7 +73,7 @@ public static class AiAssets
         {
             case "muhendis": return new RigSpec(0.84f, 0.23f, 0.24f, 1.35f, 1.45f, 0.72f);
             case "asci":     return new RigSpec(0.55f, 0.20f, 0.22f, 0.95f, 1.05f, 0.45f, 30f, 40f);
-            case "robot":    return new RigSpec(0.58f, 0.27f, 0.30f, 0.95f, 1.10f, 0.45f, 14f, 30f);
+            case "robot":    return new RigSpec(0.58f, 0.27f, 0.30f, 0.95f, 1.10f, 0.45f, 28f, 30f);   // karakter2 robot walks on two legs (was 14: wheel feet)
             case "kedi":     return new RigSpec(0.62f, 0.22f, 0.25f, 1.10f, 1.25f, 0.55f, 30f, 28f);
             default:         return new RigSpec(0.86f, 0.22f, 0.22f, 1.38f, 1.45f, 0.70f);   // isci
         }
@@ -90,9 +90,10 @@ public static class AiAssets
     /// (below the hip = legs, split left/right; to the sides of the torso = arms) so CharacterAnimator can swing the limbs.
     /// Returns false (model left untouched) when the mesh cannot be read.
     /// </summary>
-    static bool Rig(GameObject wrap, string key)
+    static bool Rig(GameObject wrap, string key, string meshDir = "Assets/Resources/Characters/Meshes")
     {
         var spec = SpecFor(key);
+        if (RigFromSkin(wrap, key, meshDir, spec)) return true;
         var original = wrap.transform.GetChild(0).gameObject;
         var filters = wrap.GetComponentsInChildren<MeshFilter>();
         if (filters.Length == 0) return false;
@@ -116,7 +117,7 @@ public static class AiAssets
         var bind = new Matrix4x4[bones.Length];
         for (var i = 0; i < bones.Length; i++) bind[i] = bones[i].worldToLocalMatrix * wrap.transform.localToWorldMatrix;
 
-        Directory.CreateDirectory("Assets/Resources/Characters/Meshes");
+        Directory.CreateDirectory(meshDir);
         var n = 0;
         foreach (var f in filters)
         {
@@ -156,7 +157,7 @@ public static class AiAssets
             m.boneWeights = w;
             m.bindposes = bind;
             m.RecalculateBounds();
-            AssetDatabase.CreateAsset(m, "Assets/Resources/Characters/Meshes/" + m.name + ".asset");
+            AssetDatabase.CreateAsset(m, meshDir + "/" + m.name + ".asset");
 
             var body = new GameObject("Body" + n);
             body.transform.SetParent(wrap.transform, false);
@@ -178,6 +179,117 @@ public static class AiAssets
         return true;
     }
 
+
+    static readonly string[] SkinBones = { "Hips", "LegL", "LegR", "ArmL", "ArmR" };
+
+    /// <summary>
+    /// karakter2 models (tools/gpu karakter2, Blender rig.py) arrive already skinned: a 5-bone skeleton with the same names as ours and
+    /// automatic (heat) weights computed in A-pose, arms lowered to the rest pose afterwards. The weights are kept; the mesh is baked into the
+    /// wrapper's space and re-bound to fresh bones with identity rotation, because CharacterAnimator sets the limbs' local rotation directly.
+    /// Returns false (nothing changed) when the model has no such skin, then the region weights below are used.
+    /// </summary>
+    static bool RigFromSkin(GameObject wrap, string key, string meshDir, RigSpec spec)
+    {
+        var skins = wrap.GetComponentsInChildren<SkinnedMeshRenderer>();
+        if (skins.Length == 0) return false;
+        foreach (var s in skins)
+        {
+            if (s.sharedMesh == null || !s.sharedMesh.isReadable) { Debug.Log("[WBI] rig: deri okunamiyor: " + key); return false; }
+            foreach (var bn in SkinBones) if (System.Array.Find(s.bones, b => b != null && b.name == bn) == null) { Debug.Log("[WBI] rig: kemik yok " + bn + ": " + key); return false; }
+        }
+        var original = wrap.transform.GetChild(0).gameObject;
+        var src0 = skins[0].bones;
+        Transform SrcBone(string n) => System.Array.Find(src0, b => b != null && b.name == n);
+
+        var hips = new GameObject("Hips").transform;
+        hips.SetParent(wrap.transform, false);
+        hips.localPosition = wrap.transform.InverseTransformPoint(SrcBone("Hips").position);
+        Transform Bone(string name)
+        {
+            var b = new GameObject(name).transform;
+            b.SetParent(hips, false);
+            b.localPosition = hips.InverseTransformPoint(SrcBone(name).position);
+            return b;
+        }
+        var legL = Bone("LegL"); var legR = Bone("LegR"); var armL = Bone("ArmL"); var armR = Bone("ArmR");
+        var bones = new[] { hips, legL, legR, armL, armR };
+        var bind = new Matrix4x4[bones.Length];
+        for (var i = 0; i < bones.Length; i++) bind[i] = bones[i].worldToLocalMatrix * wrap.transform.localToWorldMatrix;
+        var toWrap = wrap.transform.worldToLocalMatrix;
+
+        Directory.CreateDirectory(meshDir);
+        var n = 0;
+        foreach (var s in skins)
+        {
+            var src = s.sharedMesh;
+            var remap = new int[s.bones.Length];
+            var skinM = new Matrix4x4[s.bones.Length];
+            for (var j = 0; j < s.bones.Length; j++)
+            {
+                var name = s.bones[j] != null ? s.bones[j].name : "";
+                remap[j] = Mathf.Max(0, System.Array.IndexOf(SkinBones, name));       // anything else (none expected) goes to the hips
+                skinM[j] = toWrap * (s.bones[j] != null ? s.bones[j].localToWorldMatrix : s.transform.localToWorldMatrix) * (j < src.bindposes.Length ? src.bindposes[j] : Matrix4x4.identity);
+            }
+            var v = src.vertices; var nrm = src.normals; var bw = src.boneWeights;
+            var w = new BoneWeight[v.Length];
+            for (var i = 0; i < v.Length; i++)
+            {
+                var b = i < bw.Length ? bw[i] : new BoneWeight { weight0 = 1f };
+                var idx = new[] { b.boneIndex0, b.boneIndex1, b.boneIndex2, b.boneIndex3 };
+                var wt = new[] { b.weight0, b.weight1, b.weight2, b.weight3 };
+                var p = Vector3.zero; var q = Vector3.zero; var acc = new float[bones.Length];
+                for (var k = 0; k < 4; k++)
+                {
+                    if (wt[k] <= 0f || idx[k] < 0 || idx[k] >= skinM.Length) continue;
+                    p += skinM[idx[k]].MultiplyPoint3x4(v[i]) * wt[k];
+                    if (nrm.Length == v.Length) q += skinM[idx[k]].MultiplyVector(nrm[i]) * wt[k];
+                    acc[remap[idx[k]]] += wt[k];
+                }
+                var tot = 0f; foreach (var a in acc) tot += a;
+                if (tot <= 0f) { p = toWrap.MultiplyPoint3x4(s.transform.TransformPoint(v[i])); acc[0] = 1f; tot = 1f; }
+                else p /= tot;
+                v[i] = p;
+                if (nrm.Length == v.Length) nrm[i] = q.sqrMagnitude > 0f ? q.normalized : Vector3.up;
+                // the four largest of the five
+                var order = new[] { 0, 1, 2, 3, 4 };
+                System.Array.Sort(order, (x, y) => acc[y].CompareTo(acc[x]));
+                var t4 = acc[order[0]] + acc[order[1]] + acc[order[2]] + acc[order[3]];
+                w[i] = new BoneWeight
+                {
+                    boneIndex0 = order[0], weight0 = acc[order[0]] / t4, boneIndex1 = order[1], weight1 = acc[order[1]] / t4,
+                    boneIndex2 = order[2], weight2 = acc[order[2]] / t4, boneIndex3 = order[3], weight3 = acc[order[3]] / t4,
+                };
+            }
+            var m = Object.Instantiate(src);
+            m.name = key + "_skin" + n;
+            m.vertices = v;
+            if (nrm.Length == v.Length) m.normals = nrm;
+            m.tangents = null;
+            m.boneWeights = w;
+            m.bindposes = bind;
+            m.RecalculateBounds();
+            if (AssetDatabase.LoadAssetAtPath<Mesh>(meshDir + "/" + m.name + ".asset") != null) AssetDatabase.DeleteAsset(meshDir + "/" + m.name + ".asset");
+            AssetDatabase.CreateAsset(m, meshDir + "/" + m.name + ".asset");
+
+            var body = new GameObject("Body" + n);
+            body.transform.SetParent(wrap.transform, false);
+            var smr = body.AddComponent<SkinnedMeshRenderer>();
+            smr.sharedMesh = m;
+            smr.sharedMaterials = s.sharedMaterials;
+            smr.bones = bones;
+            smr.rootBone = hips;
+            smr.localBounds = new Bounds(new Vector3(0f, 0.9f - hips.localPosition.y, 0f), new Vector3(2.6f, 2.6f, 2.6f));
+            smr.updateWhenOffscreen = false;
+            n++;
+        }
+        Object.DestroyImmediate(original);
+
+        var anim = wrap.AddComponent<WhoBrokeIt.Player.CharacterAnimator>();
+        anim.hips = hips; anim.legL = legL; anim.legR = legR; anim.armL = armL; anim.armR = armR;
+        anim.swingDegrees = spec.legSwing; anim.armSwingDegrees = spec.armSwing;
+        Debug.Log("[WBI] rig " + key + ": deri (otomatik agirlik) kalca=" + hips.localPosition.y.ToString("0.00") + " omuz=" + armR.position.ToString("0.00"));
+        return true;
+    }
 
     /// <summary>Per-asset quality report for the build log (triangles, height, materials, biggest texture) with warnings over the budgets.</summary>
     static void QaReport(GameObject model, string key)
@@ -204,6 +316,30 @@ public static class AiAssets
         Debug.Log("[WBI] qa " + key + ": ucgen=" + tris + " tepe=" + verts + " boy=" + b.size.y.ToString("0.00") + " m malzeme=" + mats.Count + " enbuyuk_doku=" + maxTex + warn);
     }
 
+    /// <summary>NPC models (pedestrians, vendors): Resources/Npcs/&lt;key&gt;.prefab from npc_&lt;key&gt;.glb, see WhoBrokeIt.World.NpcCatalog.</summary>
+    static int BuildNpcPrefabs()
+    {
+        Directory.CreateDirectory("Assets/Resources/Npcs");
+        var made = 0;
+        foreach (var entry in WhoBrokeIt.World.NpcCatalog.All)
+        {
+            var path = "Assets/Resources/Npcs/" + entry.key + ".prefab";
+            var model = Model("npc_" + entry.key, 1.8f, true, CharacterYaw, false);
+            if (model == null)
+            {
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null) AssetDatabase.DeleteAsset(path);
+                continue;
+            }
+            model.name = "Npc_" + entry.key;
+            Debug.Log("[WBI] iskelet npc " + entry.key + ": " + (Rig(model, "npc_" + entry.key, "Assets/Resources/Npcs/Meshes") ? "tamam" : "yok (statik)"));
+            QaReport(model, "npc_" + entry.key);
+            PrefabUtility.SaveAsPrefabAsset(model, path);
+            Object.DestroyImmediate(model);
+            made++;
+        }
+        return made;
+    }
+
     /// <summary>Character models: Resources/Characters/&lt;key&gt;.prefab (the runtime catalog prefers these over the generated primitives).</summary>
     public static int BuildCharacterPrefabs()
     {
@@ -225,6 +361,7 @@ public static class AiAssets
             Object.DestroyImmediate(model);
             made++;
         }
+        made += BuildNpcPrefabs();
         AssetDatabase.SaveAssets();
         return made;
     }

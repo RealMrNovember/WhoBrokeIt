@@ -65,7 +65,7 @@ namespace WhoBrokeIt.Player
             hipsBaseScale = Body.localScale;
             if (hips != null) hipHeight = hips.localPosition.y;
             lastTick = net != null ? net.actionTick.Value : 0;
-            if (armR != null) { handR = new GameObject("HandR").transform; handR.SetParent(armR, false); handR.localPosition = new Vector3(0f, -0.62f, 0f); }
+            if (armR != null) { handR = new GameObject("HandR").transform; handR.SetParent(armR, false); handR.localPosition = new Vector3(0f, -0.52f, 0f); }
         }
 
         static float Sm(float current, float target, float k) { return Mathf.Lerp(current, target, 1f - Mathf.Exp(-k * Time.deltaTime)); }

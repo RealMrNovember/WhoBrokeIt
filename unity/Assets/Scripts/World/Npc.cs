@@ -6,7 +6,7 @@ namespace WhoBrokeIt.World
 {
     /// <summary>
     /// Ambient pedestrian. The server walks it between random spots of its area (standing around now and then) and replicates the pose; every
-    /// peer dresses it in one of the character models and the usual CharacterAnimator turns the movement into steps. It only lives its own life:
+    /// peer dresses it in one of the NPC models (NpcCatalog) and the usual CharacterAnimator turns the movement into steps. It only lives its own life:
     /// nothing in the contracts depends on it, and it is a solid kinematic body that players and props bump into.
     /// </summary>
     public class Npc : NetworkBehaviour
@@ -28,7 +28,7 @@ namespace WhoBrokeIt.World
             look.OnValueChanged += (a, b) => Dress(b);
             if (IsServer)
             {
-                look.Value = (byte)Random.Range(0, CharacterCatalog.All.Length);
+                look.Value = (byte)NpcCatalog.Pick(stationary);   // own NPC models, not the playable characters
                 waitUntil = Time.time + Random.Range(0.5f, 4f);
             }
             Dress(look.Value);
@@ -38,7 +38,7 @@ namespace WhoBrokeIt.World
         {
             if (Net.DedicatedServer.IsDedicated) return;               // servers never draw anything
             if (visual != null) Destroy(visual);
-            visual = CharacterCatalog.Build(id, transform);             // the animator follows its parent, i.e. this root
+            visual = NpcCatalog.Build(id, transform);                   // the animator follows its parent, i.e. this root
         }
 
         bool Free(Vector3 from, Vector3 to)
