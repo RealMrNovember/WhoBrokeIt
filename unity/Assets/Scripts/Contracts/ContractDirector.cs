@@ -147,7 +147,7 @@ namespace WhoBrokeIt.Contracts
             GUI.matrix = Matrix4x4.Scale(new Vector3(s, s, 1f));
             var w = Screen.width / s;
             var d = Def(activeId.Value);
-            var r = new Rect(w / 2f - 330, 18, 660, 112);
+            var r = new Rect(w / 2f - 330, 122, 660, 112);   // below the radio message box (it sits at the top centre)
             var ok = state.Value == Success; var fail = state.Value == Failed;
             UiKit.Card(r, ok ? new Color(0.12f, 0.45f, 0.3f, 0.95f) : fail ? new Color(0.55f, 0.15f, 0.18f, 0.95f) : new Color(0.09f, 0.11f, 0.22f, 0.9f), 26f);
             UiKit.Text(new Rect(r.x + 24, r.y + 8, 440, 40), d.title, 30, UiKit.Sun, TextAnchor.MiddleLeft, FontStyle.Bold);

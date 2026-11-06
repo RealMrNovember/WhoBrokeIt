@@ -31,11 +31,43 @@ namespace WhoBrokeIt.Net
             Application.Quit(0);
         }
 
+        /// <summary>HUD tour (needs a real window, run under Xvfb): host, accept the first contract, shoot the screen as the player sees it from a few headings.</summary>
+        IEnumerator RunHud(string dir)
+        {
+            Directory.CreateDirectory(dir);
+            yield return null;
+            var nm = NetworkManager.Singleton;
+            ((UnityTransport)nm.NetworkConfig.NetworkTransport).SetConnectionData("127.0.0.1", 7777, "127.0.0.1");
+            if (!nm.StartHost()) { Application.Quit(1); yield break; }
+            var t = 0f;
+            while (PlayerNet.Local == null && t < 20f) { t += Time.deltaTime; yield return null; }
+            if (PlayerNet.Local == null) { Debug.Log("[SHOT] oyuncu yok"); Application.Quit(2); yield break; }
+            yield return new WaitForSeconds(3f);
+            var cd = FindFirstObjectByType<WhoBrokeIt.Contracts.ContractDirector>();
+            if (cd != null) cd.ServerStart(0);
+            yield return new WaitForSeconds(3f);
+            var p = PlayerNet.Local; var cc = p.GetComponent<CharacterController>();
+            var yaws = new[] { 0f, 90f, 180f, 270f };
+            for (var i = 0; i < yaws.Length; i++)
+            {
+                cc.enabled = false; p.transform.rotation = Quaternion.Euler(0f, yaws[i], 0f); cc.enabled = true;
+                yield return new WaitForSeconds(1.5f);
+                yield return new WaitForEndOfFrame();
+                var tex = ScreenCapture.CaptureScreenshotAsTexture();
+                File.WriteAllBytes(Path.Combine(dir, "hud_" + i + ".jpg"), tex.EncodeToJPG(90));
+                Destroy(tex);
+                Debug.Log("[SHOT] hud " + i + " state=" + (cd != null ? cd.state.Value.ToString() : "?") + " aktif=" + (cd != null ? cd.activeId.Value.ToString() : "?"));
+            }
+            Application.Quit(0);
+        }
+
         void Start()
         {
             var a = Environment.GetCommandLineArgs();
             var m = Array.IndexOf(a, "-menushot");
             if (m >= 0) { StartCoroutine(MenuShot(m + 1 < a.Length ? a[m + 1] : "shots_menu")); return; }
+            var hs = Array.IndexOf(a, "-hudshot");
+            if (hs >= 0) { StartCoroutine(RunHud(hs + 1 < a.Length ? a[hs + 1] : "shots_hud")); return; }
             var g = Array.IndexOf(a, "-gfshots");
             if (g >= 0) { StartCoroutine(RunGreenfield(g + 1 < a.Length ? a[g + 1] : "shots")); return; }
             var i = Array.IndexOf(a, "-shots");
