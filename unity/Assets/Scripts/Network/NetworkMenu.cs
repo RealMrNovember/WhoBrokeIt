@@ -418,7 +418,7 @@ namespace WhoBrokeIt.Net
                 if (cam != null) cam.enabled = vis;
                 if (vis) { if (stageLight != null) { prevSun = RenderSettings.sun; RenderSettings.sun = stageLight; } }
                 else if (stageLight != null && RenderSettings.sun == stageLight) RenderSettings.sun = prevSun;
-                GameAudio.MenuMusic(vis);
+                GameAudio.MenuMusic(true, vis ? 0.5f : 0.3f);   // the pad keeps playing, quieter, during a match
             }
             if (!vis) return;
             if (stage == null) { BuildStage(); cam.enabled = true; prevSun = RenderSettings.sun; RenderSettings.sun = stageLight; GameAudio.MenuMusic(true); }

@@ -48,6 +48,9 @@ namespace WhoBrokeIt.Net
             yield return new WaitForSeconds(3f);
             var p = PlayerNet.Local; var cc = p.GetComponent<CharacterController>();
             PlayerNet.DebugTagSelf = true;
+            WhoBrokeIt.Audio.GameAudio.Play(WhoBrokeIt.Audio.Sfx.Pickup, p.transform.position);
+            yield return new WaitForSeconds(0.3f);
+            Debug.Log("[SHOT] SES " + WhoBrokeIt.Audio.GameAudio.Diag());
             var yaws = new[] { 0f, 90f, 180f, 270f };
             for (var i = 0; i < yaws.Length; i++)
             {

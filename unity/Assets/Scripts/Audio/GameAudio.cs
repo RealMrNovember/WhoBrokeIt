@@ -218,8 +218,17 @@ namespace WhoBrokeIt.Audio
             uiSource.PlayOneShot(clips[(int)sfx], Mathf.Clamp01(volume * Effects));
         }
 
+
+        /// <summary>Test/debug: what would be audible right now.</summary>
+        public static string Diag()
+        {
+            var n = 0; var names = "";
+            foreach (var l in Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None)) if (l.enabled && l.gameObject.activeInHierarchy) { n++; names += l.name + ","; }
+            var playing = 0; foreach (var s in pool) if (s != null && s.isPlaying) playing++;
+            return "dinleyici=" + n + " (" + names + ") ana=" + AudioListener.volume.ToString("0.00") + " duraklat=" + AudioListener.pause + " muzik=" + (musicSource != null && musicSource.isPlaying) + " muzikSes=" + (musicSource != null ? musicSource.volume.ToString("0.00") : "-") + " efektHavuz=" + pool.Count + " calan=" + playing + " muzikAyar=" + Music.ToString("0.00") + " efektAyar=" + Effects.ToString("0.00");
+        }
         /// <summary>Gentle looping menu music (a 4-chord pad with a pentatonic pluck line, 16 seconds), made from code. Off while playing.</summary>
-        public static void MenuMusic(bool on)
+        public static void MenuMusic(bool on, float gain = 0.5f)
         {
             if (Silent) return;
             EnsureUi();
@@ -228,7 +237,7 @@ namespace WhoBrokeIt.Audio
             {
                 if (menuMusic == null) menuMusic = BuildMusic();
                 if (musicSource.clip != menuMusic) musicSource.clip = menuMusic;
-                musicSource.volume = Music * 0.5f;
+                musicSource.volume = Music * gain;
                 if (!musicSource.isPlaying) musicSource.Play();
             }
             else if (musicSource.isPlaying) musicSource.Stop();
