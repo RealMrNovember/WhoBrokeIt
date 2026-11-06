@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Unity.Netcode;
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.Networking;
 using Debug = UnityEngine.Debug;
 
@@ -165,21 +166,21 @@ namespace WhoBrokeIt.Net
             switch (state)
             {
                 case State.Downloading:
-                    GUI.Label(r, "Yeni sürüm " + (latest != null ? latest.version : "") + " indiriliyor... %" + Mathf.RoundToInt(progress * 100f), style);
+                    LocGui.Label(r, "Yeni sürüm " + (latest != null ? latest.version : "") + " indiriliyor... %" + Mathf.RoundToInt(progress * 100f), style);
                     break;
                 case State.Ready:
                     if (InSession())
                     {
-                        if (GUI.Button(new Rect(r.x + 380, r.y + 6, 210, 32), "Şimdi yeniden başlat")) Apply();
-                        GUI.Label(new Rect(r.x, r.y, 380, r.height), message + " (oyun bitince)", style);
+                        if (LocGui.Button(new Rect(r.x + 380, r.y + 6, 210, 32), "Şimdi yeniden başlat")) Apply();
+                        LocGui.Label(new Rect(r.x, r.y, 380, r.height), message + " (oyun bitince)", style);
                     }
-                    else GUI.Label(r, message + " · yeniden başlatılıyor...", style);
+                    else LocGui.Label(r, message + " · yeniden başlatılıyor...", style);
                     break;
                 case State.Applying:
-                    GUI.Label(r, "Güncelleniyor...", style);
+                    LocGui.Label(r, "Güncelleniyor...", style);
                     break;
                 case State.Error:
-                    GUI.Label(r, message, style);
+                    LocGui.Label(r, message, style);
                     break;
             }
         }

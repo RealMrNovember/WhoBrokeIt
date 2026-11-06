@@ -1,4 +1,5 @@
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.InputSystem;
 
 namespace WhoBrokeIt.Player
@@ -40,7 +41,7 @@ namespace WhoBrokeIt.Player
             if (dazedStyle == null)
                 dazedStyle = new GUIStyle(GUI.skin.label) { fontSize = 44, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
             dazedStyle.normal.textColor = new Color(1f, 0.5f, 0.45f);
-            GUI.Label(new Rect(0, Screen.height * 0.35f, Screen.width, 70), "BONK! Sersemledin...", dazedStyle);
+            LocGui.Label(new Rect(0, Screen.height * 0.35f, Screen.width, 70), "BONK! Sersemledin...", dazedStyle);
         }
 
         void Update()

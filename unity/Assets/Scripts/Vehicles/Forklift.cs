@@ -1,6 +1,7 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.InputSystem;
 using WhoBrokeIt.Case;
 using WhoBrokeIt.Interaction;
@@ -419,7 +420,7 @@ namespace WhoBrokeIt.Vehicles
             if (style == null) style = new GUIStyle(GUI.skin.label) { fontSize = 20, alignment = TextAnchor.MiddleCenter };
             style.normal.textColor = Color.white;
             var h = forks != null ? forks.position.y - (body.position.y + forkOrigin.y) : 0f;
-            GUI.Label(new Rect(0, Screen.height * 0.8f, Screen.width, 36),
+            LocGui.Label(new Rect(0, Screen.height * 0.8f, Screen.width, 36),
                 "Çatal yüksekliği: " + h.ToString("0.0") + " m   (R yukarı · F aşağı · E çık · X sıfırla)", style);
         }
     }

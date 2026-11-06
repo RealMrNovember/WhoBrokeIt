@@ -1,4 +1,5 @@
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.InputSystem;
 using WhoBrokeIt.Player;
 
@@ -128,7 +129,7 @@ namespace WhoBrokeIt.Interaction
             if (style == null)
                 style = new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 26, fontStyle = FontStyle.Bold };
             style.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUI.Label(new Rect(0, Screen.height * 0.72f, Screen.width, 50), text, style);
+            LocGui.Label(new Rect(0, Screen.height * 0.72f, Screen.width, 50), text, style);
         }
     }
 }

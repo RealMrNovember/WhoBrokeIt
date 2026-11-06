@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using WhoBrokeIt.Interaction;
@@ -72,7 +73,7 @@ namespace WhoBrokeIt.Case
         [Rpc(SendTo.ClientsAndHost)]
         void ToastRpc(string msg, float sec) => LocalToast(msg, sec);
 
-        void LocalToast(string msg, float sec) => toasts.Enqueue((msg, sec));
+        void LocalToast(string msg, float sec) => toasts.Enqueue((Net.Loc.T(msg), sec));
 
         // ---------- server-side state changes ----------
         public static void NoteSpark() { if (I != null && I.IsServer) { I.sparks.Value++; Net.Telemetry.Log("spark"); } }
@@ -181,7 +182,7 @@ namespace WhoBrokeIt.Case
 
             GUI.Box(new Rect(20, 20, 560, 190), "", box);
             label.normal.textColor = Color.white;
-            GUI.Label(new Rect(34, 28, 540, 180),
+            LocGui.Label(new Rect(34, 28, 540, 180),
                 "GÖREV: Atölyeyi Aç\n" +
                 Tick(ClueCount >= cluesTotal) + "İpuçlarını bul (" + ClueCount + "/" + cluesTotal + ")\n" +
                 Tick(DebrisCleared.Value) + "Enkazı toplama alanına süpür (" + Mathf.Min(debrisCount.Value, debrisNeeded) + "/" + debrisNeeded + ")\n" +
@@ -189,27 +190,27 @@ namespace WhoBrokeIt.Case
                 Tick(CabinetDelivered.Value) + "Alet dolabını atölyeye taşı", label);
 
             small.normal.textColor = new Color(1f, 1f, 1f, 0.8f);
-            GUI.Label(new Rect(20, h - 60, w - 40, 50),
+            LocGui.Label(new Rect(20, h - 60, w - 40, 50),
                 "WASD yürü · Shift koş · Space zıpla · E kullan/al/bırak · 1 eller 2 süpürge 3 çekiç · 4-7 selam/işaret/yaşasın/dans · Enter sohbet · Sol tık kullan (taşırken: fırlat) · Sağ tık vur · Tab defter · X sıfırla (basılı tut)", small);
 
             if (roomCode.Value.Length > 0)
             {
                 GUI.Box(new Rect(w - 360, 20, 340, 112), "", box);
                 small.normal.textColor = new Color(1f, 1f, 1f, 0.75f);
-                GUI.Label(new Rect(w - 350, 24, 320, 24), "ODA KODU · " + playerCount + "/4 oyuncu", small);
+                LocGui.Label(new Rect(w - 350, 24, 320, 24), "ODA KODU · " + playerCount + "/4 oyuncu", small);
                 big.normal.textColor = new Color(1f, 0.85f, 0.2f);
                 var oldSize = big.fontSize;
                 big.fontSize = 38;
-                GUI.Label(new Rect(w - 350, 44, 320, 48), roomCode.Value.ToString(), big);
+                LocGui.Label(new Rect(w - 350, 44, 320, 48), roomCode.Value.ToString(), big);
                 big.fontSize = oldSize;
-                if (GUI.Button(new Rect(w - 280, 94, 180, 30), "Kodu kopyala")) GUIUtility.systemCopyBuffer = roomCode.Value.ToString();
+                if (LocGui.Button(new Rect(w - 280, 94, 180, 30), "Kodu kopyala")) GUIUtility.systemCopyBuffer = roomCode.Value.ToString();
             }
 
             if (toastText != null)
             {
                 GUI.Box(new Rect(w / 2f - 480, 24, 960, 90), "", box);
                 label.alignment = TextAnchor.MiddleCenter;
-                GUI.Label(new Rect(w / 2f - 470, 28, 940, 84), toastText, label);
+                LocGui.Label(new Rect(w / 2f - 470, 28, 940, 84), toastText, label);
                 label.alignment = TextAnchor.UpperLeft;
             }
 
@@ -225,7 +226,7 @@ namespace WhoBrokeIt.Case
                     sb.Append("• ").Append(c.title).Append(": ").Append(c.text).Append("\n\n");
                 }
                 if (!any) sb.Append("(henüz ipucu yok)\n");
-                GUI.Label(new Rect(w - 600, 130, 570, 500), sb.ToString(), label);
+                LocGui.Label(new Rect(w - 600, 130, 570, 500), sb.ToString(), label);
             }
 
             if (Finished.Value) DrawFinale(w);
@@ -235,7 +236,7 @@ namespace WhoBrokeIt.Case
         {
             GUI.Box(new Rect(w / 2f - 560, 120, 1120, 760), "", box);
             big.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUI.Label(new Rect(w / 2f - 540, 140, 1080, 70), "KİM BOZDU?", big);
+            LocGui.Label(new Rect(w / 2f - 540, 140, 1080, 70), "KİM BOZDU?", big);
             label.normal.textColor = Color.white;
             var mins = Mathf.FloorToInt(elapsed.Value / 60f);
             var secs = Mathf.FloorToInt(elapsed.Value % 60f);
@@ -245,7 +246,7 @@ namespace WhoBrokeIt.Case
             if (bonks.Value > 0) awards += "• Dostane Bonk Şampiyonu (" + bonks.Value + " bonk)\n";
             if (elapsed.Value < 600f) awards += "• Hızlı İşçi\n";
             if (awards == "") awards = "• Sakin ve Düzenli (şüpheli...)\n";
-            GUI.Label(new Rect(w / 2f - 520, 230, 1040, 640),
+            LocGui.Label(new Rect(w / 2f - 520, 230, 1040, 640),
                 "Suçlu: SİNCAP MEHMET.\n\n" +
                 "Kabloyu kemirip sigortayı attırdı. Böreği ise Muhtar bırakmıştı (kimse sormadı).\n" +
                 "Alet çantası da Mehmet'in yuvasında bulundu, içinde yarım börek vardı.\n\n" +

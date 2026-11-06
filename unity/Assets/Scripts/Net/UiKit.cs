@@ -75,6 +75,7 @@ namespace WhoBrokeIt.Net
 
         public static void Text(Rect r, string text, int size, Color c, TextAnchor anchor = TextAnchor.MiddleLeft, FontStyle style = FontStyle.Normal, bool shade = true)
         {
+            text = Loc.T(text);
             EnsureStyles();
             label.fontSize = size; label.alignment = anchor; label.fontStyle = style;
             if (shade)
@@ -101,6 +102,7 @@ namespace WhoBrokeIt.Net
         /// <summary>A rounded button. Returns true when clicked (mouse) or activated (Enter/Space while focused).</summary>
         public static bool Button(Rect r, string text, Kind kind = Kind.Normal, bool enabled = true, int fontSize = 30, string hint = null)
         {
+            text = Loc.T(text); hint = Loc.T(hint);
             EnsureStyles();
             var e = Event.current;
             var id = GUIUtility.GetControlID(FocusType.Passive);
@@ -170,6 +172,7 @@ namespace WhoBrokeIt.Net
         /// <summary>Horizontal slider 0..1 with a rounded track and knob. Mouse drag, or left/right when focused.</summary>
         public static float Slider(Rect r, float value, string name)
         {
+            name = Loc.T(name);
             var e = Event.current;
             var id = GUIUtility.GetControlID(FocusType.Passive);
             var my = Locked ? -1 : Index++;
@@ -204,7 +207,7 @@ namespace WhoBrokeIt.Net
 
         public static bool Toggle(Rect r, string text, bool value)
         {
-            var label = text + ":  " + (value ? "AÇIK" : "KAPALI");
+            var label = Loc.T(text) + ":  " + Loc.T(value ? "AÇIK" : "KAPALI");
             return Button(r, label, value ? Kind.Normal : Kind.Ghost, true, 26) ? !value : value;
         }
 

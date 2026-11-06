@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using WhoBrokeIt.Net;
 
 namespace WhoBrokeIt.Net
 {
@@ -48,14 +49,14 @@ namespace WhoBrokeIt.Net
             GUI.Box(new Rect(0, 0, w, 1080), "");
             GUI.Box(new Rect(0, 0, w, 1080), "");
             title.normal.textColor = new Color(1f, 0.85f, 0.2f);
-            GUI.Label(new Rect(w / 2f - 520, 250, 1040, 80), "Önce kurman gerekiyor", title);
-            GUI.Label(new Rect(w / 2f - 520, 350, 1040, 160),
+            LocGui.Label(new Rect(w / 2f - 520, 250, 1040, 80), "Önce kurman gerekiyor", title);
+            LocGui.Label(new Rect(w / 2f - 520, 350, 1040, 160),
                 "Who Broke It? doğrudan çalıştırılmaz. Kurulum dosyasını (WhoBrokeIt-Setup) indirip çalıştır; oyun varsayılan olarak C:\\Program Files\\CiciByte\\WhoBrokeIt klasörüne kurulur ve kendini güncel tutar.", body);
             var prev = GUI.backgroundColor;
             GUI.backgroundColor = new Color(1f, 0.82f, 0.25f);
-            if (GUI.Button(new Rect(w / 2f - 280, 560, 560, 84), "Kurulum dosyasını indir", btn)) Application.OpenURL(downloadPage);
+            if (LocGui.Button(new Rect(w / 2f - 280, 560, 560, 84), "Kurulum dosyasını indir", btn)) Application.OpenURL(downloadPage);
             GUI.backgroundColor = prev;
-            if (GUI.Button(new Rect(w / 2f - 280, 664, 560, 64), "Çık", btn)) Application.Quit();
+            if (LocGui.Button(new Rect(w / 2f - 280, 664, 560, 64), "Çık", btn)) Application.Quit();
         }
     }
 }

@@ -1,5 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.InputSystem;
 using WhoBrokeIt.Player;
 
@@ -59,16 +60,16 @@ namespace WhoBrokeIt.Net
         {
             var prev = GUI.backgroundColor;
             if (primary) GUI.backgroundColor = new Color(1f, 0.82f, 0.25f);
-            var pressed = GUI.Button(r, text, btn);
+            var pressed = LocGui.Button(r, text, btn);
             GUI.backgroundColor = prev;
             return pressed;
         }
 
         float Slider(float x, float y, string name, float value, float min, float max, string fmt)
         {
-            GUI.Label(new Rect(x, y, 300, 36), name, small);
+            LocGui.Label(new Rect(x, y, 300, 36), name, small);
             var v = GUI.HorizontalSlider(new Rect(x + 300, y + 12, 220, 20), value, min, max);
-            GUI.Label(new Rect(x + 530, y, 110, 36), v.ToString(fmt), small);
+            LocGui.Label(new Rect(x + 530, y, 110, 36), v.ToString(fmt), small);
             return v;
         }
 
@@ -94,11 +95,11 @@ namespace WhoBrokeIt.Net
             var x = w / 2f - 320;
             title.normal.textColor = new Color(1f, 0.85f, 0.2f);
             GUI.Box(new Rect(w / 2f - 380, 80, 760, 880), "");
-            GUI.Label(new Rect(x, 110, 640, 70), "Duraklatıldı", title);
+            LocGui.Label(new Rect(x, 110, 640, 70), "Duraklatıldı", title);
 
             if (Button(new Rect(x, 195, 640, 70), "Devam et", true)) SetOpen(false);
 
-            GUI.Label(new Rect(x, 285, 640, 34), "Kamera", label);
+            LocGui.Label(new Rect(x, 285, 640, 34), "Kamera", label);
             var fp = ThirdPersonCamera.FirstPersonPreferred;
             if (Button(new Rect(x, 325, 640, 56), fp ? "Kamera: 1. şahıs  (değiştir)" : "Kamera: 3. şahıs  (değiştir)")) ThirdPersonCamera.FirstPersonPreferred = !fp;
             var cam = ThirdPersonCamera.Instance;
@@ -113,7 +114,7 @@ namespace WhoBrokeIt.Net
             ThirdPersonCamera.Sensitivity = Slider(x, 528, "Fare hızı", ThirdPersonCamera.Sensitivity, 0.03f, 0.4f, "0.00");
             WhoBrokeIt.Audio.GameAudio.Master = Slider(x, 566, "Ses (genel)", WhoBrokeIt.Audio.GameAudio.Master, 0f, 1f, "0.00");
             WhoBrokeIt.Audio.GameAudio.Effects = Slider(x, 600, "Ses efektleri", WhoBrokeIt.Audio.GameAudio.Effects, 0f, 1f, "0.00");
-            GUI.Label(new Rect(x, 636, 640, 30), "Oyunda: fare tekerleği yakınlaştırır, [ ] eğer, V 1./3. şahıs.", small);
+            LocGui.Label(new Rect(x, 636, 640, 30), "Oyunda: fare tekerleği yakınlaştırır, [ ] eğer, V 1./3. şahıs.", small);
             if (Button(new Rect(x, 668, 310, 50), "Varsayılan kamera"))
             {
                 ThirdPersonCamera.HeightAdjust = 0f; ThirdPersonCamera.ShoulderAdjust = 0f; ThirdPersonCamera.Fov = 70f; ThirdPersonCamera.Sensitivity = 0.12f;
@@ -126,11 +127,12 @@ namespace WhoBrokeIt.Net
             {
                 var qlv = GraphicsQuality.Level < 0 ? GraphicsQuality.Detect() : GraphicsQuality.Level;
                 if (Button(new Rect(x, 728, 640, 48), "Grafik kalitesi: " + GraphicsQuality.Names[qlv] + "  (değiştir)")) GraphicsQuality.Cycle();
-                GUI.Label(new Rect(x, 786, 640, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
+                LocGui.Label(new Rect(x, 786, 640, 34), "Karakter: " + CharacterCatalog.All[Mathf.Clamp(p.characterId.Value, 0, CharacterCatalog.Count - 1)].name, label);
                 if (Button(new Rect(x, 822, 310, 48), "◀ Önceki")) ChangeCharacter(p, -1);
                 if (Button(new Rect(x + 330, 822, 310, 48), "Sonraki ▶")) ChangeCharacter(p, 1);
             }
 
+            if (Button(new Rect(x + 450, 120, 190, 44), "Dil: " + Loc.LanguageName)) Loc.Toggle();
             if (Button(new Rect(x, 890, 310, 54), "Ana menüye dön"))
             {
                 SetOpen(false);

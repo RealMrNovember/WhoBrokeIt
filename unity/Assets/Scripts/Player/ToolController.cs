@@ -1,4 +1,5 @@
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.InputSystem;
 
 namespace WhoBrokeIt.Player
@@ -73,12 +74,12 @@ namespace WhoBrokeIt.Player
                 var r = new Rect(Screen.width / 2f - 240 + i * 160, Screen.height - 110, 150, 44);
                 GUI.Box(r, "");
                 style.normal.textColor = net.toolId.Value == i ? new Color(1f, 0.85f, 0.2f) : Color.white;
-                GUI.Label(r, names[i], style);
+                LocGui.Label(r, names[i], style);
             }
             if (resetHold > 0.05f)
             {
                 style.normal.textColor = Color.white;
-                GUI.Label(new Rect(0, Screen.height * 0.6f, Screen.width, 40), "Sıfırlanıyor...", style);
+                LocGui.Label(new Rect(0, Screen.height * 0.6f, Screen.width, 40), "Sıfırlanıyor...", style);
             }
         }
     }

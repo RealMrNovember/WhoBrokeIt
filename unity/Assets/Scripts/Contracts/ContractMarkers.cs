@@ -79,7 +79,7 @@ namespace WhoBrokeIt.Contracts
             GUI.color = color;
             if (inside)
             {
-                GUI.Label(new Rect(x - 120f * m, y - 34f * m, 240f * m, 30f * m), text, Style(m, color));
+                LocGui.Label(new Rect(x - 120f * m, y - 34f * m, 240f * m, 30f * m), text, Style(m, color));
                 Arrow(new Vector2(x, y), 180f, m);                              // pointing down at the target
             }
             else
@@ -95,7 +95,7 @@ namespace WhoBrokeIt.Contracts
                 var angle = Mathf.Atan2(dir.x, -dir.y) * Mathf.Rad2Deg;
                 Arrow(p, angle, m);
                 var lp = p - dir * 40f * m;
-                GUI.Label(new Rect(lp.x - 120f * m, lp.y - 15f * m, 240f * m, 30f * m), text, Style(m, color));
+                LocGui.Label(new Rect(lp.x - 120f * m, lp.y - 15f * m, 240f * m, 30f * m), text, Style(m, color));
             }
             GUI.color = old; GUI.matrix = oldMatrix;
         }

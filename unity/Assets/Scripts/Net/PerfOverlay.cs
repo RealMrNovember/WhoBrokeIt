@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
+using WhoBrokeIt.Net;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -106,7 +107,7 @@ namespace WhoBrokeIt.Net
             var q = GraphicsQuality.Level >= 0 ? GraphicsQuality.Names[GraphicsQuality.Level] : "?";
             var text = "FPS " + shownFps.ToString("0") + " (en düşük " + shownMin.ToString("0") + ")" + ping + " · " + Screen.width + "x" + Screen.height + " · kalite " + q + " · F3";
             style.normal.textColor = shownFps < 30f ? new Color(1f, 0.5f, 0.45f) : new Color(0.85f, 1f, 0.85f);
-            GUI.Label(new Rect(Screen.width - 620, 4, 612, 24), text, style);
+            LocGui.Label(new Rect(Screen.width - 620, 4, 612, 24), text, style);
         }
     }
 }

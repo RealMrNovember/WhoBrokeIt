@@ -588,6 +588,8 @@ namespace WhoBrokeIt.Net
             }
             GUI.color = prevColor;
             UiKit.Locked = false;
+            if (!connecting && !confirmExit && page != Page.Characters)          // language switch, bottom right of every page
+                if (UiKit.Button(new Rect(W - 330, H - 84, 290, 58), "Dil: " + Loc.LanguageName, UiKit.Kind.Ghost, true, 22)) Loc.Toggle();
 
             // transient messages
             if (!connecting && !confirmExit && !string.IsNullOrEmpty(status))

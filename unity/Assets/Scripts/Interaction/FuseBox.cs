@@ -1,6 +1,7 @@
 using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using WhoBrokeIt.Net;
 using WhoBrokeIt.Case;
 
 namespace WhoBrokeIt.Interaction
@@ -91,7 +92,7 @@ namespace WhoBrokeIt.Interaction
             var r = new Rect(Screen.width / 2f - w / 2f, Screen.height * 0.62f, w, 28);
             GUI.Box(r, "");
             GUI.Box(new Rect(r.x + 3, r.y + 3, (w - 6) * Mathf.Clamp01(progress.Value), r.height - 6), "", GUI.skin.box);
-            GUI.Label(new Rect(r.x, r.y - 34, w, 30), "Onarılıyor...", style);
+            LocGui.Label(new Rect(r.x, r.y - 34, w, 30), "Onarılıyor...", style);
         }
     }
 }
