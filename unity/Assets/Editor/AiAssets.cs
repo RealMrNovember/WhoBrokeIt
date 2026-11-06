@@ -24,9 +24,34 @@ public static class AiAssets
     {
         var rs = root.GetComponentsInChildren<Renderer>();
         if (rs.Length == 0) return new Bounds(root.transform.position, Vector3.one * 0.1f);
-        var b = rs[0].bounds;
-        foreach (var r in rs) b.Encapsulate(r.bounds);
+        var b = RendererBounds(rs[0]);
+        foreach (var r in rs) b.Encapsulate(RendererBounds(r));
         return b;
+    }
+
+    /// <summary>
+    /// World bounds of one renderer. A skinned mesh in the editor reports its (importer-chosen) local bounds, which can be much larger than the
+    /// mesh; the vertices are skinned here instead (bone matrix x bind pose, weighted), so a skinned model is scaled and placed by its real size.
+    /// </summary>
+    static Bounds RendererBounds(Renderer r)
+    {
+        var s = r as SkinnedMeshRenderer;
+        if (s == null || s.sharedMesh == null || !s.sharedMesh.isReadable || s.bones == null || s.bones.Length == 0) return r.bounds;
+        var mesh = s.sharedMesh; var v = mesh.vertices; var bw = mesh.boneWeights; var bp = mesh.bindposes;
+        if (bw.Length != v.Length) return r.bounds;
+        var mats = new Matrix4x4[s.bones.Length];
+        for (var j = 0; j < mats.Length; j++) mats[j] = (s.bones[j] != null ? s.bones[j].localToWorldMatrix : s.transform.localToWorldMatrix) * (j < bp.Length ? bp[j] : Matrix4x4.identity);
+        var first = true; var b = new Bounds();
+        for (var i = 0; i < v.Length; i++)
+        {
+            var w = bw[i]; var p = Vector3.zero; var t = 0f;
+            void Add(int bi, float wt) { if (wt > 0f && bi >= 0 && bi < mats.Length) { p += mats[bi].MultiplyPoint3x4(v[i]) * wt; t += wt; } }
+            Add(w.boneIndex0, w.weight0); Add(w.boneIndex1, w.weight1); Add(w.boneIndex2, w.weight2); Add(w.boneIndex3, w.weight3);
+            if (t <= 0f) continue;
+            p /= t;
+            if (first) { b = new Bounds(p, Vector3.zero); first = false; } else b.Encapsulate(p);
+        }
+        return first ? r.bounds : b;
     }
 
     /// <summary>
@@ -113,7 +138,17 @@ public static class AiAssets
         var legR = Bone("LegR", new Vector3(0.09f, spec.hipY, 0f));
         var armL = Bone("ArmL", new Vector3(-spec.shoulderX, spec.shoulderY, 0f));
         var armR = Bone("ArmR", new Vector3(spec.shoulderX, spec.shoulderY, 0f));
-        var bones = new[] { hips, legL, legR, armL, armR };
+        // knees: 0.45 of the leg length below the hip, children of the thighs (CharacterAnimator folds the shins back)
+        var kneeY = spec.hipY * 0.55f;
+        Transform Knee(string name, Transform leg)
+        {
+            var b = new GameObject(name).transform;
+            b.SetParent(leg, false);
+            b.position = wrap.transform.TransformPoint(new Vector3(wrap.transform.InverseTransformPoint(leg.position).x, kneeY, 0f));
+            return b;
+        }
+        var kneeL = Knee("KneeL", legL); var kneeR = Knee("KneeR", legR);
+        var bones = new[] { hips, legL, legR, armL, armR, kneeL, kneeR };
         var bind = new Matrix4x4[bones.Length];
         for (var i = 0; i < bones.Length; i++) bind[i] = bones[i].worldToLocalMatrix * wrap.transform.localToWorldMatrix;
 
@@ -149,6 +184,12 @@ public static class AiAssets
                 bw.boneIndex1 = legIdx; bw.weight1 = legW;
                 bw.boneIndex2 = p.x >= 0f ? 1 : 2; bw.weight2 = legOther;
                 bw.boneIndex3 = armIdx; bw.weight3 = wArm;
+                var shin = 1f - Smooth(kneeY - 0.07f, kneeY + 0.07f, p.y);       // below the knee the shin takes the leg's share
+                if (wArm < 0.0001f && shin > 0f)                                  // the arm slot is free there (arms end above the knees)
+                {
+                    bw.boneIndex3 = legIdx + 4; bw.weight3 = legW * shin;
+                    bw.weight1 = legW * (1f - shin);
+                }
                 w[i] = bw;
             }
             m.vertices = v;
@@ -175,12 +216,15 @@ public static class AiAssets
 
         var anim = wrap.AddComponent<WhoBrokeIt.Player.CharacterAnimator>();
         anim.hips = hips; anim.legL = legL; anim.legR = legR; anim.armL = armL; anim.armR = armR;
+        anim.kneeL = kneeL; anim.kneeR = kneeR;
         anim.swingDegrees = spec.legSwing; anim.armSwingDegrees = spec.armSwing;
         return true;
     }
 
 
-    static readonly string[] SkinBones = { "Hips", "LegL", "LegR", "ArmL", "ArmR" };
+    /// <summary>Bone names of the skinned models: the first five are required, the knees (karakter2 round 3) are optional.</summary>
+    static readonly string[] SkinBones = { "Hips", "LegL", "LegR", "ArmL", "ArmR", "KneeL", "KneeR" };
+    const int RequiredSkinBones = 5;
 
     /// <summary>
     /// karakter2 models (tools/gpu karakter2, Blender rig.py) arrive already skinned: a 5-bone skeleton with the same names as ours and
@@ -195,7 +239,7 @@ public static class AiAssets
         foreach (var s in skins)
         {
             if (s.sharedMesh == null || !s.sharedMesh.isReadable) { Debug.Log("[WBI] rig: deri okunamiyor: " + key); return false; }
-            foreach (var bn in SkinBones) if (System.Array.Find(s.bones, b => b != null && b.name == bn) == null) { Debug.Log("[WBI] rig: kemik yok " + bn + ": " + key); return false; }
+            for (var bi = 0; bi < RequiredSkinBones; bi++) { var bn = SkinBones[bi]; if (System.Array.Find(s.bones, b => b != null && b.name == bn) == null) { Debug.Log("[WBI] rig: kemik yok " + bn + ": " + key); return false; } }
         }
         var original = wrap.transform.GetChild(0).gameObject;
         var src0 = skins[0].bones;
@@ -212,7 +256,18 @@ public static class AiAssets
             return b;
         }
         var legL = Bone("LegL"); var legR = Bone("LegR"); var armL = Bone("ArmL"); var armR = Bone("ArmR");
-        var bones = new[] { hips, legL, legR, armL, armR };
+        // knees (optional): children of the thighs, identity rotation like the rest
+        Transform KneeBone(string name, Transform leg)
+        {
+            var sb = SrcBone(name);
+            if (sb == null) return null;
+            var b = new GameObject(name).transform;
+            b.SetParent(leg, false);
+            b.localPosition = leg.InverseTransformPoint(sb.position);
+            return b;
+        }
+        var kneeL = KneeBone("KneeL", legL); var kneeR = KneeBone("KneeR", legR);
+        var bones = kneeL != null && kneeR != null ? new[] { hips, legL, legR, armL, armR, kneeL, kneeR } : new[] { hips, legL, legR, armL, armR };
         var bind = new Matrix4x4[bones.Length];
         for (var i = 0; i < bones.Length; i++) bind[i] = bones[i].worldToLocalMatrix * wrap.transform.localToWorldMatrix;
         var toWrap = wrap.transform.worldToLocalMatrix;
@@ -227,7 +282,8 @@ public static class AiAssets
             for (var j = 0; j < s.bones.Length; j++)
             {
                 var name = s.bones[j] != null ? s.bones[j].name : "";
-                remap[j] = Mathf.Max(0, System.Array.IndexOf(SkinBones, name));       // anything else (none expected) goes to the hips
+                var si = System.Array.IndexOf(SkinBones, name);
+                remap[j] = si >= 0 && si < bones.Length ? si : (name == "KneeL" ? 1 : name == "KneeR" ? 2 : 0);   // knees without knee bones -> thighs; anything else -> hips
                 skinM[j] = toWrap * (s.bones[j] != null ? s.bones[j].localToWorldMatrix : s.transform.localToWorldMatrix) * (j < src.bindposes.Length ? src.bindposes[j] : Matrix4x4.identity);
             }
             var v = src.vertices; var nrm = src.normals; var bw = src.boneWeights;
@@ -250,8 +306,9 @@ public static class AiAssets
                 else p /= tot;
                 v[i] = p;
                 if (nrm.Length == v.Length) nrm[i] = q.sqrMagnitude > 0f ? q.normalized : Vector3.up;
-                // the four largest of the five
-                var order = new[] { 0, 1, 2, 3, 4 };
+                // the four largest
+                var order = new int[bones.Length];
+                for (var k = 0; k < order.Length; k++) order[k] = k;
                 System.Array.Sort(order, (x, y) => acc[y].CompareTo(acc[x]));
                 var t4 = acc[order[0]] + acc[order[1]] + acc[order[2]] + acc[order[3]];
                 w[i] = new BoneWeight
@@ -286,8 +343,10 @@ public static class AiAssets
 
         var anim = wrap.AddComponent<WhoBrokeIt.Player.CharacterAnimator>();
         anim.hips = hips; anim.legL = legL; anim.legR = legR; anim.armL = armL; anim.armR = armR;
+        anim.kneeL = kneeL; anim.kneeR = kneeR;
         anim.swingDegrees = spec.legSwing; anim.armSwingDegrees = spec.armSwing;
-        Debug.Log("[WBI] rig " + key + ": deri (otomatik agirlik) kalca=" + hips.localPosition.y.ToString("0.00") + " omuz=" + armR.position.ToString("0.00"));
+        Debug.Log("[WBI] rig " + key + ": deri (otomatik agirlik) kalca=" + hips.localPosition.y.ToString("0.00") + " omuz=" + armR.position.ToString("0.00")
+                  + " diz=" + (kneeL != null ? wrap.transform.InverseTransformPoint(kneeL.position).y.ToString("0.00") : "yok"));
         return true;
     }
 

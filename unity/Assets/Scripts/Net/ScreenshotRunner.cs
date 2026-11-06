@@ -103,7 +103,7 @@ namespace WhoBrokeIt.Net
             for (var ch = 0; ch < CharacterCatalog.Count; ch++)
             {
                 p.characterId.Value = ch; yield return new WaitForSeconds(0.6f);
-                foreach (var pose in new[] { 9, 6, 4 })
+                foreach (var pose in new[] { 9, 6, 4, 2 })   // 2 = sitting (knees)
                 {
                     CharacterAnimator.DebugPose = pose; yield return new WaitForSeconds(0.5f);
                     SideView(p); yield return HudShot(dir, "pose_c" + ch + "_p" + pose);
@@ -120,7 +120,7 @@ namespace WhoBrokeIt.Net
             for (var n = 0; n < WhoBrokeIt.World.NpcCatalog.Count; n++)
             {
                 var vis = WhoBrokeIt.World.NpcCatalog.Build(n, stand);
-                foreach (var pose in new[] { 0, 9, 6, 4 })
+                foreach (var pose in new[] { 0, 9, 6, 4, 2 })
                 {
                     CharacterAnimator.DebugPose = pose; yield return new WaitForSeconds(0.6f);
                     if (cam != null)
