@@ -11,6 +11,7 @@ namespace WhoBrokeIt.Player
     public class CharacterAnimator : MonoBehaviour
     {
         public Transform hips, legL, legR, armL, armR;
+        public Transform kneeL, kneeR;                 // optional (generated models have them): shins fold back when the thigh lifts
         public float swingDegrees = 36f;
         public float armSwingDegrees = 32f;
 
@@ -35,7 +36,7 @@ namespace WhoBrokeIt.Player
         public float HipHeight => hipHeight;
 
         // smoothed pose values (degrees / metres)
-        float lLx, lRx, aLx, aRx, aLz, aRz, bob, lean, twist, roll, sink;
+        float lLx, lRx, aLx, aRx, aLz, aRz, bob, lean, twist, roll, sink, kLx, kRx;
         float speedForAcc, accSm, vySm, yawRateSm, lastYaw, pushPhase;
         bool wasStunned, wasMounted;
         float lastStepSin;
@@ -294,6 +295,14 @@ namespace WhoBrokeIt.Player
 
             if (legL != null) legL.localRotation = Quaternion.Euler(lLx, 0f, 0f);
             if (legR != null) legR.localRotation = Quaternion.Euler(lRx, 0f, 0f);
+            if (kneeL != null || kneeR != null)
+            {
+                // the shin hangs down while the thigh lifts (sitting, pedalling, climbing, a jump); a leg swung back folds a little
+                kLx = Sm(kLx, Mathf.Max(0f, -lLx) * 0.9f + Mathf.Max(0f, lLx) * 0.18f, k);
+                kRx = Sm(kRx, Mathf.Max(0f, -lRx) * 0.9f + Mathf.Max(0f, lRx) * 0.18f, k);
+                if (kneeL != null) kneeL.localRotation = Quaternion.Euler(kLx, 0f, 0f);
+                if (kneeR != null) kneeR.localRotation = Quaternion.Euler(kRx, 0f, 0f);
+            }
             if (armL != null) armL.localRotation = Quaternion.Euler(aLx, 0f, aLz);
             if (armR != null) armR.localRotation = Quaternion.Euler(aRx, 0f, aRz);
             PlaceTools();
