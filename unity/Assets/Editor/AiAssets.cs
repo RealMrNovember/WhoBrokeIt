@@ -136,9 +136,9 @@ public static class AiAssets
 
                 var wLeg = 1f - Smooth(spec.hipY - 0.07f, spec.hipY + 0.07f, p.y);
                 var sideR = Smooth(-0.035f, 0.035f, p.x);
-                var wArm = Smooth(spec.armX - 0.03f, spec.armX + 0.10f, Mathf.Abs(p.x))
+                var wArm = Smooth(spec.armX - 0.015f, spec.armX + 0.03f, Mathf.Abs(p.x))
                          * Smooth(spec.armBottom - 0.05f, spec.armBottom + 0.05f, p.y)
-                         * (1f - Smooth(spec.shoulderY - 0.03f, spec.shoulderY + 0.10f, p.y)) * (1f - wLeg);   // the shoulder cap stays with the torso
+                         * (1f - Smooth(spec.shoulderY - 0.01f, spec.shoulderY + 0.035f, p.y)) * (1f - wLeg);   // narrow blends: the arm moves as one piece, the shoulder cap barely follows it
                 var legIdx = p.x >= 0f ? 2 : 1;
                 var armIdx = p.x >= 0f ? 4 : 3;
                 var legW = wLeg * (p.x >= 0f ? sideR : 1f - sideR);

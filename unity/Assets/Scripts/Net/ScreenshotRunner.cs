@@ -35,8 +35,8 @@ namespace WhoBrokeIt.Net
         {
             var cam = Camera.main; if (cam == null) return;
             if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.enabled = false;
-            var c = p.transform.position + p.transform.right * 2.6f + p.transform.forward * 1.4f + Vector3.up * 0.5f;
-            cam.transform.SetPositionAndRotation(c, Quaternion.LookRotation(p.transform.position + p.transform.forward * 0.5f + Vector3.up * 0.2f - c));
+            var c = p.transform.position - p.transform.right * 3.2f + Vector3.up * 0.15f;
+            cam.transform.SetPositionAndRotation(c, Quaternion.LookRotation(p.transform.position + p.transform.forward * 0.3f + Vector3.up * 0.1f - c));
         }
 
         IEnumerator HudShot(string dir, string name)
@@ -91,6 +91,17 @@ namespace WhoBrokeIt.Net
                 if (!rbx.isKinematic && rbx.mass <= 6f && rbx.GetComponent<NetworkObject>() != null && Vector3.Distance(rbx.position, p.transform.position) < nd) { nd = Vector3.Distance(rbx.position, p.transform.position); nearest = rbx; }
             if (nearest != null && p.carry.ServerPickup(nearest, p)) { yield return new WaitForSeconds(1.2f); SideView(p); yield return HudShot(dir, "carry"); }
             else Debug.Log("[SHOT] tasinacak nesne yok");
+            // limb poses on every character, from the side: bicycle hands, carrying arms, climbing arms
+            for (var ch = 0; ch < CharacterCatalog.Count; ch++)
+            {
+                p.characterId.Value = ch; yield return new WaitForSeconds(0.6f);
+                foreach (var pose in new[] { 9, 6, 4 })
+                {
+                    CharacterAnimator.DebugPose = pose; yield return new WaitForSeconds(0.5f);
+                    SideView(p); yield return HudShot(dir, "pose_c" + ch + "_p" + pose);
+                }
+                CharacterAnimator.DebugPose = 0;
+            }
             Application.Quit(0);
         }
 
