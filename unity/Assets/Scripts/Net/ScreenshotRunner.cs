@@ -31,6 +31,23 @@ namespace WhoBrokeIt.Net
             Application.Quit(0);
         }
 
+        void SideView(PlayerNet p)
+        {
+            var cam = Camera.main; if (cam == null) return;
+            if (ThirdPersonCamera.Instance != null) ThirdPersonCamera.Instance.enabled = false;
+            var c = p.transform.position + p.transform.right * 2.6f + p.transform.forward * 1.4f + Vector3.up * 0.5f;
+            cam.transform.SetPositionAndRotation(c, Quaternion.LookRotation(p.transform.position + p.transform.forward * 0.5f + Vector3.up * 0.2f - c));
+        }
+
+        IEnumerator HudShot(string dir, string name)
+        {
+            yield return new WaitForEndOfFrame();
+            var tex = ScreenCapture.CaptureScreenshotAsTexture();
+            File.WriteAllBytes(Path.Combine(dir, "hud_" + name + ".jpg"), tex.EncodeToJPG(90));
+            Destroy(tex);
+            Debug.Log("[SHOT] hud " + name);
+        }
+
         /// <summary>HUD tour (needs a real window, run under Xvfb): host, accept the first contract, shoot the screen as the player sees it from a few headings.</summary>
         IEnumerator RunHud(string dir)
         {
@@ -62,6 +79,18 @@ namespace WhoBrokeIt.Net
                 Destroy(tex);
                 Debug.Log("[SHOT] hud " + i + " state=" + (cd != null ? cd.state.Value.ToString() : "?") + " aktif=" + (cd != null ? cd.activeId.Value.ToString() : "?"));
             }
+            // tools in the hand, carrying, pushing
+            cc.enabled = false; p.transform.rotation = Quaternion.Euler(0f, 0f, 0f); cc.enabled = true;
+            p.toolId.Value = 1; yield return new WaitForSeconds(1.2f); SideView(p); yield return HudShot(dir, "tool_broom");
+            p.toolId.Value = 2; yield return new WaitForSeconds(1.2f); SideView(p); yield return HudShot(dir, "tool_hammer");
+            p.toolId.Value = 0;
+            p.NoteAction(1); yield return new WaitForSeconds(0.22f); SideView(p); yield return HudShot(dir, "push");
+            yield return new WaitForSeconds(1f);
+            Rigidbody nearest = null; var nd = 99f;
+            foreach (var rbx in FindObjectsByType<Rigidbody>(FindObjectsSortMode.None))
+                if (!rbx.isKinematic && rbx.mass <= 6f && rbx.GetComponent<NetworkObject>() != null && Vector3.Distance(rbx.position, p.transform.position) < nd) { nd = Vector3.Distance(rbx.position, p.transform.position); nearest = rbx; }
+            if (nearest != null && p.carry.ServerPickup(nearest, p)) { yield return new WaitForSeconds(1.2f); SideView(p); yield return HudShot(dir, "carry"); }
+            else Debug.Log("[SHOT] tasinacak nesne yok");
             Application.Quit(0);
         }
 

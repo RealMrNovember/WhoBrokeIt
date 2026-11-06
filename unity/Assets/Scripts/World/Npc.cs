@@ -62,8 +62,25 @@ namespace WhoBrokeIt.World
             waitUntil = Time.time + 2f;
         }
 
+        float nextIgnoreScan;
+
+        /// <summary>Pedestrians are scenery you can brush past: players never get stuck on them (a solid kinematic capsule would block a walking character for good).</summary>
+        void IgnorePlayers()
+        {
+            if (Time.time < nextIgnoreScan) return;
+            nextIgnoreScan = Time.time + 1f;
+            var mine = GetComponentsInChildren<Collider>();
+            foreach (var p in FindObjectsByType<PlayerNet>(FindObjectsSortMode.None))
+            {
+                var cc = p.GetComponent<CharacterController>();
+                if (cc != null) foreach (var m in mine) Physics.IgnoreCollision(m, cc, true);
+                foreach (var b in p.BodyColliders()) foreach (var m in mine) if (b != null && m != null) Physics.IgnoreCollision(m, b, true);
+            }
+        }
+
         void Update()
         {
+            IgnorePlayers();
             if (!IsServer || !IsSpawned || stationary) return;
             if (Time.time < waitUntil) return;
             if (!hasTarget) { PickTarget(); if (!hasTarget) return; }

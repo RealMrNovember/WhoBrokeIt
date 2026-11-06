@@ -41,6 +41,18 @@ namespace WhoBrokeIt.Player
         float lastStepSin;
 
         Transform Body => hips != null ? hips : transform;
+        Transform handR;
+
+        /// <summary>Tools live in the right hand: placed after the arm pose, tilted relative to the body so the broom and hammer point forward whatever the arm angle is.</summary>
+        void PlaceTools()
+        {
+            if (net == null || handR == null) return;
+            var rot = Body.rotation;
+            var busy = net.usingTool.Value;
+            var sw = busy ? Mathf.Sin(Time.time * 12f) * 24f : 0f;
+            if (net.broomVisual != null && net.broomVisual.activeSelf) net.broomVisual.transform.SetPositionAndRotation(handR.position + rot * new Vector3(0f, -0.05f, 0.40f), rot * Quaternion.Euler(30f + sw, 0f, 0f));
+            if (net.hammerVisual != null && net.hammerVisual.activeSelf) net.hammerVisual.transform.SetPositionAndRotation(handR.position + rot * new Vector3(0f, 0.02f, 0.26f), rot * Quaternion.Euler(-55f + sw * 1.5f, 0f, 0f));
+        }
 
         void Start()
         {
@@ -53,6 +65,7 @@ namespace WhoBrokeIt.Player
             hipsBaseScale = Body.localScale;
             if (hips != null) hipHeight = hips.localPosition.y;
             lastTick = net != null ? net.actionTick.Value : 0;
+            if (armR != null) { handR = new GameObject("HandR").transform; handR.SetParent(armR, false); handR.localPosition = new Vector3(0f, -0.62f, 0f); }
         }
 
         static float Sm(float current, float target, float k) { return Mathf.Lerp(current, target, 1f - Mathf.Exp(-k * Time.deltaTime)); }
@@ -185,10 +198,10 @@ namespace WhoBrokeIt.Player
                     var a = u < 0.35f ? Mathf.Lerp(-30f, -125f, u / 0.35f) : Mathf.Lerp(-125f, 35f, (u - 0.35f) / 0.65f);
                     tAL = a; tAR = a; tAZL = 10f; tAZR = -10f; tLean = u < 0.35f ? -6f : 14f;
                 }
-                else                          // hit: right arm winds up and chops down, body twists
+                else                          // push: both hands shove forward, the body leans into it
                 {
-                    var a = u < 0.3f ? Mathf.Lerp(-30f, -120f, u / 0.3f) : Mathf.Lerp(-120f, 45f, (u - 0.3f) / 0.7f);
-                    tAR = a; tTwist = u < 0.3f ? 14f : -22f; tLean = u < 0.3f ? -4f : 12f;
+                    var a = u < 0.3f ? Mathf.Lerp(-30f, -96f, u / 0.3f) : Mathf.Lerp(-96f, -45f, (u - 0.3f) / 0.7f);
+                    tAL = a; tAR = a; tAZL = 7f; tAZR = -7f; tLean = u < 0.3f ? -3f : 15f;
                 }
             }
 
@@ -259,6 +272,7 @@ namespace WhoBrokeIt.Player
             if (legR != null) legR.localRotation = Quaternion.Euler(lRx, 0f, 0f);
             if (armL != null) armL.localRotation = Quaternion.Euler(aLx, 0f, aLz);
             if (armR != null) armR.localRotation = Quaternion.Euler(aRx, 0f, aRz);
+            PlaceTools();
         }
     }
 }

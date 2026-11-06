@@ -44,7 +44,7 @@ namespace WhoBrokeIt.Player
             oldDamping = rb.linearDamping;
             rb.useGravity = false;
             rb.linearDamping = 4f;
-            heldId.Value = no.NetworkObjectId;
+            heldId.Value = no.NetworkObjectId; heldSince = Time.time;
             safeUntil[rb.GetInstanceID()] = float.MaxValue;
             var dest = rb.GetComponent<Props.Destructible>();
             if (dest != null) dest.ServerSetHeld(true, this);
@@ -142,14 +142,27 @@ namespace WhoBrokeIt.Player
                         if (h != null && b != null) Physics.IgnoreCollision(h, b, ignore);
         }
 
+        // Rigid hold: the held body is placed exactly at the hold point (in the hands) every physics step. No spring means no lag and no swimming around the carrier.
         void FixedUpdate()
         {
             if (!IsServer || held == null) return;
             var to = holdPoint.position - held.position;
-            if (to.magnitude > 3.5f) { ServerDrop(); return; }
-            held.linearVelocity = Vector3.ClampMagnitude(to * 14f, 12f);
+            if (to.magnitude > 3.5f && heldSince + 0.5f < Time.time) { ServerDrop(); return; }
+            held.linearVelocity = Vector3.zero;
             held.angularVelocity = Vector3.zero;
-            held.MoveRotation(Quaternion.Slerp(held.rotation, Quaternion.Euler(0f, transform.eulerAngles.y, 0f), 0.2f));
+            held.position = holdPoint.position;
+            held.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+        }
+
+        float heldSince;
+
+        // Every machine, after the replicated pose has been applied: show the held object exactly in the carrier's hands (the replicated copy arrives
+        // late and would trail behind or sink into the character).
+        void LateUpdate()
+        {
+            if (heldId.Value == ulong.MaxValue || holdPoint == null || NetworkManager.Singleton == null) return;
+            if (!NetworkManager.Singleton.SpawnManager.SpawnedObjects.TryGetValue(heldId.Value, out var no) || no == null) return;
+            no.transform.SetPositionAndRotation(holdPoint.position, Quaternion.Euler(0f, transform.eulerAngles.y, 0f));
         }
     }
 }

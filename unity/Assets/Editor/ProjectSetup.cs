@@ -534,7 +534,7 @@ public static partial class ProjectSetup
 
         var hold = new GameObject("HoldPoint");
         hold.transform.SetParent(player.transform, false);
-        hold.transform.localPosition = new Vector3(0, 0.1f, 1.5f);
+        hold.transform.localPosition = new Vector3(0, 0.35f, 0.85f);   // between the hands: arms forward, chest height
         var carry = player.AddComponent<CarrySystem>();
         carry.holdPoint = hold.transform;
 

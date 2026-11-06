@@ -182,6 +182,10 @@ namespace WhoBrokeIt.Player
         [Rpc(SendTo.Server, Delivery = RpcDelivery.Unreliable)]
         public void UseToolRpc(byte tool, float dt)
         {
+            if (float.IsNaN(dt) || float.IsInfinity(dt)) return;
+            toolDt += Mathf.Clamp(dt, 0f, 0.1f);
+            if (Time.time - lastToolAt < 0.025f) return;                                // unreliable and unthrottled by the client: cap the rate, keep the time we skipped
+            lastToolAt = Time.time; dt = Mathf.Min(toolDt, 0.1f); toolDt = 0f;
             if (tool == 1) Sweep();
             else if (tool == 2) Hammer(dt);
         }
@@ -238,7 +242,8 @@ namespace WhoBrokeIt.Player
         [Rpc(SendTo.Server)]
         public void ThrowRpc(Vector3 aim)
         {
-            if (aim.sqrMagnitude < 0.01f) aim = transform.forward;
+            if (float.IsNaN(aim.x) || float.IsNaN(aim.y) || float.IsNaN(aim.z) || float.IsInfinity(aim.x) || float.IsInfinity(aim.y) || float.IsInfinity(aim.z) || aim.sqrMagnitude < 0.01f) aim = transform.forward;
+            aim.Normalize();
             carry.ServerThrow(aim, this);
         }
 
@@ -279,8 +284,9 @@ namespace WhoBrokeIt.Player
         static Texture2D tagBg;
 
         // ---------- chat and emotes ----------
+        public NetworkVariable<bool> usingTool = new NetworkVariable<bool>(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         public NetworkVariable<byte> emote = new NetworkVariable<byte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-        float lastChatAt;
+        float lastChatAt, lastToolAt, toolDt;
 
         /// <summary>Owner: show an emote (1 wave, 2 point, 3 cheer, 4 dance); 0 stops it.</summary>
         public void SetEmote(byte e) { if (IsOwner && emote.Value != e) emote.Value = e; }

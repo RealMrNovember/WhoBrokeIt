@@ -264,15 +264,23 @@ namespace WhoBrokeIt.Net
         /// <summary>Walks the real character controller (like a player holding W) to a point on the ground; gives up after the timeout.</summary>
         IEnumerator WalkTo(PlayerNet p, CharacterController cc, Vector3 target, float timeout = 25f)
         {
-            var t = 0f;
+            var t = 0f; var stuckT = 0f; var detour = 0f; var detourSign = 1f; var lastPos = p.transform.position; var checkAt = 0.5f;
             while (t < timeout)
             {
                 var to = target - p.transform.position; to.y = 0f;
                 if (to.magnitude < 0.4f) { L(who + " WalkTo tamam " + target + " konum " + p.transform.position.ToString("0.0") + " t=" + t.ToString("0.0")); yield break; }
                 var dir = to.normalized;
+                if (detour > 0f) { dir = Quaternion.Euler(0f, 70f * detourSign, 0f) * dir; detour -= Time.deltaTime; }   // walk around whatever blocks the way (a pedestrian, a prop)
                 p.transform.rotation = Quaternion.LookRotation(dir);
                 cc.Move((dir * 5f + Vector3.down * 2f) * Time.deltaTime);
                 t += Time.deltaTime;
+                if (t > checkAt)
+                {
+                    checkAt = t + 0.5f;
+                    var moved = Vector3.Distance(new Vector3(p.transform.position.x, 0f, p.transform.position.z), new Vector3(lastPos.x, 0f, lastPos.z));
+                    lastPos = p.transform.position;
+                    if (moved < 0.6f) { stuckT += 0.5f; if (stuckT >= 1f && detour <= 0f) { detour = 1.2f; detourSign = -detourSign; stuckT = 0f; } } else stuckT = 0f;
+                }
                 yield return null;
             }
             L(who + " WalkTo zaman asimi " + target);

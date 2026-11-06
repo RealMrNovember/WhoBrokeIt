@@ -54,6 +54,8 @@ namespace WhoBrokeIt.Vehicles
         bool testInput;
         VehiclePrediction pred = new VehiclePrediction();
         bool predicting;
+        public NetworkVariable<int> trickTick = new NetworkVariable<int>(0);    // +1 per skateboard jump: everybody plays the board flip
+        float nextJump, flipStart = -10f; bool jumpHeld, wasDriven; int lastTrick;
         float sendTimer, inT, inS, inJ, serverSpeedEst;
         Transform V => visual != null ? visual : transform;
         AudioSource loopSound;
@@ -205,13 +207,15 @@ namespace WhoBrokeIt.Vehicles
             body.useGravity = !driven;
             if (!driven)
             {
-                // parked: plain physics, heading follows whatever pushed it
+                // parked: plain physics, heading follows whatever pushed it; the speed we had while driven must not carry the vehicle away
+                if (wasDriven) { body.linearVelocity = Vector3.zero; body.angularVelocity = Vector3.zero; wasDriven = false; }
                 driveSpeed = 0f; throttle = steer = jump = 0f;
                 if (Mathf.Abs(steerAngle.Value) > 0.2f) steerAngle.Value = 0f;
                 heading = transform.eulerAngles.y;
                 return;
             }
 
+            wasDriven = true;
             var touching = Probe(out var n);
             var grounded = touching >= 1 && Time.time > jumpUntil;
             groundNormal = Vector3.Slerp(groundNormal, grounded ? n : Vector3.up, 1f - Mathf.Exp(-9f * dt));
@@ -233,9 +237,10 @@ namespace WhoBrokeIt.Vehicles
             body.angularVelocity = Vector3.zero;
 
             var fwd = rot * Vector3.forward;
-            if (jump > 0.5f && grounded && kind == RideKind.Skateboard)
+            var jumpPressed = jump > 0.5f && !jumpHeld; jumpHeld = jump > 0.5f;          // one jump per press, with a short cooldown (holding Space must not hover)
+            if (jumpPressed && grounded && kind == RideKind.Skateboard && Time.time > nextJump)
             {
-                jumpUntil = Time.time + 0.35f;
+                jumpUntil = Time.time + 0.35f; nextJump = Time.time + 0.7f; trickTick.Value++;
                 body.linearVelocity = fwd * driveSpeed + Vector3.up * jumpSpeed;
                 grounded = false;
             }
@@ -278,7 +283,10 @@ namespace WhoBrokeIt.Vehicles
                 }
             if (steerPivots != null)
                 foreach (var s in steerPivots) if (s != null) s.localRotation = Quaternion.Euler(0f, steerDeg, 0f);
-            if (tiltPivot != null) tiltPivot.localRotation = Quaternion.Euler(0f, 0f, -steerDeg * 0.45f);
+            if (trickTick.Value != lastTrick) { lastTrick = trickTick.Value; flipStart = Time.time; }
+            var fu = (Time.time - flipStart) / 0.62f;
+            var flipYaw = fu >= 0f && fu < 1f ? 360f * Mathf.SmoothStep(0f, 1f, fu) : 0f;      // the board spins once under the rider while it is in the air
+            if (tiltPivot != null) tiltPivot.localRotation = Quaternion.Euler(0f, flipYaw, -steerDeg * 0.45f);
 
             // crank turns with the rear wheel (freewheel keeps it turning slowly when coasting)
             if (crank != null)
@@ -355,7 +363,7 @@ namespace WhoBrokeIt.Vehicles
             }
             p.ride.Value = (byte)kind;
             mounted = true;
-            predicting = !IsServer;
+            predicting = !IsServer && kind != RideKind.Cart;   // the cart is slow and carries cargo: show the server pose so the load and the cart never disagree
             if (predicting) { pred.Begin(transform.position, transform.eulerAngles.y, serverSpeedEst); }
             hopRoutine = null;
         }

@@ -32,14 +32,14 @@ namespace WhoBrokeIt.Player
 
             var using_ = mouse != null && mouse.leftButton.isPressed && Cursor.lockState == CursorLockMode.Locked;
             var swing = using_ ? Mathf.Sin(Time.time * 12f) * 30f : 0f;
-            if (net.broomVisual != null) net.broomVisual.transform.localRotation = Quaternion.Euler(20f + swing, 0f, 0f);
-            if (net.hammerVisual != null) net.hammerVisual.transform.localRotation = Quaternion.Euler(-40f + swing * 1.5f, 0f, 0f);
 
             var locked = Cursor.lockState == CursorLockMode.Locked;
             var carrying = net.carry != null && net.carry.IsCarrying;
             var stunned = GetComponent<PlayerController>().Stunned;
 
-            if (using_ && tool != 0 && !carrying && !stunned) net.UseToolRpc(tool, Time.deltaTime);
+            var busyNow = using_ && tool != 0 && !carrying && !stunned;
+            if (net.usingTool.Value != busyNow) net.usingTool.Value = busyNow;
+            if (busyNow) net.UseToolRpc(tool, Time.deltaTime);
 
             // left click while carrying: throw it where the camera looks; right click: swing at whoever stands in front
             if (locked && !stunned && mouse != null)
