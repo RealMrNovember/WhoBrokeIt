@@ -93,7 +93,7 @@ namespace WhoBrokeIt.Net
             { "İpuçlarını bul (", "Find the clues (" }, { "Enkazı toplama alanına süpür (", "Sweep the debris to the collection area (" },
             { "Sigorta kutusunu çekiçle onar", "Repair the fuse box with the hammer" }, { "Alet dolabını atölyeye taşı", "Carry the tool cabinet to the workshop" },
             { "GÖREV: ", "TASK: " },
-            { "Dil: ", "Language: " }, { "KAPALI", "OFF" }, { "Devam et", "Resume" }, { "Kamera", "Camera" }, { "Mesafe", "Distance" }, { "Ses efektleri", "Sound effects" },
+            { "Dil: ", "Language: " }, { "Ana ses", "Master volume" }, { "Efektler", "Effects" }, { "Ekran: Tam Ekran", "Display: Full screen" }, { "Ekran: Pencere", "Display: Windowed" }, { "Grafik Kalitesi: ", "Graphics quality: " }, { "KAPALI", "OFF" }, { "Devam et", "Resume" }, { "Kamera", "Camera" }, { "Mesafe", "Distance" }, { "Ses efektleri", "Sound effects" },
             { "Grafik kalitesi: ", "Graphics quality: " }, { "  (değiştir)", "  (change)" }, { "Karakter: ", "Character: " }, { "Çık", "Exit" },
             { "BONK! Sersemledin...", "BONK! You are dazed..." }, { "Kodu kopyala", "Copy code" }, { " oyuncu", " players" },
             { "KASABA DEFTERİ", "TOWN NOTEBOOK" }, { "(henüz ipucu yok)", "(no clues yet)" }, { "GÖREV: Atölyeyi Aç", "TASK: Open the Workshop" },
