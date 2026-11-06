@@ -50,6 +50,7 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 39 | **Kaykay**: Space basılı tutunca havada uçuyor; olması gereken: **tek atlama**, hatta atlarken kaykayı ayakların altında çevirme (trick) | Space kenar tetikli + bekleme süresi; atlayışta tahta dönüş animasyonu |
 | 40 | **GENEL (en önemli)**: "Fizik diye bir şey yok, oyun motoru hissi yok." Çok kaliteli oyun motoru/fizik araştırması yapılacak (karakter kontrolü, tutma, araçlar, ağ üzerinde fizik) ve oyun bu temele oturtulacak | araştırma docs/FIZIK_ARASTIRMASI.md'ye yazılacak, bulgulara göre fizik altyapısı yeniden kurulacak |
 | 41 | Karakterleri kollar açık yeniden üret (A şıkkı), NPC karakterleri oyuncu karakterlerinden ayrı yarat; Doku oturumuna devredildi. Piyasadaki en çok kullanılan motorları araştır ve raporla | docs/OYUN_MOTORLARI.md yazıldı; karakter işi Doku oturumunda |
+| 42 | Roadmap devamı: telemetri, dış test rehberi, Türkçe/İngilizce yerelleştirme (Doku oturumuyla çakışmadan) | telemetri ve docs/PLAYTEST.md bitti; Loc altyapısı + 212 çeviri + dil düğmesi (menü sağ alt, duraklatma menüsü) bitti, ekranda görülmedi |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 
