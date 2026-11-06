@@ -13,6 +13,6 @@ Hedef: tek bölge, tek vaka, 1–4 oyuncu, Steam Erken Erişim.
 - [x] P0 Temel: Unity projesi + Doku CI build + karakter/kamera + 1 etkilesim → Windows .exe (87 MB) uretildi; oynanis testi bekliyor
 - [x] P1 Tek kişilik çekirdek: Atölye döngüsü kodlandı, build alındı (oynanış testi bekliyor)
 - [x] P2 Çok oyunculu: NGO, oda kur/katıl (doğrudan IP), sunucu-otoriter vaka; host tarafı otomatik test geçti; istemci eşleşmesi gerçek makinede test bekliyor
-- [ ] P3 Eğlence + içerik: wobble, forklift fiziği, kaza zincirleri, ses, sanat
-- [ ] P4 Dış test (5–10 kişi): MVP.md §4 ölçütleri
+- [ ] P3 Eğlence + içerik: yapıldı: forklift, el arabası, bisiklet, kaykay, sözleşmeler, ses+müzik, sohbet, ifadeler (4-7), isim etiketi, NPC satıcılar, telemetri. Eksik: karakter kolları (Doku oturumunda yeniden üretim), araç fiziği hissi, iki kişilik taşıma, kozmetikler, yerelleştirme, wobble
+- [ ] P4 Dış test (5–10 kişi): MVP.md §4 ölçütleri (hazırlık: docs/PLAYTEST.md, telemetri hazır)
 - [ ] P5 Steam: mağaza sayfası (P1'den paralel), trailer, build, yayın
