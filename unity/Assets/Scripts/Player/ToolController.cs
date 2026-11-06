@@ -8,7 +8,7 @@ namespace WhoBrokeIt.Player
     public class ToolController : MonoBehaviour
     {
         PlayerNet net;
-        float resetHold;
+        float resetHold, emoteUntil;
         GUIStyle style;
 
         void Awake() => net = GetComponent<PlayerNet>();
@@ -17,12 +17,18 @@ namespace WhoBrokeIt.Player
         {
             var kb = Keyboard.current;
             var mouse = Mouse.current;
-            if (kb == null || Net.PauseMenu.Open) return;
+            if (kb == null || Net.PauseMenu.Blocked) return;
 
             if (kb.digit1Key.wasPressedThisFrame) net.toolId.Value = 0;
             if (kb.digit2Key.wasPressedThisFrame) net.toolId.Value = 1;
             if (kb.digit3Key.wasPressedThisFrame) net.toolId.Value = 2;
             var tool = net.toolId.Value;
+            // emotes: 4 wave, 5 point, 6 cheer, 7 dance (any movement or tool use cancels them)
+            if (kb.digit4Key.wasPressedThisFrame) { net.SetEmote(1); emoteUntil = Time.time + 3f; }
+            if (kb.digit5Key.wasPressedThisFrame) { net.SetEmote(2); emoteUntil = Time.time + 3f; }
+            if (kb.digit6Key.wasPressedThisFrame) { net.SetEmote(3); emoteUntil = Time.time + 3f; }
+            if (kb.digit7Key.wasPressedThisFrame) { net.SetEmote(4); emoteUntil = Time.time + 5f; }
+            if (net.emote.Value != 0 && (Time.time > emoteUntil || kb.wKey.isPressed || kb.aKey.isPressed || kb.sKey.isPressed || kb.dKey.isPressed || kb.spaceKey.isPressed || (mouse != null && mouse.leftButton.isPressed))) net.SetEmote(0);
 
             var using_ = mouse != null && mouse.leftButton.isPressed && Cursor.lockState == CursorLockMode.Locked;
             var swing = using_ ? Mathf.Sin(Time.time * 12f) * 30f : 0f;
@@ -61,6 +67,7 @@ namespace WhoBrokeIt.Player
             if (style == null)
                 style = new GUIStyle(GUI.skin.label) { fontSize = 22, fontStyle = FontStyle.Bold, alignment = TextAnchor.MiddleCenter };
             var names = new[] { "1 Eller", "2 Süpürge", "3 Çekiç" };
+            style.fontSize = 22;
             for (var i = 0; i < 3; i++)
             {
                 var r = new Rect(Screen.width / 2f - 240 + i * 160, Screen.height - 110, 150, 44);

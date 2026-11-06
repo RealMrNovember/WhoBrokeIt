@@ -607,6 +607,7 @@ public static partial class ProjectSetup
         nm.NetworkConfig.Prefabs.NetworkPrefabsLists.Add(prefabList);
         nmGo.AddComponent<NetworkMenu>();
         nmGo.AddComponent<PauseMenu>();
+        nmGo.AddComponent<WhoBrokeIt.Net.ChatBox>();
         nmGo.AddComponent<PerfOverlay>();
         nmGo.AddComponent<SmokeRunner>();
         nmGo.AddComponent<ScreenshotRunner>();

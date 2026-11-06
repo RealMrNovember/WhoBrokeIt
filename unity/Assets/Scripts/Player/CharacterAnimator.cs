@@ -212,6 +212,20 @@ namespace WhoBrokeIt.Player
                 tBob = 0f; tLean = -4f; tTwist = 0f; tRoll = 0f; tSink = -0.05f;
             }
 
+            // emotes (owner-chosen, replicated as one byte): 1 wave, 2 point, 3 cheer, 4 dance
+            var emote = net != null ? net.emote.Value : 0;
+            if (emote != 0 && !seated && !climbing && !stunned && net.ride.Value == 0 && !carrying)
+            {
+                var te = Time.time;
+                switch (emote)
+                {
+                    case 1: tAR = -168f; tAZR = -18f + Mathf.Sin(te * 11f) * 24f; tAL = -armSwing * 0.3f; tLean = 2f; break;
+                    case 2: tAR = -88f; tAZR = -4f; tAL = 6f; tLean = 5f; tTwist = -8f; break;
+                    case 3: tAL = -172f; tAR = -172f; tAZL = 22f + Mathf.Sin(te * 9f) * 8f; tAZR = -22f - Mathf.Sin(te * 9f) * 8f; tBob = Mathf.Abs(Mathf.Sin(te * 8f)) * 0.09f; tLL = Mathf.Sin(te * 8f) * 10f; tLR = -tLL; break;
+                    case 4: tAL = -95f + Mathf.Sin(te * 6.5f) * 70f; tAR = -95f - Mathf.Sin(te * 6.5f) * 70f; tAZL = 20f; tAZR = -20f; tTwist = Mathf.Sin(te * 3.2f) * 22f; tRoll = Mathf.Sin(te * 6.5f) * 8f; tBob = -Mathf.Abs(Mathf.Sin(te * 6.5f)) * 0.06f; tLL = Mathf.Sin(te * 6.5f) * 22f; tLR = -tLL; break;
+                }
+            }
+
             var ride = net != null ? net.ride.Value : 0;
             if (ride != 0 && !climbing && !seated) RidePose(ride, ref tLL, ref tLR, ref tAL, ref tAR, ref tAZL, ref tAZR, ref tBob, ref tLean, ref tTwist, ref tRoll, ref tSink, dt);
 

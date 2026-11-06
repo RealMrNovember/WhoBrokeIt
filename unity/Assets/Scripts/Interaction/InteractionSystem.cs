@@ -18,7 +18,7 @@ namespace WhoBrokeIt.Interaction
         void Update()
         {
             var kb = Keyboard.current;
-            var pressed = kb != null && kb.eKey.wasPressedThisFrame && !Net.PauseMenu.Open;
+            var pressed = kb != null && kb.eKey.wasPressedThisFrame && !Net.PauseMenu.Blocked;
             if (net.carry != null && net.carry.IsCarrying)
             {
                 current = null;
@@ -78,7 +78,7 @@ namespace WhoBrokeIt.Interaction
         /// <summary>Aim point in the middle of the screen: a small dot that grows into a ring (yellow) when something can be used.</summary>
         void DrawCrosshair()
         {
-            if (Net.PauseMenu.Open || Event.current.type != EventType.Repaint) return;
+            if (Net.PauseMenu.Blocked || Event.current.type != EventType.Repaint) return;
             if (dot == null) { dot = new Texture2D(1, 1); dot.SetPixel(0, 0, Color.white); dot.Apply(); }
             var s = Mathf.Min(Screen.width / 1920f, Screen.height / 1080f);
             var c = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);

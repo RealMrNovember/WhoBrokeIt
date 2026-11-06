@@ -411,7 +411,7 @@ namespace WhoBrokeIt.Vehicles
             else resetHold = 0f;
         }
 
-        static bool PauseMenu_Open() { return Net.PauseMenu.Open; }
+        static bool PauseMenu_Open() { return Net.PauseMenu.Blocked; }
 
         void OnGUI()
         {

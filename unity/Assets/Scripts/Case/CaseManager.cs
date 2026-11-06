@@ -190,7 +190,7 @@ namespace WhoBrokeIt.Case
 
             small.normal.textColor = new Color(1f, 1f, 1f, 0.8f);
             GUI.Label(new Rect(20, h - 60, w - 40, 50),
-                "WASD yürü · Shift koş · Space zıpla · E kullan/al/bırak · 1 eller 2 süpürge 3 çekiç · Sol tık kullan (taşırken: fırlat) · Sağ tık vur · Tab defter · X sıfırla (basılı tut)", small);
+                "WASD yürü · Shift koş · Space zıpla · E kullan/al/bırak · 1 eller 2 süpürge 3 çekiç · 4-7 selam/işaret/yaşasın/dans · Enter sohbet · Sol tık kullan (taşırken: fırlat) · Sağ tık vur · Tab defter · X sıfırla (basılı tut)", small);
 
             if (roomCode.Value.Length > 0)
             {

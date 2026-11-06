@@ -12,6 +12,8 @@ namespace WhoBrokeIt.Net
     public class PauseMenu : MonoBehaviour
     {
         public static bool Open { get; private set; }
+        /// <summary>Game input is off: the Esc menu is open or the chat line is being typed.</summary>
+        public static bool Blocked => Open || ChatBox.Typing;
 
         GUIStyle title, label, btn, small;
         Texture2D dim;

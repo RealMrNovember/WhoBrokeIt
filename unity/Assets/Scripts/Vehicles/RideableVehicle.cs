@@ -383,7 +383,7 @@ namespace WhoBrokeIt.Vehicles
         {
             if (!localRiding) return;
             var kb = Keyboard.current;
-            if (!testDrive && (kb == null || Net.PauseMenu.Open)) return;
+            if (!testDrive && (kb == null || Net.PauseMenu.Blocked)) return;
             if (kb != null && kb.eKey.wasPressedThisFrame && Time.frameCount != enteredFrame && mounted) { ExitRpc(); return; }
             float t = 0f, s = 0f, j = 0f;
             if (mounted && testDrive) { t = testT; s = testS; }

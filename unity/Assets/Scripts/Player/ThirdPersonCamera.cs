@@ -91,7 +91,7 @@ namespace WhoBrokeIt.Player
             if (target == null) return;
             var kb = Keyboard.current;
             var mouse = Mouse.current;
-            if (kb != null && kb.vKey.wasPressedThisFrame && target == playerTarget && !Net.PauseMenu.Open)
+            if (kb != null && kb.vKey.wasPressedThisFrame && target == playerTarget && !Net.PauseMenu.Blocked)
                 FirstPersonPreferred = !FirstPersonPreferred;
 
             var cam = GetComponent<Camera>();
@@ -113,7 +113,7 @@ namespace WhoBrokeIt.Player
                 }
             }
             // keyboard camera tilt: [ and ] (also works when the mouse feels too touchy)
-            if (kb != null && !Net.PauseMenu.Open)
+            if (kb != null && !Net.PauseMenu.Blocked)
             {
                 if (kb.leftBracketKey.isPressed) pitch -= 40f * Time.deltaTime;
                 if (kb.rightBracketKey.isPressed) pitch += 40f * Time.deltaTime;

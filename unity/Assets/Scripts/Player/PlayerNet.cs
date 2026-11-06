@@ -278,6 +278,36 @@ namespace WhoBrokeIt.Player
         static GUIStyle tagStyle;
         static Texture2D tagBg;
 
+        // ---------- chat and emotes ----------
+        public NetworkVariable<byte> emote = new NetworkVariable<byte>(0, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        float lastChatAt;
+
+        /// <summary>Owner: show an emote (1 wave, 2 point, 3 cheer, 4 dance); 0 stops it.</summary>
+        public void SetEmote(byte e) { if (IsOwner && emote.Value != e) emote.Value = e; }
+
+        public void SendChat(string text)
+        {
+            if (!IsOwner || string.IsNullOrEmpty(text)) return;
+            if (text.Length > 100) text = text.Substring(0, 100);
+            ChatRpc(new FixedString128Bytes(text));
+        }
+
+        [Rpc(SendTo.Server)]
+        void ChatRpc(FixedString128Bytes text)
+        {
+            if (Time.time - lastChatAt < 0.7f) return;                       // rate limit per player
+            lastChatAt = Time.time;
+            var clean = new System.Text.StringBuilder();
+            foreach (var ch in text.ToString()) if (!char.IsControl(ch)) clean.Append(ch);
+            var msg = clean.ToString().Trim();
+            if (msg.Length == 0 || msg.Length > 100) return;
+            var who = playerName.Value.Length > 0 ? playerName.Value : new FixedString32Bytes("Oyuncu " + (OwnerClientId + 1));
+            ChatShowRpc(who, new FixedString128Bytes(msg));
+        }
+
+        [Rpc(SendTo.Everyone)]
+        void ChatShowRpc(FixedString32Bytes who, FixedString128Bytes text) => Net.ChatBox.Add(who.ToString(), text.ToString());
+
         public static bool DebugTagSelf;        // screenshot tour only: draw the tag over our own head too
 
         void OnGUI()
