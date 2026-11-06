@@ -42,6 +42,13 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 31 | Doku'daki Claude oturumuna sunucu işleri verilsin; skill/plugin'ler orada sıfırdan kurulsun | oturum izin denetimi `plugin marketplace add`'i engelledi, kullanıcı izni bekliyor |
 | 32 | "Oyun tamamlanana kadar onay bekleme, durma" | kalıcı: onay sormadan devam edilir (kalıcı kurallar ve güvenlik sınırları hariç) |
 | 33 | El arabası gerçekten kullanılabilsin (hareket + yük) | 0.4.9: kök neden bulundu (tekerleklere de tutucu sürtünme verilmişti, araba duruyordu); sadece kasa tutucu; test: yükle, 3,9 m sür, indir geçiyor |
+| 34 | 0.4.12 oynayış geri bildirimi (karakter ekranı ve oyun): **Kedi**: kollar düzelmemiş, kafada kocaman delik, çanta ve kuyruk bozuk/eksik. **Neredeyse tüm karakterlerin kafasında delik, gövdelerinde parça parça eksik alanlar** (aynalama düzgün birleşmiyor, modeller aynalamaya uygun üretilmemiş). **İşçi** kolları bozuk | Sebep bizim üst gövde aynalamamız (sol yarı atılıp sağ yarı yansıtılıyor). Aynalama KALDIRILACAK, orijinal mesh'e dönülecek; kollar için doğru kemik ağırlığı (rigging) yapılacak |
+| 35 | Sağ tık itme: yalnızca omuz oynuyor ve bozularak ileri uzuyor; **el ile itilmeli**. Süpürge ve çekiç **eldeyken değil omuz üstünde** hareket ediyor | Aletler el kemiğine bağlanacak, itme/vurma kolu doğru animasyonla (eller ileri) yapılacak |
+| 36 | Elde nesne tutarak yürüyünce nesne **havada, karakterin içinden geçip arkada kalıyor, geç geliyor**: karakter gerçekte tutamıyor gibi | Taşınan nesne her makinede oyuncunun görsel köküne/ellerine yerel olarak bağlanacak (ağ gecikmesine bağlı olmayacak) |
+| 37 | **Bisiklet**: sürerken eller değil **kollar uzuyor**. Bisikletten inince bisiklet **yatay fırlıyor** (düz gitmeli) | iniş anında hız sıfırlanacak; kol ağırlıkları düzeltilecek |
+| 38 | **El arabası**: yüklenen malzeme asla arabayla ilerlemiyor, baskı/ağırlık hissedilmiyor; arabayı bırakınca **araba saçma şekilde fırlıyor** | ağ tahmininde araba görseli ile yük farklı pozda: yük arabaya yerel bağlanacak/tahmin kapatılacak; bırakınca hız sıfırlanacak |
+| 39 | **Kaykay**: Space basılı tutunca havada uçuyor; olması gereken: **tek atlama**, hatta atlarken kaykayı ayakların altında çevirme (trick) | Space kenar tetikli + bekleme süresi; atlayışta tahta dönüş animasyonu |
+| 40 | **GENEL (en önemli)**: "Fizik diye bir şey yok, oyun motoru hissi yok." Çok kaliteli oyun motoru/fizik araştırması yapılacak (karakter kontrolü, tutma, araçlar, ağ üzerinde fizik) ve oyun bu temele oturtulacak | araştırma docs/FIZIK_ARASTIRMASI.md'ye yazılacak, bulgulara göre fizik altyapısı yeniden kurulacak |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 
