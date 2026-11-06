@@ -75,9 +75,9 @@ namespace WhoBrokeIt.Case
         void LocalToast(string msg, float sec) => toasts.Enqueue((msg, sec));
 
         // ---------- server-side state changes ----------
-        public static void NoteSpark() { if (I != null && I.IsServer) I.sparks.Value++; }
-        public static void NoteReset() { if (I != null && I.IsServer) I.resets.Value++; }
-        public static void NoteBonk() { if (I != null && I.IsServer) I.bonks.Value++; }
+        public static void NoteSpark() { if (I != null && I.IsServer) { I.sparks.Value++; Net.Telemetry.Log("spark"); } }
+        public static void NoteReset() { if (I != null && I.IsServer) { I.resets.Value++; Net.Telemetry.Log("reset"); } }
+        public static void NoteBonk() { if (I != null && I.IsServer) { I.bonks.Value++; Net.Telemetry.Log("bonk"); } }
 
         public bool HasClue(int index) => (clueMask.Value & (1 << index)) != 0;
         public int ClueCount

@@ -84,6 +84,7 @@ namespace WhoBrokeIt.Contracts
             progress.Value = 0;
             timeLeft.Value = d.seconds;
             state.Value = Active;
+            Net.Telemetry.Log("contract_start", "\"id\":" + id);
             CaseManager.Toast("Sözleşme başladı: " + d.title + " (" + d.goal + " adet, " + Mathf.RoundToInt(d.seconds / 60f) + " dk)", 4f);
         }
 
@@ -121,12 +122,14 @@ namespace WhoBrokeIt.Contracts
                     completed.Value++;
                     if (z != null) z.Spend(d.itemTag);       // this pile is used up
                     state.Value = Success;
+                    Net.Telemetry.Log("contract_done", "\"id\":" + activeId.Value + ",\"score\":" + (d.points + bonus) + ",\"left\":" + bonus);
                     resultAt = Time.time;
                     CaseManager.Toast("Sözleşme tamam: " + d.title + "  +" + (d.points + bonus) + " puan", 5f);
                 }
                 else if (timeLeft.Value <= 0f)
                 {
                     state.Value = Failed;
+                    Net.Telemetry.Log("contract_fail", "\"id\":" + activeId.Value);
                     resultAt = Time.time;
                     CaseManager.Toast("Süre doldu: " + d.title + ". Panodan yenisini başlat.", 5f);
                 }
