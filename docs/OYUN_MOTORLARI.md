@@ -1,49 +1,78 @@
-# Oyun motorları: piyasa ve bizim durumumuz
+# Oyun motorları araştırması
 
-Tarih: 2026-11-06. Kaynaklar web aramasıyla bulundu (standart arama, özetler okundu, tam sayfalar değil). Rakamlar kaynaktan kaynağa değişiyor, yön gösterir. Doğrulanmayanlar açıkça işaretli.
+Tarih: 2026-11-06. Yöntem: 4 genişletilmiş + 6 standart web araması, 11 sayfanın doğrudan okunması (resmi dokümanlar ve Wikipedia bilgi kutuları). Her bilgi "doğrulandı" (sayfayı kendim okudum), "özet" (arama özetinden, tam sayfa okunmadı) veya "bilgi" (benim genel bilgim, bu araştırmada doğrulanmadı) olarak işaretli. Bulamadıklarım en sonda ayrı listelendi.
 
-## 1. En çok kullanılan motorlar
+## 1. Piyasada en çok kullanılan motorlar
 
-| Ölçüt | Sonuç | Kaynak |
-|---|---|---|
-| Steam'e 2024'te çıkan oyunların motoru (Video Game Insights) | Unity ~%51, Unreal ~%28, Godot ~%5, GameMaker ~%4, kalanı özel/diğer | [gamedevreports](https://gamedevreports.substack.com/p/video-game-insights-game-engines), [Big Game Engines Report 2025](https://vginsights.com/assets/reports/The_Big_Game_Engines_Report_of_2025.pdf) |
-| Steam gelirinde pay (2024) | Unreal ~%31, Unity ~%26 (2018'den beri ilk kez Unreal önde) | aynı |
-| Geliştirici anketi (Perforce, Eylül 2025) | Unreal %65, Unity %53 (herhangi bir kullanım) | [pocketgamer.biz](https://www.pocketgamer.biz/cross-industry-game-engine-adoption-surges-led-by-unreal-unity-and-godot) |
-| GDC 2026 (ikinci elden özet, doğrulanmadı) | Unreal %42, Unity %30, ilk kez Unreal önde | [gamegen](https://www.gamegen.com/unity-vs-unreal-engine-vs-godot-which-game-engine-should-you-learn-first-in-2026) |
-| Mobil | Unity ~%66, Unreal ~%22, Godot ~%8 (zayıf kaynak) | [llcbuddy](https://llcbuddy.com/?p=291665) |
-| Godot büyümesi | Steam'deki tüm oyunların %0,9'undan (2020) %7,1'ine (2025); GMTK Jam 2025'te %39 | [gamediscover](https://newsletter.gamediscover.co/p/hows-pc-game-engine-usage-changing), [llcbuddy](https://llcbuddy.com/?p=291665) |
-| Küçük motorların satış payı | Godot, GameMaker, RPG Maker vb. çıkan oyunların ~%10'u ama satılan kopyaların yalnızca ~%2'si | Video Game Insights raporu (yukarıdaki bağlantılar) |
-| Özel motor | Steam çıkışlarında %71 (2012) → %13 (2024); Unreal bu pazarı alıyor | aynı |
+### 1.1 Geliştirici anketi: GDC 2026 State of the Game Industry (2.300+ yanıt)
+- Birincil motor: **Unreal %42, Unity %30**. Unreal'ın bu ankette ilk kez Unity'yi geçtiği söyleniyor. Birincil motor ölçütü doğrulandı ([cinevva](https://app.cinevva.com/news/2026-03-13-gdc-2026-by-the-numbers.html)), orijinal GDC raporuna ulaşamadım.
+- Godot %11 ve özel/kendi motor %19 rakamları ikinci el yazılardan (özet), ölçütleri (birincil mi, kullanılan mı) kaynaklarda karışık ([respawn](https://respawn.outlookindia.com/amp/story/gaming/gaming-originals/2026-gdc-survey-exposes-workforce-strain-and-technological-shifts), [gamegen](https://www.gamegen.com/unity-vs-unreal-engine-vs-godot-which-game-engine-should-you-learn-first-in-2026)).
+- Unreal, büyük stüdyolarda daha yaygın: AA %59, AAA %47 (özet).
+- Perforce anketi (Eylül 2025, özet): herhangi bir kullanım olarak Unreal %65, Unity %53 ([pocketgamer.biz](https://www.pocketgamer.biz/cross-industry-game-engine-adoption-surges-led-by-unreal-unity-and-godot)).
 
-Özet: Adet olarak Unity, gelir ve AAA'da Unreal öne geçiyor, Godot hızla büyüyor ama gelirde çok küçük.
+### 1.2 Steam verisi: Video Game Insights "Big Game Engines Report of 2025" (2024 verisi, 13.000+ oyun)
+Rapora ve PDF'ine doğrudan ulaşamadım, rakamlar özetlerden ([sensortower](https://sensortower.com/blog/the-big-game-engines-report-of-2025), [vginsights PDF](https://vginsights.com/assets/reports/The_Big_Game_Engines_Report_of_2025.pdf), [gamedevreports](https://gamedevreports.substack.com/p/video-game-insights-game-engines)):
+- Çıkan oyunların motoru: **Unity ~%51, Unreal ~%28, Godot ~%5, GameMaker ~%4**, özel motor ~%13.
+- Gelir payı: **Unreal ~%31, Unity ~%26** (2018'den beri ilk kez Unreal önde). Özel motorlar ~%41–42 ile hâlâ en büyük tek grup ama ilk kez yarının altına indi (kaynaklar 41 ve 42 arasında ayrışıyor).
+- Godot, GameMaker, RPG Maker gibi herkese açık motorlar çıkışların ~%10'u, satılan kopyaların yalnızca ~%2'si.
+- Özel motor örnekleri raporda: Frostbite, RAGE, Creation Engine. Özel motorların Unreal'a kaydığı öngörülüyor.
+- Başka bir izleyici (GameDiscover): Unity 2025'te ~%49,4; Godot %0,9 (2020) → %7,1 (2025) ([özet](https://newsletter.gamediscover.co/p/hows-pc-game-engine-usage-changing)).
 
-## 2. Bizim türümüz için (kooperatif fizik komedisi) ne söylüyor
+### 1.3 Okuma
+Adet olarak Unity (özellikle küçük ve orta oyunlar, mobil), gelir ve büyük bütçede Unreal, büyüme hızında Godot. Kendi motoru olan büyük stüdyolar Unreal'a doğru kayıyor. Rakamlar ölçüte göre değişiyor, tek bir "pazar payı" yok.
 
-- **Unreal (Chaos + Network Prediction/Mover):** Ağ fiziği için "Network Physics" arka ucu var, fizik nesneleriyle etkileşim gerektiren projelere uygun bulunuyor. Sınırları: Mover desteği çoğunlukla dik duran kapsül karakterlerle sınırlı, sabit fizik adımı şart, Chaos'un belirlenimciliği forumlarda sorun olarak anılıyor ([forum 1](https://forums.unrealengine.com/t/should-we-be-using-the-network-prediction-plugin-or-netphysics-predicted-physics/2535018/2), [forum 2](https://forums.unrealengine.com/t/chaos-async-not-deterministic-enough-for-network-prediction/729633)). Yani hazır "sihirli" çözüm değil.
-- **Unity (NGO):** Resmi bir fizik tahmini dokümanı bulamadım. Bir ortak oyun geliştiricisi forumda aynı sorunu anlatıyor; Unity 6'daki AnticipatedNetworkTransform'un yardım edebileceği söyleniyor ama fizikle ne kadar iyi çalıştığı doğrulanmadı ([forum](https://discussions.unity.com/t/netcode-for-gameobjects-custom-client-prediction-tips/1535760)). Aynı konuda "çok az online oyun gerçekten senkron fizik kullanıyor, çoğu çözümü etrafından dolaşıyor" yorumu var (anekdot).
-- **Godot 4 (Jolt):** Jolt 4.4'te motora entegre edildi, 4.6'da yeni 3B projelerde varsayılan olduğu söyleniyor (tek dilli, doğrulanmadı) ([devclass](https://devclass.com/2025/03/05/godot-4-4-released-open-source-game-engine-adds-jolt-physics-net-8-and-more/), [gamefromscratch](https://gamefromscratch.com/godot-4-4-gets-native-jolt-physics-support/)). Çok oyunculu yığını Unity'ninkinden olgunluk olarak geride ([rivet](https://rivet.dev/blog/godot-multiplayer-compared-to-unity/)). Küçük bir ekibin Godot 4.6 ve C# ile gönderdiği bir ortak oyun var (Pratfall) ([80.lv](https://80.lv/articles/indie-team-breaks-down-shipping-multiplayer-game-with-godot-4-6-using-c)).
-- Bulamadığım: Chaos ağ fiziği ile NGO'nun, ya da Godot+Jolt ile Unity'nin dürüst, güncel bir kıyas ölçümü. Bulduğum performans rakamları düşük kaliteli sayfalardan. Güvenmedim.
+## 2. Bizim türümüz için emsaller (kooperatif/fizik komedisi)
+Wikipedia bilgi kutularını doğrudan okudum (doğrulandı):
+- **Lethal Company: Unity** (bilgi kutusu; 2023 Ekim erken erişim, Ocak 2024'e kadar 10 milyondan fazla kopya tahmini).
+- **Gang Beasts: Unity.**
+- **Human: Fall Flat: Unity.**
+- **R.E.P.O.: Unity** (metin: "developed in the Unity game engine"; PC Gamer'dan alıntı: "Never occurred to me Lethal Company was missing physics until I played this").
+- **Peak: Unity.**
+- Content Warning ve Phasmophobia için sayfaya ulaşamadım / sayfada yazmıyordu. Benim bilgim Unity olduğu yönünde, doğrulanmadı.
+Sonuç: bu türün doğrulanmış büyük örneklerinin hepsi Unity. Godot ile gönderilmiş küçük bir ortak oyun var (Pratfall, 80.lv söyleşisi, özet).
 
-Benim bilgim (kaynaksız, doğrulanmadı): Gang Beasts, Human Fall Flat ve Lethal Company Unity'de yapıldı. Yani bizim türde ana akım motor Unity.
+## 3. Motor motor değerlendirme (3B fizik, ağ, lisans)
 
-## 3. Yorum ve öneri
+| Motor | 3B fizik | Ağ ve fizik | Lisans | Bu tür için |
+|---|---|---|---|---|
+| **Unity 6** | Dahili PhysX tabanlı Rigidbody (bilgi). Bizim kullandığımız. | NGO tam istemci tahmini ve geri sarma **sunmuyor**: "doesn't support full client-side prediction and reconciliation", "full, production-ready prediction loop... advanced users only" (doğrulandı, [resmi manuel](https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@2.7/manual/advanced-topics/client-anticipation.html)). Sunduğu: `AnticipatedNetworkVariable/Transform` ile basit "tahmin et, sunucu düzeltsin" modeli. Sayfa fizik veya rigidbody'den hiç söz etmiyor. Alternatifler: Fish-Net, Mirror, Photon (özet: hepsi "production-ready" deniyor). | Pro $200.000 gelir/fon üstünde zorunlu, 12 Ocak 2026'da %5 zam, ~$2.310/yıl/koltuk (özet, [unity.com](https://unity.com/products/pricing-updates)). Çalışma süresi ücretinin güncel durumunu doğrulayamadım. | Türün fiilî standardı. |
+| **Unreal 5** | Chaos. | Mover eklentisi: birleşik geri sarma, istemci yalnızca girdi gönderiyor, sunucu durumu yayınlıyor, istemci geri sarıp yeniden simüle edebiliyor. Chaos Ağ Fiziği ile bir arka uç da var. AMA Epic'in kendi karşılaştırma sayfası: Mover **deneysel** ("use caution when shipping with it"), "Yet untested"; eski Character Movement Component ise "Battle-hardened with many shipped projects" (doğrulandı, [Epic](https://dev.epicgames.com/documentation/unreal-engine/comparing-mover-and-character-movement-component-in-unreal-engine)). Fizik arka ucu Mover için büyük ölçüde dik kapsül karakterlerle sınırlı, Chaos belirlenimciliği forumlarda sorun (özet). | Ücretsiz, $1M üstünde %5 telif (tek ikinci el kaynaktan, resmi EULA ile doğrulanmadı). | En iyi ağ mimarisi kâğıt üstünde Unreal'da, ama fizik kısmı Epic'e göre henüz deneysel. |
+| **Godot 4.4+** | **Jolt** dahili ve yeni projelerde varsayılan (doğrulandı, [resmi doküman](https://docs.godotengine.org/en/latest/tutorials/physics/using_jolt_physics.html)); eksik: ilgili eklem özellikleri, tahmini temas impulsları, bazı eklem yumuşaklık ayarları. Forumlarda Jolt altında kapsülün zemine gömülmesi ve karakter/rigidbody fırlaması raporları (özet). | Yüksek seviye çok oyunculu "sahne replikasyonu" var ama RigidBody senkronu için resmi çözüm yok; topluluk `_integrate_forces` ile geçici çözüm kullanıyor, istemci tarafında titreme raporları (özet). | MIT, telifsiz (özet). | Fizik güçlü, ağ olgunluğu ve piyasa payı (gelirde) düşük. |
+| **GameMaker, RPG Maker** | 2B odaklı. | Yok/sınırlı. | — | Uygun değil. |
+| **CryEngine, O3DE** | O3DE: AWS destekli, Linux Vakfı, büyük ölçekli 3B (özet). | O3DE çok oyunculu ağ özelliği var (özet), kanıt yok. | O3DE Apache 2.0. | Küçük ekip ve bizim ölçek için olgun değil/az kanıt. |
+| **Flax, Stride, Bevy** | Hakkında çok az kanıt buldum. Bevy Rust, API sürümler arası değişiyor (özet). | Fizik ve ağ için kanıt bulamadım. | Açık kaynak. | Değerlendiremedim. |
+| **Özel motorlar** (Frostbite, RAGE...) | — | — | — | Büyük stüdyo işi, bizim için geçersiz. |
 
-1. **Motor değiştirmek şu an yanlış hamle.** Sorunumuz motor değil: araçları elle yazılmış hız ayarıyla sürüyoruz, taşımayı ağ gecikmesine bağlı bıraktık, karakterin iskeleti 5 kemik. Bunlar Unity'de de, Unreal'da da, Godot'ta da aynı şekilde kötü olur. 0.4.13'te taşıma, alet ve iniş hataları motor değiştirmeden düzeldi.
-2. **Unity'de kalmanın gerekçesi:** Steam'de en çok kullanılan motor, NGO + dedicated sunucu hattımız (Kale, Doku testleri, 17/17 ağ testi) çalışıyor, tüm sahneler C# editör betikleriyle üretiliyor. Unreal'a geçmek tüm bunları sıfırlamak demek ve Unreal'ın ağ fiziği de "hazır çözüm" değil.
-3. **Gerçek eksikler (docs/FIZIK_ARASTIRMASI.md ile uyumlu):** (a) karakterleri kollar açık üretip düzgün rig'lemek (Doku oturumuna devredildi), (b) araçları kuvvet tabanlı Rigidbody fiziğine çevirip sürücüye yetki devretmek, (c) taşınan ve yüklenen nesneleri aynı yetki altına almak, (d) elde tutma için el IK'si (iki kemikli analitik IK).
-4. **Godot'u izle:** Büyüyor ve Jolt güçlü, ama çok oyunculu olgunluğu ve Steam'deki satış payı henüz küçük. Bir sonraki oyun için aday, bu oyun için değil.
+## 4. Sonuç
+1. **Bizim türde motor seçimi Unity için güçlü emsale sahip** (5 doğrulanmış örnek). Unreal piyasada ve gelirde önde ama aynı türde doğrulanmış bir örnek bulamadım.
+2. **Hiçbir motorda fiziği ağ üzerinde "hazır" bulamadım.** Unity'nin NGO'su tam tahmin sunmuyor, Unreal'ın Mover'ı Epic'in kendi sözüyle deneysel, Godot'ta RigidBody senkronu topluluk geçici çözümü. Yani "fizik yok" hissi motor seçiminden değil, her motorda geliştiricinin kurduğu katmandan geliyor.
+3. **Motor değiştirmenin maliyeti** (sahne üretimi, NGO hattı, test altyapısı, sunucu paketleri) burada ölçülmedi. Değiştirmek için fizik ve ağ kalitesinde kanıtlanmış bir üstünlük bulamadım.
+4. Unreal'ın Mover + Chaos ağ fiziği ve Unity'deki üçüncü parti ağ kütüphaneleri (Fish-Net, Photon Fusion) fizik tahmini açısından asıl karşılaştırılacak şeyler. Bunları dokümandan öteye (örnek proje, ölçüm) incelemedim.
+
+## 5. Bulamadıklarım ve doğrulanmayanlar
+- GDC 2026'nın orijinal raporu ve Video Game Insights PDF'i (özetlerden gittim).
+- Godot'un GDC rakamının ölçütü, özel motor %19'u.
+- Unreal'ın telif şartları (resmi EULA okunmadı), Unity çalışma süresi ücretinin son durumu.
+- Content Warning ve Phasmophobia'nın motoru.
+- Flax, Stride, Bevy ve O3DE için fizik/ağ kanıtı.
+- Motorlar arası dürüst, güncel bir fizik/ağ performans ölçümü: yok, bulduğum rakamlar düşük kaliteli sayfalardandı.
+- Fish-Net, Mirror, Photon Fusion'ın fizik tahminini kendi dokümanlarından incelemedim.
 
 ## Kaynaklar
-- https://gamedevreports.substack.com/p/video-game-insights-game-engines
-- https://vginsights.com/assets/reports/The_Big_Game_Engines_Report_of_2025.pdf
-- https://www.pocketgamer.biz/cross-industry-game-engine-adoption-surges-led-by-unreal-unity-and-godot
-- https://newsletter.gamediscover.co/p/hows-pc-game-engine-usage-changing
+- https://app.cinevva.com/news/2026-03-13-gdc-2026-by-the-numbers.html
+- https://respawn.outlookindia.com/amp/story/gaming/gaming-originals/2026-gdc-survey-exposes-workforce-strain-and-technological-shifts
 - https://www.gamegen.com/unity-vs-unreal-engine-vs-godot-which-game-engine-should-you-learn-first-in-2026
-- https://llcbuddy.com/?p=291665
+- https://www.pocketgamer.biz/cross-industry-game-engine-adoption-surges-led-by-unreal-unity-and-godot
+- https://sensortower.com/blog/the-big-game-engines-report-of-2025
+- https://vginsights.com/assets/reports/The_Big_Game_Engines_Report_of_2025.pdf
+- https://gamedevreports.substack.com/p/video-game-insights-game-engines
+- https://newsletter.gamediscover.co/p/hows-pc-game-engine-usage-changing
+- https://en.wikipedia.org/wiki/Lethal_Company , https://en.wikipedia.org/wiki/Gang_Beasts , https://en.wikipedia.org/wiki/Human:_Fall_Flat , https://en.wikipedia.org/wiki/R.E.P.O. , https://en.wikipedia.org/wiki/Peak_(video_game)
+- https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@2.7/manual/advanced-topics/client-anticipation.html
+- https://dev.epicgames.com/documentation/unreal-engine/comparing-mover-and-character-movement-component-in-unreal-engine
+- https://dev.epicgames.com/documentation/en-us/unreal-engine/mover-in-unreal-engine
+- https://docs.godotengine.org/en/latest/tutorials/physics/using_jolt_physics.html
 - https://forums.unrealengine.com/t/should-we-be-using-the-network-prediction-plugin-or-netphysics-predicted-physics/2535018/2
-- https://forums.unrealengine.com/t/chaos-async-not-deterministic-enough-for-network-prediction/729633
-- https://discussions.unity.com/t/netcode-for-gameobjects-custom-client-prediction-tips/1535760
-- https://devclass.com/2025/03/05/godot-4-4-released-open-source-game-engine-adds-jolt-physics-net-8-and-more/
-- https://gamefromscratch.com/godot-4-4-gets-native-jolt-physics-support/
-- https://rivet.dev/blog/godot-multiplayer-compared-to-unity/
+- https://forum.godotengine.org/t/p2p-networked-physics-inaccuracy-seeking-help/45340
+- https://unity.com/products/pricing-updates
 - https://80.lv/articles/indie-team-breaks-down-shipping-multiplayer-game-with-godot-4-6-using-c
