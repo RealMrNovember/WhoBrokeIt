@@ -54,6 +54,7 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 43 | Karakterler: kollar açık, rig, NPC ayrı set (Doku oturumu); iki kişilik taşıma; yerelleştirme, sohbet, ifadeler, telemetri | 0.4.14 yayında. Bekleyen: kurbağa yeni hatla, npc_kosucu düzeltme, diz kemiği, NPC kol pozları (Doku oturumunda) |
 | 44 | Kozmetik şapkalar (MVP S12) | 5 şapka: Parti, Kasket, Silindir, Pervaneli Bere, Taç; 1/2/4/6/10 bitirilen sözleşmeyle açılır; Esc menüsü ve profil sayfasından seçilir; 0.4.16 |
 | 45 | Online oyunda arkadaşın karakteri donmuş görünüyor (uzaktan vurulabiliyor, ona hissettiriyor), benim karakterim onun ekranında gecikmeli/donuk | Kale günlüğünde hata ve yük yok (sunucu 60 fps, 14 % CPU). Neden henüz belirsiz. 0.4.18: NetDiag [NET] günlüğü (fps, rtt, uzak oyuncunun pozisyon yaşı). Player.log her iki oyuncudan istendi |
+| 46 | YARATICI YÖNETMEN BRİFİ (2026-11-10): oyunun kimliği, hikâye sürekliliği, dünya, karakterler, sanat yönü; önce denetim ve yeniden tasarım sunulacak, **onay olmadan yıkıcı/büyük uygulama yok** | Faz 1 tamam: docs/CREATIVE_AUDIT.md, NARRATIVE_REDESIGN.md, WORLD_DESIGN.md, CHARACTER_BIBLE.md, ART_DIRECTION.md, GAMEPLAY_CONTINUITY.md, NEW_GAME_VISION.md. Onay bekleyen kararlar K1-K7. Not: K1, eski "tek senaryolu değil" ilkesiyle çelişir (yeni brif sonra geldiği için üstün sayıldı, onay istendi) |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 
