@@ -53,6 +53,7 @@ Son güncelleme: 2026-11-04 (0.4.1). ✅ = kodlandı ve otomatik testle ya da ek
 | 42 | Roadmap devamı: telemetri, dış test rehberi, Türkçe/İngilizce yerelleştirme (Doku oturumuyla çakışmadan) | telemetri ve docs/PLAYTEST.md bitti; Loc altyapısı + 212 çeviri + dil düğmesi (menü sağ alt, duraklatma menüsü) bitti, ekranda görülmedi |
 | 43 | Karakterler: kollar açık, rig, NPC ayrı set (Doku oturumu); iki kişilik taşıma; yerelleştirme, sohbet, ifadeler, telemetri | 0.4.14 yayında. Bekleyen: kurbağa yeni hatla, npc_kosucu düzeltme, diz kemiği, NPC kol pozları (Doku oturumunda) |
 | 44 | Kozmetik şapkalar (MVP S12) | 5 şapka: Parti, Kasket, Silindir, Pervaneli Bere, Taç; 1/2/4/6/10 bitirilen sözleşmeyle açılır; Esc menüsü ve profil sayfasından seçilir; 0.4.16 |
+| 45 | Online oyunda arkadaşın karakteri donmuş görünüyor (uzaktan vurulabiliyor, ona hissettiriyor), benim karakterim onun ekranında gecikmeli/donuk | Kale günlüğünde hata ve yük yok (sunucu 60 fps, 14 % CPU). Neden henüz belirsiz. 0.4.18: NetDiag [NET] günlüğü (fps, rtt, uzak oyuncunun pozisyon yaşı). Player.log her iki oyuncudan istendi |
 
 ## Daha önce gelen ve sürekli geçerli istekler
 
