@@ -613,6 +613,7 @@ public static partial class ProjectSetup
         nmGo.AddComponent<ScreenshotRunner>();
         nmGo.AddComponent<UpdateChecker>();
         nmGo.AddComponent<WhoBrokeIt.Net.TelemetryRecorder>();
+        nmGo.AddComponent<WhoBrokeIt.Net.NetDiag>();
         nmGo.AddComponent<InstallGuard>();
         nmGo.AddComponent<ConnectionGate>();
         nmGo.AddComponent<DedicatedServer>();
